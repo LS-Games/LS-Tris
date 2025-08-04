@@ -1,0 +1,19 @@
+# Development settings
+
+
+## Docker Compose
+
+### Sets the Docker Compose profiles to use
+COMPOSE_PROFILES=dev
+
+
+## Ports
+
+### Sets the port on wich we will access the backend
+DEV_BACKEND_PORT=
+
+
+## Backend
+
+### Sets the token necessary for SonarQube scanning
+SONAR_TOKEN=

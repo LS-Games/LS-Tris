@@ -1,0 +1,76 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/docker-existing-docker-compose
+{
+	"name": "LS-Tris-DevEnv",
+    
+	// Update the 'dockerComposeFile' list if you have more compose files or use different names.
+	// The .devcontainer/docker-compose.yml file contains any overrides you need/want to make.
+	"dockerComposeFile": [
+        "docker-compose.backend.yml", // Backend related services
+        "docker-compose.frontend.yml", // Frontend related services
+		"docker-compose.dev.yml" // Development related services
+	],
+
+	// The 'service' property is the name of the service for the container that VS Code should
+	// use. Update this value and .devcontainer/docker-compose.yml to the real service name.
+	"service": "workspace",
+
+	// The optional 'workspaceFolder' property is the path VS Code should open by default when
+	// connected. This is typically a file mount in .devcontainer/docker-compose.yml
+	"workspaceFolder": "/workspaces/ls-tris",
+
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	// "features": {},
+
+    // Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Uncomment the next line if you want start specific services in your Docker Compose config.
+	// "runServices": [],
+
+	// Uncomment the next line if you want to keep your containers running after VS Code shuts down.
+	// "shutdownAction": "none",
+
+	// Uncomment the next line to run commands after the container is created.
+	// "postCreateCommand": "cat /etc/os-release",
+
+	// Configure tool-specific properties.
+	"customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+			// Set *default* container specific settings.json values on container create.
+			"settings": {},
+			"extensions": [
+				// Git & general-purpuse extensions
+				"eamodio.gitlens",
+				"mhutchie.git-graph",
+				"rioj7.vscode-remove-comments",
+
+                "mathematic.vscode-pdf", // PDF extensions
+
+                // Markdown extensions
+				"shd101wyy.markdown-preview-enhanced",
+				"DavidAnson.vscode-markdownlint",
+
+                // SonarLint
+                "SonarSource.sonarlint-vscode",
+
+                // Backend extensions
+                "ms-vscode.cpptools", // C/C++ extension
+                "humao.rest-client", // REST Client
+
+                // Frontend extensions
+                "HTMLHint.vscode-htmlhint", // HTML extension
+                "ms-vscode.live-server", // HTML extension
+
+                "Angular.ng-template", // Angular extension
+                "Syler.sass-indented", // Sass extension
+                "ms-playwright.playwright" // Playwright extension
+			]
+		}
+	},
+
+    // Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
+    // By default, the "mcr.microsoft.com/devcontainers/javascript-node:22" image has user "node"
+	// "remoteUser": "devcontainer"
+}

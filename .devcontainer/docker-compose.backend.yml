@@ -1,0 +1,21 @@
+# LS-Tris Backend Compose file
+
+name: ls-tris-backend-compose
+
+services:
+
+  backend:
+    container_name: ls-tris-backend
+    profiles: [prod] # This service will be started only in these profiles
+    build:
+      context: ../source-code/backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports: # Maps <hostPort>:<containerPort>
+      - 55501:3000
+    networks:
+      - backend-network
+    command: sleep infinity # Overrides default command so things don't shut down after the process ends.
+
+networks:
+  backend-network:
