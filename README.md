@@ -10,7 +10,7 @@ Repository dedicata al progetto di Laboratorio di Sistemi Operativi 2024/2025.
 
 ## Creazione dei Docker Containers
 
-Nella configurazione di questa repository, sono stati creati tre diversi Docker Compose files. Lo scopo di questa scelta è quello di avere una separazione netta tra le macrocomponenti del software, in modo da favorire la manutenibilità e portabilità. In particolare, distinguiamo i seguenti Docker Compose files:
+Nella configurazione di questa repository, sono stati creati tre diversi Docker Compose files. Lo scopo di questa scelta è quello di avere una separazione netta tra le macrocomponenti del software, in modo da favorire la manutenibilità e riusabilità. In particolare, distinguiamo i seguenti Docker Compose files:
 
 - [docker-compose.backend.yml](.devcontainer/docker-compose.backend.yml), che contiene tutti i servizi relativi al backend;
 - [docker-compose.frontend.yml](.devcontainer/docker-compose.frontend.yml), che contiene tutti i servizi relativi al frontend;

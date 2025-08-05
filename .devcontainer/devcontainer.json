@@ -56,8 +56,9 @@
                 "SonarSource.sonarlint-vscode",
 
                 // Backend extensions
-                "ms-vscode.cpptools", // C/C++ extension
                 "humao.rest-client", // REST Client
+
+                "ms-vscode.cpptools", // C/C++ extension
 
                 // Frontend extensions
                 "HTMLHint.vscode-htmlhint", // HTML extension

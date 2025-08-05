@@ -11,6 +11,9 @@ FROM mcr.microsoft.com/devcontainers/javascript-node:22
     ### Update dei package installati     
 RUN apt update \
 
+    ### Installa il C debugger
+    && apt-get install gdb -y \
+
     ### Installa SQLite
     && apt install sqlite3 libsqlite3-dev -y \
 

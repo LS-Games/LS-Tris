@@ -1,3 +1,6 @@
+# Compiled files
+bin
+
 # Prerequisites
 *.d
 
