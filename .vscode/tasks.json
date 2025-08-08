@@ -1,54 +1,70 @@
+// Reference:
+// - https://code.visualstudio.com/docs/debugtest/tasks
 {
+    // For more information, visit: https://go.microsoft.com/fwlink/?LinkId=733558
     "version": "2.0.0",
     "tasks": [
+
+        // Backend tasks
         {
-            "type": "shell",                            //More freedom than extenion's cppbuild
-            "label": "C: make build",
-            "command": "make",
-            "args": ["all"],
-
-            "options": {
-                "cwd": "${workspaceFolder}/source-code/backend"             //Involves VSC to show errors in Problem Panels
+            "type": "shell",                                    // The command to execute is interpreted as a shell command and launched on the configured shell (bash, cmd, PowerShell, zsh...)
+            "label": "C: make build",                           // The task label
+            "command": "make",                                  // The actual command to execute
+            "args": ["all"],                                    // Args of the command to execute
+            "options": {                                        // Override the defaults for "cwd", "env", or "shell"
+                "cwd": "${workspaceFolder}/source-code/backend"     // Sets the working directory of the command to execute
             }, 
-
-            "problemMatcher": [
-                "$gcc"
-            ],
-            
-            "group": {
+            "problemMatcher": [                                 // Defines which informations will be shown in the VSCode's "Problems" panel
+                "$gcc"                                              // Uses the gcc predefined problem matcher
+            ], 
+            "group": {                                          // Defines to which group the task belongs. Will be executed by running "Run <KIND_VALUE> Tasks from the VSCode's Command Palette
                 "kind": "build",
                 "isDefault": true
+            }
+        },
+
+        // Frontend tasks
+        {
+            "type": "npm",                                          // The command is interpreed as a process to execute
+            "script": "start",                                      // The script to execute
+            "options": {                                            // Override the defaults for "cwd", "env", or "shell"
+                "cwd": "${workspaceFolder}/source-code/frontend"        // Sets the working directory of the command to execute
+            }, 
+            "isBackground": true,                                   // The task will keep running in the background
+            "problemMatcher": {                                     // Defines which informations will be shown in the VSCode's "Problems" panel
+                "owner": "typescript",
+                "pattern": "$tsc",
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": {
+                        "regexp": "(.*?)"
+                    },
+                    "endsPattern": {
+                        "regexp": "bundle generation complete"
+                    }
+                }
+            }
+        },
+        {
+            "type": "npm",                                          // The command is interpreed as a process to execute
+            "script": "test",                                       // The script to execute
+            "options": {                                            // Override the defaults for "cwd", "env", or "shell"
+                "cwd": "${workspaceFolder}/source-code/frontend"        // Sets the working directory of the command to execute
+            }, 
+            "isBackground": true,                                   // The task will keep running in the background
+            "problemMatcher": {                                     // Defines which informations will be shown in the VSCode's "Problems" panel
+                "owner": "typescript",
+                "pattern": "$tsc",
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": {
+                        "regexp": "(.*?)"
+                    },
+                    "endsPattern": {
+                        "regexp": "bundle generation complete"
+                    }
+                }
             }
         }
     ]
 }
-
-
-// {
-//     "tasks": [
-//         {
-//             "type": "cppbuild",
-//             "label": "C/C++: gcc build active file",
-//             "command": "/usr/bin/gcc",
-//             "args": [
-//                 "-fdiagnostics-color=always",
-//                 "-g",
-//                 "${file}",
-//                 "-o",
-//                 "${fileDirname}/../bin/${fileBasenameNoExtension}"
-//             ],
-//             "options": {
-//                 "cwd": "${fileDirname}"
-//             },
-//             "problemMatcher": [
-//                 "$gcc"
-//             ],
-//             "group": {
-//                 "kind": "build",
-//                 "isDefault": true
-//             },
-//             "detail": "Task generated by Debugger."
-//         }
-//     ],
-//     "version": "2.0.0"
-// }

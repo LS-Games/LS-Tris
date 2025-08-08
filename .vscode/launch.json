@@ -1,26 +1,50 @@
+// Reference:
+// - https://code.visualstudio.com/docs/debugtest/debugging-configuration
+// - https://code.visualstudio.com/docs/cpp/launch-json-reference
 {
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        
+        // Backend configurations
         {
-            "name": "Debug C backend",
-            "type": "cppdbg",                                            //It uses the extension's debug
-            "request": "launch",                                         
-            "program": "${workspaceFolder}/source-code/backend/bin/main", //Path of the executable to be launched in debug mode
-            "args": [],
-            "stopAtEntry": false,                                        //It doesn't stop before main
-            "cwd": "${workspaceFolder}/source-code/backend",
-            "environment": [],
-            "externalConsole": false,                                    //It doesn't open a new terminal window
-            "MIMode": "gdb",
-            "miDebuggerPath": "/usr/bin/gdb",
-            "setupCommands": [
+            "name": "Debug C backend",                                      // Debugging configuration name
+            "type": "cppdbg",                                               // Sets the GDB (or LLDB) debugger
+            "request": "launch",                                            // Tells that this configuration will launch a new instance of the program
+            "program": "${workspaceFolder}/source-code/backend/bin/main",   // Path of the executable to be launched in debug mode
+            "args": [],                                                     // Args passed to the executable
+            "stopAtEntry": false,                                           // The debugger won't stop at the entry-point
+            "cwd": "${workspaceFolder}/source-code/backend",                // Sets the working directory of the application
+            "environment": [],                                              // Environment variables passed to the executable
+            "externalConsole": false,                                       // It won't open a new terminal window
+            "MIMode": "gdb",                                                // Uses the GDB debugger
+            "miDebuggerPath": "/usr/bin/gdb",                               // Path to the debugger
+            "setupCommands": [                                              // List of commands to execute in order to setup the debugger
                 {
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "C: make build"               //It must be equal to label in tasks.json  
+            "preLaunchTask": "C: make build"                                // Launch a task before the start of the debug session. It must be equal to the "label" of the task we want to launch in tasks.json  
+        },
+
+        // Frontend configurations
+        {
+            "name": "ng serve",                               // Debugging configuration name
+            "type": "chrome",                                 // Sets the type of configuration
+            "request": "launch",                              // Tells that this configuration will launch a new instance of the program
+            "cwd": "${workspaceFolder}/source-code/frontend", // Sets the working directory of the application
+            "preLaunchTask": "npm: start",                    // Launch a task before the start of the debug session. It must be equal to the "label" of the task we want to launch in tasks.json  
+            "url": "http://localhost:4200/"                   // Will search for a tab with this exact url and attach to it, if found
+        },
+        {
+            "name": "ng test",                                // Debugging configuration name
+            "type": "chrome",                                 // Sets the type of configuration
+            "request": "launch",                              // Tells that this configuration will launch a new instance of the program
+            "cwd": "${workspaceFolder}/source-code/frontend", // Sets the working directory of the application
+            "preLaunchTask": "npm: test",                     // Launch a task before the start of the debug session. It must be equal to the "label" of the task we want to launch in tasks.json  
+            "url": "http://localhost:9876/debug.html"         // Will search for a tab with this exact url and attach to it, if found
         }
     ]
 }
