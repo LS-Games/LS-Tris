@@ -18,5 +18,16 @@ se da terminale facciamo:
 Anche se ho scaricato un'estensione per sqlite che ci permette di visualizzare il 
 database in modo più intuitivo nella scheda "SQLITE EXPLORER" in basso a sinistra 
 
+#########################################
+
+Per popolare il db ho caricato un file populate_db.sql in /backend/db
+
+e ho inviato la query da riga di comando con:
+
+backend/data/database.sqlite < backend/db/populate_db.sql
+
+
+l  
+
 
 
