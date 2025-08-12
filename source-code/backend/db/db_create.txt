@@ -1,0 +1,22 @@
+Dopo aver creato un file scheme.sql con dentro il codice per creare le tabelle 
+ho lanciato il comando: 
+
+sqlite3 data/database.sqlite < db/scheme.sql
+
+#########################################
+
+Possiamo visualizzare il database da terminale con i seguenti comandi:
+
+Se ci troviamo in backend/
+
+se da terminale facciamo:
+- sqlite3
+- .read db/scheme.sql
+- .tables (ci appaiono tutte le tabelle)
+- .schema Player (ci da nel dettagli la tabella Player)
+
+Anche se ho scaricato un'estensione per sqlite che ci permette di visualizzare il 
+database in modo più intuitivo nella scheda "SQLITE EXPLORER" in basso a sinistra 
+
+
+
