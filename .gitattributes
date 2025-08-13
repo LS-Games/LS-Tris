@@ -1,0 +1,21 @@
+# Normalize all text files to LF in the repository
+* text=auto eol=lf
+
+# C and C++ files always LF
+*.c     text eol=lf
+*.h     text eol=lf
+
+# Configuration files always LF
+*.md    text eol=lf
+*.txt   text eol=lf
+*.json  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+
+# Scripts
+*.sh    text eol=lf
+*.py    text eol=lf
+
+# Windows batch files always CRLF (if present)
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
