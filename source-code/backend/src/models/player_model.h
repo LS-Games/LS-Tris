@@ -22,7 +22,8 @@ typedef enum {
     PLAYER_OK = 0,
     PLAYER_NOT_FOUND,
     PLAYER_SQL_ERROR,
-    PLAYER_INVALID_INPUT
+    PLAYER_INVALID_INPUT,
+    PLAYER_MALLOC_ERROR
 } PlayerStatus;
 
 

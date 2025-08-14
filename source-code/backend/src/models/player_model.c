@@ -93,3 +93,98 @@ PlayerStatus get_player_by_id(sqlite3 *db, int id, Player *out) {
         return PLAYER_SQL_ERROR;
     }    
 }
+
+PlayerStatus get_all_players(sqlite3 *db, Player **out_array, int *out_count) {
+
+    if(db == NULL || out_array == NULL || out_count == NULL) { //We only check if pointers are null
+        return PLAYER_INVALID_INPUT;
+    }
+
+    *out_array = NULL;
+    *out_count = 0; 
+
+    const char *sql = "SELECT id_player, nickname, email, password, current_streak, max_streak, registration_date FROM Player"; //Avoid using SELECT *, so if the table will change we won't have problems with columns
+
+    sqlite3_stmt *st = NULL;
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
+
+    if (rc != SQLITE_OK) return PLAYER_SQL_ERROR;
+
+    int cap = 16; //arbitrary field
+
+    Player *player_array = malloc(sizeof(Player) * cap);
+
+    if (!player_array) {
+        sqlite3_finalize(st);
+        return PLAYER_MALLOC_ERROR;
+    }
+
+    int count = 0;
+
+    while((rc = sqlite3_step(st)) == SQLITE_ROW) {
+
+        if (count == cap) {
+            int new_cap = cap * 2;
+            Player *tmp = realloc(player_array, sizeof(Player)* new_cap); //We use realloc because we may alreay have some rows saved
+
+            if(!tmp) {
+                free(player_array);
+                sqlite3_finalize(st);
+                return PLAYER_MALLOC_ERROR;
+            }
+
+            player_array = tmp; 
+            cap = new_cap;
+        }
+
+        Player p;
+
+        p.id_player = sqlite3_column_int(st,0);
+        const unsigned char *nickname = sqlite3_column_text(st, 1);
+        const unsigned char *email = sqlite3_column_text(st, 2);
+        const unsigned char *password = sqlite3_column_text(st, 3);
+        p.current_streak = sqlite3_column_int(st,4);
+        p.max_streak = sqlite3_column_int(st,5);
+        const unsigned char *registration_date = sqlite3_column_text(st,6);
+
+        if(nickname) {
+            strcpy(p.nickname, (const char*) nickname);
+        } else {
+            p.nickname[0] = '\0';
+        }
+
+        if(email) {
+            strcpy(p.email, (const char*) email);
+        } else {
+            p.email[0] = '\0';
+        }
+
+        if(password) {
+            strcpy(p.password, (const char*) password);
+        } else {
+            p.password[0] = '\0';
+        }
+
+        if(registration_date) {
+            strcpy(p.registration_date, (const char*) registration_date);
+        } else {
+            p.registration_date[0] = '\0';
+        }
+
+        player_array[count++] = p;
+    }
+
+    if (rc != SQLITE_DONE) {
+        free(player_array);
+        sqlite3_finalize(st);
+        return PLAYER_SQL_ERROR;
+    }
+
+    *out_array = player_array; //We're assigning to the caller pointer the address of array 
+    *out_count = count;
+
+    sqlite3_finalize(st);
+
+    return PLAYER_OK;
+}
