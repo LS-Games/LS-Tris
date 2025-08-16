@@ -188,7 +188,7 @@ PlayerStatus get_all_players(sqlite3 *db, Player **out_array, int *out_count) {
     }
 
     if (rc != SQLITE_DONE) {
-        printf("\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
         free(player_array);
         sqlite3_finalize(st);
         return PLAYER_SQL_ERROR;
@@ -306,7 +306,7 @@ PlayerStatus update_player_by_id(sqlite3 *db, int id, const Player *upd_player) 
     //After we builded the query we can prepare the statement
     if (rc != SQLITE_OK) {
         if (st) sqlite3_finalize(st);
-        printf("\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
         return PLAYER_SQL_ERROR;
     }
 
@@ -343,7 +343,7 @@ PlayerStatus update_player_by_id(sqlite3 *db, int id, const Player *upd_player) 
     sqlite3_finalize(st);
     
     if (rc != SQLITE_DONE) {
-        printf("\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
         return PLAYER_SQL_ERROR;
     }
     
@@ -375,7 +375,7 @@ PlayerStatus delete_player_by_id(sqlite3 *db, int id) {
 
     if ( rc != SQLITE_DONE) {
         if (stmt) {
-            printf("\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
+            fprintf(stderr, "\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
             sqlite3_finalize(stmt);
             return PLAYER_SQL_ERROR;
         }
@@ -384,3 +384,77 @@ PlayerStatus delete_player_by_id(sqlite3 *db, int id) {
     sqlite3_finalize(stmt);
     return PLAYER_OK;
 }
+
+PlayerStatus insert_player(sqlite3* db, const Player *in_player) {
+
+    if (db == NULL || in_player == NULL) {
+        return PLAYER_INVALID_INPUT;
+    }
+
+    sqlite3_stmt *stmt = NULL;
+
+    const char* query = 
+        "INSERT INTO Player (nickname, email, password, current_streak, max_streak, registration_date)"
+        " VALUES ( ?, ?, ?, ?, ?, ?)";
+
+    int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
+
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
+        return PLAYER_SQL_ERROR;
+    }
+
+    int param_index = 1;
+
+    if (in_player->nickname[0] == '\0') {
+        sqlite3_finalize(stmt);
+        return PLAYER_INVALID_INPUT;
+    } 
+
+    sqlite3_bind_text(stmt, param_index++, in_player->nickname, -1, SQLITE_STATIC);
+
+    if (in_player->email[0] == '\0') {
+        sqlite3_finalize(stmt);
+        return PLAYER_INVALID_INPUT;
+    }
+
+    sqlite3_bind_text(stmt, param_index++, in_player->email, -1, SQLITE_STATIC);
+
+    if (in_player->password[0] == '\0') {
+        sqlite3_finalize(stmt);
+        return PLAYER_INVALID_INPUT;
+    }
+
+    sqlite3_bind_text(stmt, param_index++, in_player->password, -1, SQLITE_STATIC);
+
+    if (in_player->current_streak < 0) {
+        sqlite3_finalize(stmt);
+        return PLAYER_INVALID_INPUT;
+    }
+
+    sqlite3_bind_int(stmt, param_index++, in_player->current_streak);
+
+    if (in_player->max_streak < 0) {
+        sqlite3_finalize(stmt);
+        return PLAYER_INVALID_INPUT;
+    }
+
+    sqlite3_bind_int(stmt, param_index++, in_player->max_streak);
+
+    if (in_player->registration_date[0] == '\0') {
+        sqlite3_finalize(stmt);
+        return PLAYER_INVALID_INPUT;
+    }
+
+    sqlite3_bind_text(stmt, param_index++, in_player->registration_date, -1, SQLITE_STATIC);
+
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        fprintf(stderr, "\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
+        return PLAYER_SQL_ERROR;
+    }
+
+    sqlite3_finalize(stmt);
+    return PLAYER_OK;
+}
+

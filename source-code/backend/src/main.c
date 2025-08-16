@@ -53,8 +53,19 @@ int main() {
         //     }
         // }
 
-        PlayerStatus del_ret = delete_player_by_id(db, 2);
-        printf("Stato: %s\n", player_status_to_string(del_ret));
+        // PlayerStatus del_ret = delete_player_by_id(db, 2);
+        // printf("Stato: %s\n", player_status_to_string(del_ret));
+
+        Player player;
+        strcpy(player.nickname, "Marco" );
+        strcpy(player.email, "marco@marco.com");
+        strcpy(player.password, "Marco123");
+        player.current_streak = 3;
+        player.max_streak = 4;
+        strcpy(player.registration_date, "16-08-2025");
+        
+
+        PlayerStatus res_ins_player = insert_player(db, &player);
 
 
     db_close(db);
