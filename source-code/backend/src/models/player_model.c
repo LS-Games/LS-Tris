@@ -1,6 +1,18 @@
 #include <stdio.h>
 #include <string.h>
 #include "player_model.h"
+#include <stdbool.h>
+
+const char* player_status_to_string(PlayerStatus status) {
+    switch (status) {
+        case PLAYER_OK:             return "PLAYER_OK";
+        case PLAYER_INVALID_INPUT:  return "PLAYER_INVALID_INPUT";
+        case PLAYER_SQL_ERROR:      return "PLAYER_SQL_ERROR";
+        case PLAYER_NOT_FOUND:      return "PLAYER_NOT_FOUND";
+        default:                    return "PLAYER_UNKNOWN";
+    }
+}
+
 
 PlayerStatus get_player_by_id(sqlite3 *db, int id, Player *out) {
 
@@ -82,7 +94,7 @@ PlayerStatus get_player_by_id(sqlite3 *db, int id, Player *out) {
         sqlite3_finalize(st); //We're closing the statement here
         return PLAYER_OK;
 
-    } else if (rc == SQLITE_DONE) {
+    } else if (rc == SQLITE_DONE) { //If slite3 return SQLITE_DONE and not SQLITE_ROW for SELECT operation, it means that the player was not found
 
         sqlite3_finalize(st);
         return PLAYER_NOT_FOUND;
@@ -176,6 +188,7 @@ PlayerStatus get_all_players(sqlite3 *db, Player **out_array, int *out_count) {
     }
 
     if (rc != SQLITE_DONE) {
+        printf("\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
         free(player_array);
         sqlite3_finalize(st);
         return PLAYER_SQL_ERROR;
@@ -186,5 +199,188 @@ PlayerStatus get_all_players(sqlite3 *db, Player **out_array, int *out_count) {
 
     sqlite3_finalize(st);
 
+    return PLAYER_OK;
+}
+
+PlayerStatus update_player_by_id(sqlite3 *db, int id, const Player *upd_player) {
+
+    if (db == NULL || id <= 0 || upd_player == NULL) {
+        return PLAYER_INVALID_INPUT;
+    }
+
+    //We retrieve the player saved in DB and compare it with the new one
+
+    Player original_player;
+    PlayerStatus player_status = get_player_by_id(db, id, &original_player);
+
+    if (player_status != PLAYER_OK) {
+        return player_status;
+    }
+
+    //We're comparing two objects and the flag are actived if they are different from each other
+
+    UpdateFlags flags = 0; //00000000
+
+    if (strcmp(original_player.nickname, upd_player->nickname) !=0) {
+        flags |= UPDATE_NICKNAME; // 00000000 | 00000001 = 00000001
+    }
+
+    if (strcmp(original_player.email, upd_player->email) != 0) {
+        flags |= UPDATE_EMAIL; // 00000000 | 00000010 = 00000010
+    }
+
+    if (strcmp(original_player.password, upd_player->password) != 0) {
+        flags |= UPDATE_PASSWORD;
+    }
+
+    if (original_player.current_streak != upd_player->current_streak) {
+        flags |= UPDATE_CURRENT_STREAK;
+    }
+
+    if (original_player.max_streak != upd_player->max_streak) {
+        flags |= UPDATE_MAX_STREAK;
+    }
+
+    if (strcmp(original_player.registration_date, upd_player->registration_date) != 0) {
+        flags |= UPDATE_REG_DATE;
+    }
+
+    if (flags == 0) {
+        return PLAYER_NOT_MODIFIED;
+    }
+
+    //Now we need to create the query dinamically 
+    char query[512] = "UPDATE Player SET ";
+
+    sqlite3_stmt *st = NULL;
+
+    bool first = true; 
+
+    //This condition checks if that nickname has been changed 
+
+    //For example if we have a flag 00000101 it means that nickname and password have benn changed because (1 << 0 = 00000001) and (1 << 2 = 00000100)
+    //So in the check we will have (00000101 AND 00000001 = 00000001) operation, the condition will be true
+
+    if (flags & UPDATE_NICKNAME) { 
+        if (!first) strcat(query, ", "); //If it isn't the first it adds the "," and then adds the correct column
+        strcat(query, "nickname = ?"); //We won't have the "," at the end becuase it added earlier
+        first = false;
+    }
+
+    if(flags & UPDATE_EMAIL) {
+        if (!first) strcat(query, ", ");
+        strcat(query, "email = ?");
+        first = false;
+    }
+
+    if (flags & UPDATE_PASSWORD) {
+        if (!first) strcat(query, ", ");
+        strcat(query, "password = ?");
+        first = false;
+    }
+
+    if (flags & UPDATE_CURRENT_STREAK) {
+        if (!first) strcat(query, ", ");
+        strcat(query, "current_streak = ?");
+        first = false;
+    }
+
+    if (flags & UPDATE_MAX_STREAK) {
+        if (!first) strcat(query, ", ");
+        strcat(query, "max_streak = ?");
+        first = false;
+    }
+
+    if (flags & UPDATE_REG_DATE) {
+        if (!first) strcat(query, ", ");
+        strcat(query, "registration_date = ?");
+        first = false;
+    }
+
+    strcat(query, " WHERE id_player = ?");
+
+    printf("\n\nQUERY: %s", query);
+
+    int rc = sqlite3_prepare_v2(db, query, -1, &st, NULL); //We have to do prepare before the bind
+
+    //After we builded the query we can prepare the statement
+    if (rc != SQLITE_OK) {
+        if (st) sqlite3_finalize(st);
+        printf("\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
+        return PLAYER_SQL_ERROR;
+    }
+
+    int param_index = 1;
+
+    if (flags & UPDATE_NICKNAME) {
+        sqlite3_bind_text(st, param_index++, upd_player->nickname, -1, SQLITE_STATIC);
+    }
+
+    if (flags & UPDATE_EMAIL) {
+        sqlite3_bind_text(st, param_index++, upd_player->email, -1, SQLITE_STATIC);
+    }
+
+    if (flags & UPDATE_PASSWORD) {
+        sqlite3_bind_text(st, param_index++, upd_player->password, -1, SQLITE_STATIC);
+    }
+
+    if (flags & UPDATE_CURRENT_STREAK) {
+        sqlite3_bind_int(st, param_index++, upd_player->current_streak);
+    }
+
+    if (flags & UPDATE_MAX_STREAK) {
+        sqlite3_bind_int(st, param_index++, upd_player->max_streak);
+    }
+
+    if (flags & UPDATE_REG_DATE) {
+        sqlite3_bind_text(st, param_index++, upd_player->registration_date, -1, SQLITE_STATIC);
+    }
+
+    sqlite3_bind_int(st, param_index, id);
+
+
+    rc = sqlite3_step(st);
+    sqlite3_finalize(st);
+    
+    if (rc != SQLITE_DONE) {
+        printf("\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
+        return PLAYER_SQL_ERROR;
+    }
+    
+    return PLAYER_OK;
+} 
+
+PlayerStatus delete_player_by_id(sqlite3 *db, int id) {
+
+    if (db == NULL || id <= 0) {
+        return PLAYER_INVALID_INPUT;
+    }
+
+    const char* query = "DELETE FROM Player WHERE id_player = ?1";
+
+    sqlite3_stmt *stmt = NULL;
+
+    int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
+
+    if (rc != SQLITE_OK) {
+        sqlite3_finalize(stmt);
+        return PLAYER_SQL_ERROR;
+    }
+
+    sqlite3_bind_int(stmt, 1, id);
+
+    rc = sqlite3_step(stmt);
+
+    
+
+    if ( rc != SQLITE_DONE) {
+        if (stmt) {
+            printf("\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
+            sqlite3_finalize(stmt);
+            return PLAYER_SQL_ERROR;
+        }
+    }
+
+    sqlite3_finalize(stmt);
     return PLAYER_OK;
 }
