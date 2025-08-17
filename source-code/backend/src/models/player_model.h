@@ -25,7 +25,7 @@ typedef enum {
     PLAYER_INVALID_INPUT,
     PLAYER_MALLOC_ERROR,
     PLAYER_NOT_MODIFIED
-} PlayerStatus;
+} PlayerReturnStatus;
 
 typedef enum {
     UPDATE_NICKNAME    = 1 << 0,  
@@ -34,14 +34,14 @@ typedef enum {
     UPDATE_CURRENT_STREAK = 1 << 3,
     UPDATE_MAX_STREAK     = 1 << 4,  
     UPDATE_REG_DATE       = 1 << 5   
-} UpdateFlags;
+} UpdatePlayerFlags;
 
-PlayerStatus get_player_by_id(sqlite3 *db, int id, Player *out); //We use Player pointer parameter to work by reference rather than by value 
-PlayerStatus get_all_players(sqlite3 *db, Player** out_array, int *out_count);
-PlayerStatus update_player_by_id(sqlite3 *db, int id, const Player *upd_player);
-PlayerStatus delete_player_by_id(sqlite3 *db, int id);
-PlayerStatus insert_player(sqlite3 *db, const Player *in);
-const char* player_status_to_string(PlayerStatus status);
+PlayerReturnStatus get_player_by_id(sqlite3 *db, int id, Player *out); //We use Player pointer parameter to work by reference rather than by value 
+PlayerReturnStatus get_all_players(sqlite3 *db, Player** out_array, int *out_count);
+PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player);
+PlayerReturnStatus delete_player_by_id(sqlite3 *db, int id);
+PlayerReturnStatus insert_player(sqlite3 *db, const Player *in);
+const char* player_status_to_string(PlayerReturnStatus status);
 
 
 #endif

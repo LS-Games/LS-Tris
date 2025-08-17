@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <string.h>
-#include "player_model.h"
 #include <stdbool.h>
+#include <stdlib.h>
+#include "player_model.h"
 
-const char* player_status_to_string(PlayerStatus status) {
+const char* player_status_to_string(PlayerReturnStatus status) {
     switch (status) {
         case PLAYER_OK:             return "PLAYER_OK";
         case PLAYER_INVALID_INPUT:  return "PLAYER_INVALID_INPUT";
@@ -14,7 +15,7 @@ const char* player_status_to_string(PlayerStatus status) {
 }
 
 
-PlayerStatus get_player_by_id(sqlite3 *db, int id, Player *out) {
+PlayerReturnStatus get_player_by_id(sqlite3 *db, int id, Player *out) {
 
     if(db == NULL || id <= 0 || out == NULL) {
         return PLAYER_INVALID_INPUT;
@@ -106,7 +107,7 @@ PlayerStatus get_player_by_id(sqlite3 *db, int id, Player *out) {
     }    
 }
 
-PlayerStatus get_all_players(sqlite3 *db, Player **out_array, int *out_count) {
+PlayerReturnStatus get_all_players(sqlite3 *db, Player **out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { //We only check if pointers are null
         return PLAYER_INVALID_INPUT;
@@ -188,7 +189,7 @@ PlayerStatus get_all_players(sqlite3 *db, Player **out_array, int *out_count) {
     }
 
     if (rc != SQLITE_DONE) {
-        fprintf(stderr, "\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(player_array);
         sqlite3_finalize(st);
         return PLAYER_SQL_ERROR;
@@ -202,16 +203,16 @@ PlayerStatus get_all_players(sqlite3 *db, Player **out_array, int *out_count) {
     return PLAYER_OK;
 }
 
-PlayerStatus update_player_by_id(sqlite3 *db, int id, const Player *upd_player) {
+PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player) {
 
-    if (db == NULL || id <= 0 || upd_player == NULL) {
+    if (db == NULL || upd_player == NULL) {
         return PLAYER_INVALID_INPUT;
     }
 
     //We retrieve the player saved in DB and compare it with the new one
 
     Player original_player;
-    PlayerStatus player_status = get_player_by_id(db, id, &original_player);
+    PlayerReturnStatus player_status = get_player_by_id(db, upd_player->id_player, &original_player);
 
     if (player_status != PLAYER_OK) {
         return player_status;
@@ -219,7 +220,7 @@ PlayerStatus update_player_by_id(sqlite3 *db, int id, const Player *upd_player) 
 
     //We're comparing two objects and the flag are actived if they are different from each other
 
-    UpdateFlags flags = 0; //00000000
+    UpdatePlayerFlags flags = 0; //00000000
 
     if (strcmp(original_player.nickname, upd_player->nickname) !=0) {
         flags |= UPDATE_NICKNAME; // 00000000 | 00000001 = 00000001
@@ -306,7 +307,7 @@ PlayerStatus update_player_by_id(sqlite3 *db, int id, const Player *upd_player) 
     //After we builded the query we can prepare the statement
     if (rc != SQLITE_OK) {
         if (st) sqlite3_finalize(st);
-        fprintf(stderr, "\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
         return PLAYER_SQL_ERROR;
     }
 
@@ -336,21 +337,21 @@ PlayerStatus update_player_by_id(sqlite3 *db, int id, const Player *upd_player) 
         sqlite3_bind_text(st, param_index++, upd_player->registration_date, -1, SQLITE_STATIC);
     }
 
-    sqlite3_bind_int(st, param_index, id);
+    sqlite3_bind_int(st, param_index, upd_player->id_player);
 
 
     rc = sqlite3_step(st);
     sqlite3_finalize(st);
     
     if (rc != SQLITE_DONE) {
-        fprintf(stderr, "\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
         return PLAYER_SQL_ERROR;
     }
     
     return PLAYER_OK;
 } 
 
-PlayerStatus delete_player_by_id(sqlite3 *db, int id) {
+PlayerReturnStatus delete_player_by_id(sqlite3 *db, int id) {
 
     if (db == NULL || id <= 0) {
         return PLAYER_INVALID_INPUT;
@@ -375,17 +376,21 @@ PlayerStatus delete_player_by_id(sqlite3 *db, int id) {
 
     if ( rc != SQLITE_DONE) {
         if (stmt) {
-            fprintf(stderr, "\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
+            fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
             sqlite3_finalize(stmt);
             return PLAYER_SQL_ERROR;
         }
     }
 
     sqlite3_finalize(stmt);
+
+    //If there have been no changes, then it has not been found
+    if (sqlite3_changes(db) == 0) return PLAYER_NOT_FOUND;
+
     return PLAYER_OK;
 }
 
-PlayerStatus insert_player(sqlite3* db, const Player *in_player) {
+PlayerReturnStatus insert_player(sqlite3* db, const Player *in_player) {
 
     if (db == NULL || in_player == NULL) {
         return PLAYER_INVALID_INPUT;
@@ -400,7 +405,7 @@ PlayerStatus insert_player(sqlite3* db, const Player *in_player) {
     int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
 
     if (rc != SQLITE_OK) {
-        fprintf(stderr, "\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
         return PLAYER_SQL_ERROR;
     }
 
@@ -450,7 +455,7 @@ PlayerStatus insert_player(sqlite3* db, const Player *in_player) {
 
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         sqlite3_finalize(stmt);
-        fprintf(stderr, "\nERRORE DEL DATABASE: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
         return PLAYER_SQL_ERROR;
     }
 
