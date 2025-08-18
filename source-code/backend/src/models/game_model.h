@@ -9,7 +9,8 @@ typedef enum {
     NEW,
     ACTIVE,
     WAITING,
-    FINISHED
+    FINISHED,
+    GAME_STATUS_INVALID
 } GameStatus;
 
 typedef struct Game {
@@ -30,11 +31,11 @@ typedef enum {
 } GameReturnStatus;
 
 typedef enum {
-    UPDATE_ID_GAME        = 1 << 0,  
-    UPDATE_ID_CREATOR     = 1 << 1,  
-    UPDATE_ID_OWNER       = 1 << 2,  
-    UPDATE_STATE          = 1 << 3,
-    UPDATE_CREATED_AT     = 1 << 4,  
+    UPDATE_GAME_ID_GAME        = 1 << 0,  
+    UPDATE_GAME_ID_CREATOR     = 1 << 1,  
+    UPDATE_GAME_ID_OWNER       = 1 << 2,  
+    UPDATE_GAME_STATE          = 1 << 3,
+    UPDATE_GAME_CREATED_AT     = 1 << 4,  
 } UpdateGameFlags;
 
 GameReturnStatus get_game_by_id(sqlite3 *db, int id_game, Game *out); 

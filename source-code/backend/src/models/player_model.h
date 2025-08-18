@@ -28,12 +28,12 @@ typedef enum {
 } PlayerReturnStatus;
 
 typedef enum {
-    UPDATE_NICKNAME    = 1 << 0,  
-    UPDATE_EMAIL       = 1 << 1,  
-    UPDATE_PASSWORD    = 1 << 2,  
-    UPDATE_CURRENT_STREAK = 1 << 3,
-    UPDATE_MAX_STREAK     = 1 << 4,  
-    UPDATE_REG_DATE       = 1 << 5   
+    UPDATE_PLAYER_NICKNAME          = 1 << 0,  
+    UPDATE_PLAYER_EMAIL             = 1 << 1,  
+    UPDATE_PLAYER_PASSWORD          = 1 << 2,  
+    UPDATE_PLAYER_CURRENT_STREAK    = 1 << 3,
+    UPDATE_PLAYER_MAX_STREAK        = 1 << 4,  
+    UPDATE_PLAYER_REG_DATE          = 1 << 5   
 } UpdatePlayerFlags;
 
 PlayerReturnStatus get_player_by_id(sqlite3 *db, int id, Player *out); //We use Player pointer parameter to work by reference rather than by value 

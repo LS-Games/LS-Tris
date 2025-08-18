@@ -14,7 +14,6 @@ const char* player_status_to_string(PlayerReturnStatus status) {
     }
 }
 
-
 PlayerReturnStatus get_player_by_id(sqlite3 *db, int id, Player *out) {
 
     if(db == NULL || id <= 0 || out == NULL) {
@@ -35,19 +34,13 @@ PlayerReturnStatus get_player_by_id(sqlite3 *db, int id, Player *out) {
     //  5 - used to find out where the query part used has ended up (is optional)
 
     int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
-
-    if (rc != SQLITE_OK) return PLAYER_SQL_ERROR;
+    if (rc != SQLITE_OK) goto prepare_fail;
 
     //This SQLite function used to replace placeholder in the query
     //In our case it replaces placeholder "1" with id value
 
     rc = sqlite3_bind_int(st , 1, id);
-
-    if (rc != SQLITE_OK) {
-        sqlite3_finalize(st);
-        return PLAYER_SQL_ERROR;
-    }
-
+    if (rc != SQLITE_OK) goto bind_fail;
 
     //This SQLite function executes the statement
     //In our case, we are using SELECT so the function should return a SQLITE_ROW if it finds a row
@@ -71,7 +64,7 @@ PlayerReturnStatus get_player_by_id(sqlite3 *db, int id, Player *out) {
         if (nickname) {
             strcpy(out->nickname, (const char*) nickname); //We do the cast because strcpy expects a const  
         } else {
-            out->nickname[0] = '\0'; //So we avoid error when the returned value is NULL, ('\0' = " ")
+            out->nickname[0] = '\0'; //So we avoid error when the returned value is NULL, ('\0' = NULL)
         }
 
         if (email) {
@@ -100,11 +93,21 @@ PlayerReturnStatus get_player_by_id(sqlite3 *db, int id, Player *out) {
         sqlite3_finalize(st);
         return PLAYER_NOT_FOUND;
 
-    } else {
+    } else goto step_fail;  
+    
+    prepare_fail:
+        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PLAYER_SQL_ERROR;
 
+    bind_fail:
+        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
         return PLAYER_SQL_ERROR;
-    }    
+
+    step_fail:
+        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(st);
+        return PLAYER_SQL_ERROR;
 }
 
 PlayerReturnStatus get_all_players(sqlite3 *db, Player **out_array, int *out_count) {
@@ -121,8 +124,7 @@ PlayerReturnStatus get_all_players(sqlite3 *db, Player **out_array, int *out_cou
     sqlite3_stmt *st = NULL;
 
     int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
-
-    if (rc != SQLITE_OK) return PLAYER_SQL_ERROR;
+    if (rc != SQLITE_OK) goto prepare_fail;
 
     int cap = 16; //arbitrary field
 
@@ -201,6 +203,10 @@ PlayerReturnStatus get_all_players(sqlite3 *db, Player **out_array, int *out_cou
     sqlite3_finalize(st);
 
     return PLAYER_OK;
+
+    prepare_fail:
+        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PLAYER_SQL_ERROR;
 }
 
 PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player) {
@@ -223,27 +229,27 @@ PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player) {
     UpdatePlayerFlags flags = 0; //00000000
 
     if (strcmp(original_player.nickname, upd_player->nickname) !=0) {
-        flags |= UPDATE_NICKNAME; // 00000000 | 00000001 = 00000001
+        flags |= UPDATE_PLAYER_NICKNAME; // 00000000 | 00000001 = 00000001
     }
 
     if (strcmp(original_player.email, upd_player->email) != 0) {
-        flags |= UPDATE_EMAIL; // 00000000 | 00000010 = 00000010
+        flags |= UPDATE_PLAYER_EMAIL; // 00000000 | 00000010 = 00000010
     }
 
     if (strcmp(original_player.password, upd_player->password) != 0) {
-        flags |= UPDATE_PASSWORD;
+        flags |= UPDATE_PLAYER_PASSWORD;
     }
 
     if (original_player.current_streak != upd_player->current_streak) {
-        flags |= UPDATE_CURRENT_STREAK;
+        flags |= UPDATE_PLAYER_CURRENT_STREAK;
     }
 
     if (original_player.max_streak != upd_player->max_streak) {
-        flags |= UPDATE_MAX_STREAK;
+        flags |= UPDATE_PLAYER_MAX_STREAK;
     }
 
     if (strcmp(original_player.registration_date, upd_player->registration_date) != 0) {
-        flags |= UPDATE_REG_DATE;
+        flags |= UPDATE_PLAYER_REG_DATE;
     }
 
     if (flags == 0) {
@@ -262,37 +268,37 @@ PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player) {
     //For example if we have a flag 00000101 it means that nickname and password have benn changed because (1 << 0 = 00000001) and (1 << 2 = 00000100)
     //So in the check we will have (00000101 AND 00000001 = 00000001) operation, the condition will be true
 
-    if (flags & UPDATE_NICKNAME) { 
+    if (flags & UPDATE_PLAYER_NICKNAME) { 
         if (!first) strcat(query, ", "); //If it isn't the first it adds the "," and then adds the correct column
         strcat(query, "nickname = ?"); //We won't have the "," at the end becuase it added earlier
         first = false;
     }
 
-    if(flags & UPDATE_EMAIL) {
+    if(flags & UPDATE_PLAYER_EMAIL) {
         if (!first) strcat(query, ", ");
         strcat(query, "email = ?");
         first = false;
     }
 
-    if (flags & UPDATE_PASSWORD) {
+    if (flags & UPDATE_PLAYER_PASSWORD) {
         if (!first) strcat(query, ", ");
         strcat(query, "password = ?");
         first = false;
     }
 
-    if (flags & UPDATE_CURRENT_STREAK) {
+    if (flags & UPDATE_PLAYER_CURRENT_STREAK) {
         if (!first) strcat(query, ", ");
         strcat(query, "current_streak = ?");
         first = false;
     }
 
-    if (flags & UPDATE_MAX_STREAK) {
+    if (flags & UPDATE_PLAYER_MAX_STREAK) {
         if (!first) strcat(query, ", ");
         strcat(query, "max_streak = ?");
         first = false;
     }
 
-    if (flags & UPDATE_REG_DATE) {
+    if (flags & UPDATE_PLAYER_REG_DATE) {
         if (!first) strcat(query, ", ");
         strcat(query, "registration_date = ?");
         first = false;
@@ -303,52 +309,66 @@ PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player) {
     printf("\n\nQUERY: %s", query);
 
     int rc = sqlite3_prepare_v2(db, query, -1, &st, NULL); //We have to do prepare before the bind
+    if (rc != SQLITE_OK) goto prepare_fail;
 
     //After we builded the query we can prepare the statement
-    if (rc != SQLITE_OK) {
-        if (st) sqlite3_finalize(st);
-        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
-        return PLAYER_SQL_ERROR;
-    }
-
     int param_index = 1;
 
-    if (flags & UPDATE_NICKNAME) {
-        sqlite3_bind_text(st, param_index++, upd_player->nickname, -1, SQLITE_STATIC);
+    if (flags & UPDATE_PLAYER_NICKNAME) {
+        rc = sqlite3_bind_text(st, param_index++, upd_player->nickname, -1, SQLITE_STATIC);
+        if (rc != SQLITE_OK) goto bind_fail; 
     }
 
-    if (flags & UPDATE_EMAIL) {
-        sqlite3_bind_text(st, param_index++, upd_player->email, -1, SQLITE_STATIC);
+    if (flags & UPDATE_PLAYER_EMAIL) {
+        rc = sqlite3_bind_text(st, param_index++, upd_player->email, -1, SQLITE_STATIC);
+        if (rc != SQLITE_OK) goto bind_fail; 
     }
 
-    if (flags & UPDATE_PASSWORD) {
-        sqlite3_bind_text(st, param_index++, upd_player->password, -1, SQLITE_STATIC);
+    if (flags & UPDATE_PLAYER_PASSWORD) {
+        rc =sqlite3_bind_text(st, param_index++, upd_player->password, -1, SQLITE_STATIC);
+        if (rc != SQLITE_OK) goto bind_fail; 
     }
 
-    if (flags & UPDATE_CURRENT_STREAK) {
-        sqlite3_bind_int(st, param_index++, upd_player->current_streak);
+    if (flags & UPDATE_PLAYER_CURRENT_STREAK) {
+        rc =sqlite3_bind_int(st, param_index++, upd_player->current_streak);
+        if (rc != SQLITE_OK) goto bind_fail; 
     }
 
-    if (flags & UPDATE_MAX_STREAK) {
-        sqlite3_bind_int(st, param_index++, upd_player->max_streak);
+    if (flags & UPDATE_PLAYER_MAX_STREAK) {
+        rc =sqlite3_bind_int(st, param_index++, upd_player->max_streak);
+        if (rc != SQLITE_OK) goto bind_fail; 
     }
 
-    if (flags & UPDATE_REG_DATE) {
-        sqlite3_bind_text(st, param_index++, upd_player->registration_date, -1, SQLITE_STATIC);
+    if (flags & UPDATE_PLAYER_REG_DATE) {
+        rc =sqlite3_bind_text(st, param_index++, upd_player->registration_date, -1, SQLITE_STATIC);
+        if (rc != SQLITE_OK) goto bind_fail; 
     }
 
-    sqlite3_bind_int(st, param_index, upd_player->id_player);
-
+    rc = sqlite3_bind_int(st, param_index, upd_player->id_player);
+    if (rc != SQLITE_OK) goto bind_fail; 
 
     rc = sqlite3_step(st);
+    if (rc != SQLITE_DONE) goto step_fail; 
+
     sqlite3_finalize(st);
-    
-    if (rc != SQLITE_DONE) {
-        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
-        return PLAYER_SQL_ERROR;
-    }
+
+    if (sqlite3_changes(db) == 0) return PLAYER_NOT_MODIFIED;
     
     return PLAYER_OK;
+
+    prepare_fail:
+        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PLAYER_SQL_ERROR;
+    
+    bind_fail:
+        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(st);
+        return PLAYER_SQL_ERROR;
+
+    step_fail:
+        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(st);
+        return PLAYER_SQL_ERROR;
 } 
 
 PlayerReturnStatus delete_player_by_id(sqlite3 *db, int id) {
@@ -362,25 +382,13 @@ PlayerReturnStatus delete_player_by_id(sqlite3 *db, int id) {
     sqlite3_stmt *stmt = NULL;
 
     int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) goto prepare_fail; 
 
-    if (rc != SQLITE_OK) {
-        sqlite3_finalize(stmt);
-        return PLAYER_SQL_ERROR;
-    }
-
-    sqlite3_bind_int(stmt, 1, id);
+    rc = sqlite3_bind_int(stmt, 1, id);
+    if (rc != SQLITE_OK) goto bind_fail; 
 
     rc = sqlite3_step(stmt);
-
-    
-
-    if ( rc != SQLITE_DONE) {
-        if (stmt) {
-            fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
-            sqlite3_finalize(stmt);
-            return PLAYER_SQL_ERROR;
-        }
-    }
+    if(rc != SQLITE_DONE) goto step_fail;
 
     sqlite3_finalize(stmt);
 
@@ -388,6 +396,20 @@ PlayerReturnStatus delete_player_by_id(sqlite3 *db, int id) {
     if (sqlite3_changes(db) == 0) return PLAYER_NOT_FOUND;
 
     return PLAYER_OK;
+
+    prepare_fail:
+        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PLAYER_SQL_ERROR;
+    
+    bind_fail:
+        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return PLAYER_SQL_ERROR;
+
+    step_fail:
+        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return PLAYER_SQL_ERROR;
 }
 
 PlayerReturnStatus insert_player(sqlite3* db, const Player *in_player) {
@@ -402,64 +424,55 @@ PlayerReturnStatus insert_player(sqlite3* db, const Player *in_player) {
         "INSERT INTO Player (nickname, email, password, current_streak, max_streak, registration_date)"
         " VALUES ( ?, ?, ?, ?, ?, ?)";
 
+    if (in_player->nickname[0] == '\0' || in_player->email[0]    == '\0' ||
+        in_player->password[0] == '\0' || in_player->current_streak < 0   ||
+        in_player->max_streak    < 0   || in_player->registration_date[0] == '\0') {
+        return PLAYER_INVALID_INPUT;
+    }
+
     int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
 
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
-        return PLAYER_SQL_ERROR;
-    }
+    if (rc != SQLITE_OK) goto prepare_fail;
 
     int param_index = 1;
 
-    if (in_player->nickname[0] == '\0') {
-        sqlite3_finalize(stmt);
-        return PLAYER_INVALID_INPUT;
-    } 
+    rc = sqlite3_bind_text(stmt, param_index++, in_player->nickname, -1, SQLITE_STATIC);
+    if (rc != SQLITE_OK) goto bind_fail;
 
-    sqlite3_bind_text(stmt, param_index++, in_player->nickname, -1, SQLITE_STATIC);
+    rc = sqlite3_bind_text(stmt, param_index++, in_player->email, -1, SQLITE_STATIC);
+    if (rc != SQLITE_OK) goto bind_fail;
 
-    if (in_player->email[0] == '\0') {
-        sqlite3_finalize(stmt);
-        return PLAYER_INVALID_INPUT;
-    }
+    rc = sqlite3_bind_text(stmt, param_index++, in_player->password, -1, SQLITE_STATIC);
+    if (rc != SQLITE_OK) goto bind_fail;
 
-    sqlite3_bind_text(stmt, param_index++, in_player->email, -1, SQLITE_STATIC);
+    rc = sqlite3_bind_int(stmt, param_index++, in_player->current_streak);
+    if (rc != SQLITE_OK) goto bind_fail;
 
-    if (in_player->password[0] == '\0') {
-        sqlite3_finalize(stmt);
-        return PLAYER_INVALID_INPUT;
-    }
+    rc = sqlite3_bind_int(stmt, param_index++, in_player->max_streak);
+    if (rc != SQLITE_OK) goto bind_fail;
 
-    sqlite3_bind_text(stmt, param_index++, in_player->password, -1, SQLITE_STATIC);
+    rc = sqlite3_bind_text(stmt, param_index++, in_player->registration_date, -1, SQLITE_STATIC);
+    if (rc != SQLITE_OK) goto bind_fail;
 
-    if (in_player->current_streak < 0) {
-        sqlite3_finalize(stmt);
-        return PLAYER_INVALID_INPUT;
-    }
+    if (sqlite3_step(stmt) != SQLITE_DONE) goto step_fail;
 
-    sqlite3_bind_int(stmt, param_index++, in_player->current_streak);
-
-    if (in_player->max_streak < 0) {
-        sqlite3_finalize(stmt);
-        return PLAYER_INVALID_INPUT;
-    }
-
-    sqlite3_bind_int(stmt, param_index++, in_player->max_streak);
-
-    if (in_player->registration_date[0] == '\0') {
-        sqlite3_finalize(stmt);
-        return PLAYER_INVALID_INPUT;
-    }
-
-    sqlite3_bind_text(stmt, param_index++, in_player->registration_date, -1, SQLITE_STATIC);
-
-    if (sqlite3_step(stmt) != SQLITE_DONE) {
-        sqlite3_finalize(stmt);
-        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
-        return PLAYER_SQL_ERROR;
-    }
+    if (sqlite3_changes(db) == 0) return PLAYER_NOT_MODIFIED;
 
     sqlite3_finalize(stmt);
     return PLAYER_OK;
+
+    prepare_fail:
+    fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+    return PLAYER_SQL_ERROR;
+
+    bind_fail:
+        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return PLAYER_SQL_ERROR;
+
+    step_fail:
+        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return PLAYER_SQL_ERROR;
 }
 

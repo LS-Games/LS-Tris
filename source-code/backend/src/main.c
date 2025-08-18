@@ -1,8 +1,9 @@
 #include <stdio.h>
+#include <string.h>
 #include "./models/player_model.h"
 #include "./models/game_model.h"
 #include "./db/db_connection.h"
-#include <string.h>
+#include "./models/participation_request_model.h"
 
 int main() {
 
@@ -128,11 +129,94 @@ int main() {
         // GameReturnStatus g_st = insert_game(db, (const*) &game);
         // printf("\n%s\n", return_game_status_to_string(g_st));
 
+        // ParticipationRequest request;
+        // ParticipationRequestReturnStatus st = get_participation_request_by_id(db, 2, &request);
+
+        // if(st == PARTICIPATION_REQUEST_OK) { 
+
+        //     printf("\nLa partecipazione ha id_request: %d\n", request.id_request);
+        //     printf("\nLa partecipazione ha id_player: %d\n", request.id_player);
+        //     printf("\nLa partecipazione ha id_game: %d\n", request.id_game);
+        //     printf("\nLa partecipazione ha data di creazione: %s\n", request.created_at);
+        //     printf("\nLa partecipazione è nello stato: %s\n", request_participation_status_to_string(request.state));
+
+        // } else {
+        //     printf(return_participation_request_status_to_string(st));
+        // }
+
+        // ParticipationRequest *arr = NULL;
+        // int n = 0;
+
+        // ParticipationRequestReturnStatus st = get_all_participation_requests(db, &arr, &n);
+
+        // if (st == PARTICIPATION_REQUEST_OK) {
+        //     for (int i = 0; i < n; ++i) {
+        //         printf("\n#%d: id_req=%d id_player=%d id_game=%d created_at=%s state=%s\n",
+        //             i+1, arr[i].id_request, arr[i].id_player, arr[i].id_game,
+        //             arr[i].created_at,
+        //             request_participation_status_to_string(arr[i].state));
+        //     }
+        //     free(arr); 
+        // } else if (st == PARTICIPATION_REQUEST_NOT_FOUND) {
+        //     printf("Nessuna richiesta trovata.\n");
+        // } else {
+        //     fprintf(stderr, "Errore: %s\n",
+        //             return_participation_request_status_to_string(st));
+        // }
+
+        // --- Test update Participation_request ---
 
 
+    // ParticipationRequest upd_req;
+    // upd_req.id_request = 2;  
+    // upd_req.id_player  = 2; 
+    // upd_req.id_game    = 1;
+    // strcpy(upd_req.created_at, "2025-08-18 12:34:56");
+    // upd_req.state = ACCEPTED;
 
+    // ParticipationRequestReturnStatus st = update_participation_request_by_id(db, &upd_req);
 
+    // if (st == PARTICIPATION_REQUEST_OK) {
+    //     ParticipationRequest rec_req;
+    //     ParticipationRequestReturnStatus rec_st =
+    //         get_participation_request_by_id(db, upd_req.id_request, &rec_req);
 
+    //     if (rec_st == PARTICIPATION_REQUEST_OK) {
+    //         printf("\nL'id_player aggiornato è: %d\n", rec_req.id_player);
+    //         printf("L'id_game aggiornato è: %d\n", rec_req.id_game);
+    //         printf("Il created_at aggiornato è: %s\n", rec_req.created_at);
+    //         printf("Lo state aggiornato è: %s\n",
+    //             request_participation_status_to_string(rec_req.state));
+    //     }
+    // }
+
+    // ParticipationRequestReturnStatus del_req = delete_participation_request_by_id(db, 3);
+    // printf("Stato: %s\n", return_participation_request_status_to_string(del_req));
+
+//     ParticipationRequest new_req;
+//     new_req.id_player = 0;   
+//     new_req.id_game   = 5;   // 
+//     strcpy(new_req.created_at, "2025-08-19 12:34:56");
+//     new_req.state = PENDING;
+
+//     ParticipationRequestReturnStatus ins_st =
+//         insert_participation_request(db, &new_req);
+//     printf("\n%s\n", return_participation_request_status_to_string(ins_st));
+
+//     int new_id = (int)sqlite3_last_insert_rowid(db);
+
+//     ParticipationRequest request;
+//     ParticipationRequestReturnStatus st =
+//         get_participation_request_by_id(db, new_id, &request);
+
+//     if (st == PARTICIPATION_REQUEST_OK) {
+//         printf("\nLa partecipazione ha id_request: %d\n", request.id_request);
+//         printf("\nLa partecipazione ha id_player: %d\n", request.id_player);
+//         printf("\nLa partecipazione ha id_game: %d\n", request.id_game);
+//         printf("\nLa partecipazione ha data di creazione: %s\n", request.created_at);
+//         printf("\nLa partecipazione è nello stato: %s\n",
+//                request_participation_status_to_string(request.state));
+//     } 
 
 
     db_close(db);

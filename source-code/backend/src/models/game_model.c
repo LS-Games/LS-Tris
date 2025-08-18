@@ -11,7 +11,7 @@ const char* game_status_to_string(GameStatus state) {
         case ACTIVE :           return "active";
         case WAITING :          return "waiting";
         case FINISHED :         return "finished";    
-        default:                return "new";
+        default:                return NULL;
     }
 }
 
@@ -21,7 +21,7 @@ const char* return_game_status_to_string(GameReturnStatus status) {
         case GAME_INVALID_INPUT:  return "GAME_INVALID_INPUT";
         case GAME_SQL_ERROR:      return "GAME_SQL_ERROR";
         case GAME_NOT_FOUND:      return "GAME_NOT_FOUND";
-        default:                  return "GAME_UNKNOWN";
+        default:                  return NULL;
     }
 }
 
@@ -33,7 +33,7 @@ GameStatus string_to_game_status(const char *state_str) {
         if (strcmp(state_str, "finished") == 0) return FINISHED;
     }
 
-    return NEW; 
+    return GAME_STATUS_INVALID; 
 }
 
 GameReturnStatus get_game_by_id(sqlite3 *db, int id_game, Game *out) {
@@ -49,15 +49,10 @@ GameReturnStatus get_game_by_id(sqlite3 *db, int id_game, Game *out) {
     sqlite3_stmt *st = NULL;    
 
     int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
-
-    if (rc != SQLITE_OK) return GAME_SQL_ERROR;
+    if (rc != SQLITE_OK) goto prepare_fail;
 
     rc = sqlite3_bind_int(st , 1, id_game);
-
-    if (rc != SQLITE_OK) {
-        sqlite3_finalize(st);
-        return GAME_SQL_ERROR;
-    }
+    if (rc != SQLITE_OK) goto bind_fail;
 
     rc = sqlite3_step(st);
 
@@ -72,10 +67,14 @@ GameReturnStatus get_game_by_id(sqlite3 *db, int id_game, Game *out) {
 
         if (state) {
             out->state = string_to_game_status((const char*) state);
+        } else {
+            out->state = GAME_STATUS_INVALID;
         }
 
         if (created_at) {
             strcpy(out->created_at, (const char*) created_at);
+        } else {
+            out->created_at[0] = '\0';
         }
 
         sqlite3_finalize(st); 
@@ -86,11 +85,21 @@ GameReturnStatus get_game_by_id(sqlite3 *db, int id_game, Game *out) {
         sqlite3_finalize(st);
         return GAME_NOT_FOUND;
 
-    } else {
+    } else goto step_fail;
+    
+    prepare_fail:
+        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return GAME_SQL_ERROR;
 
+    bind_fail:
+        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
         return GAME_SQL_ERROR;
-    }    
+
+    step_fail:
+        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(st);
+        return GAME_SQL_ERROR;
 }
 
 GameReturnStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count) {
@@ -107,8 +116,7 @@ GameReturnStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count) {
     sqlite3_stmt *st = NULL;
 
     int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
-
-    if (rc != SQLITE_OK) return GAME_SQL_ERROR;
+    if (rc != SQLITE_OK) goto prepare_fail;
 
     int cap = 16; 
 
@@ -142,8 +150,20 @@ GameReturnStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count) {
         g.id_game = sqlite3_column_int(st,0);
         g.id_creator = sqlite3_column_int(st, 1);
         g.id_owner = sqlite3_column_int(st,2);
-        g.state = string_to_game_status((const char*)sqlite3_column_text(st,3));
-        strcpy(g.created_at, (const char*) sqlite3_column_text(st, 4));
+        const unsigned char *state = sqlite3_column_text(st, 4);
+        const unsigned char *created_at = sqlite3_column_text(st,4);
+
+        if(created_at)
+            strcpy(g.created_at, (const char*) created_at);
+        else {
+            g.created_at[0] = '\0';
+        }
+
+        if (state) {
+            g.state = string_to_request_participation_status((const char*) state);
+        } else {
+            g.state = GAME_STATUS_INVALID;
+        }
 
         games_array[count++] = g;
     }
@@ -162,11 +182,15 @@ GameReturnStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count) {
 
     return GAME_OK;
 
+    prepare_fail:
+        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return GAME_SQL_ERROR;
+
 }
 
 GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
 
-    if (db == NULL || upd_game == NULL) {
+    if (db == NULL || upd_game == NULL || upd_game->id_game <= 0) {
         return GAME_INVALID_INPUT;
     }
 
@@ -180,20 +204,20 @@ GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
     UpdateGameFlags flags = 0; 
 
     if(original_game.id_creator != upd_game->id_creator) {
-        flags |= UPDATE_ID_CREATOR;
+        flags |= UPDATE_GAME_ID_CREATOR;
     }
 
 
     if(original_game.id_owner != upd_game->id_owner) {
-        flags |= UPDATE_ID_OWNER;
+        flags |= UPDATE_GAME_ID_OWNER;
     }
 
     if(original_game.state != upd_game->state) { //We can use != operator because enum type are integers 
-        flags |= UPDATE_STATE;
+        flags |= UPDATE_GAME_STATE;
     }
 
     if(strcmp(original_game.created_at, upd_game->created_at) != 0) {
-        flags |= UPDATE_CREATED_AT;
+        flags |= UPDATE_GAME_CREATED_AT;
     }
 
     if (flags == 0) {
@@ -206,25 +230,25 @@ GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
 
     bool first = true; 
 
-    if (flags & UPDATE_ID_CREATOR) { 
+    if (flags & UPDATE_GAME_ID_CREATOR) { 
         if (!first) strcat(query, ", "); //If it isn't the first it adds the "," and then adds the correct column
         strcat(query, "id_creator = ?"); //We won't have the "," at the end becuase it added earlier
         first = false;
     }
 
-    if(flags & UPDATE_ID_OWNER) {
+    if(flags & UPDATE_GAME_ID_OWNER) {
         if (!first) strcat(query, ", ");
         strcat(query, "id_owner = ?");
         first = false;
     }
 
-    if (flags & UPDATE_STATE) {
+    if (flags & UPDATE_GAME_STATE) {
         if (!first) strcat(query, ", ");
         strcat(query, "state = ?");
         first = false;
     }
 
-    if (flags & UPDATE_CREATED_AT) {
+    if (flags & UPDATE_GAME_CREATED_AT) {
         if (!first) strcat(query, ", ");
         strcat(query, "created_at = ?");
         first = false;
@@ -235,43 +259,55 @@ GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
     printf("\n\nQUERY\n\n: %s", query);
 
     int rc = sqlite3_prepare_v2(db, query, -1, &st, NULL); 
-
-    if (rc != SQLITE_OK) {
-        if (st) sqlite3_finalize(st);
-        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
-        return GAME_SQL_ERROR;
-    }
+    if (rc != SQLITE_OK) goto prepare_fail;
 
     int param_index = 1;
 
-    if (flags & UPDATE_ID_CREATOR) {
-        sqlite3_bind_int(st, param_index++, upd_game->id_creator);
+    if (flags & UPDATE_GAME_ID_CREATOR) {
+        rc = sqlite3_bind_int(st, param_index++, upd_game->id_creator);
+        if (rc != SQLITE_OK) goto bind_fail; 
     }
 
-    if (flags & UPDATE_ID_OWNER) {
-        sqlite3_bind_int(st, param_index++, upd_game->id_owner);
+    if (flags & UPDATE_GAME_ID_OWNER) {
+        rc = sqlite3_bind_int(st, param_index++, upd_game->id_owner);
+        if (rc != SQLITE_OK) goto bind_fail; 
     }
 
-    if (flags & UPDATE_STATE) {
-        sqlite3_bind_text(st, param_index++, game_status_to_string(upd_game->state), -1, SQLITE_STATIC);
+    if (flags & UPDATE_GAME_STATE) {
+        rc = sqlite3_bind_text(st, param_index++, game_status_to_string(upd_game->state), -1, SQLITE_STATIC);
+        if (rc != SQLITE_OK) goto bind_fail; 
     }
 
-    if (flags & UPDATE_CREATED_AT) {
-        sqlite3_bind_text(st, param_index++, upd_game->created_at, -1, SQLITE_STATIC);
+    if (flags & UPDATE_GAME_CREATED_AT) {
+        rc = sqlite3_bind_text(st, param_index++, upd_game->created_at, -1, SQLITE_STATIC);
+        if (rc != SQLITE_OK) goto bind_fail; 
     }
 
-    sqlite3_bind_int(st, param_index, upd_game->id_game);
-
+    rc = sqlite3_bind_int(st, param_index, upd_game->id_game);
+    if (rc != SQLITE_OK) goto bind_fail; 
 
     rc = sqlite3_step(st);
+    if (rc != SQLITE_DONE) goto step_fail; 
+
     sqlite3_finalize(st);
-    
-    if (rc != SQLITE_DONE) {
-        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
-        return GAME_SQL_ERROR;
-    }
+
+    if (sqlite3_changes(db) == 0) return GAME_NOT_MODIFIED;
     
     return GAME_OK;
+
+    prepare_fail:
+        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return GAME_SQL_ERROR;
+    
+    bind_fail:
+        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(st);
+        return GAME_SQL_ERROR;
+
+    step_fail:
+        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(st);
+        return GAME_SQL_ERROR;
 }
 
 GameReturnStatus delete_game_by_id(sqlite3 *db, int id_game) {
@@ -285,34 +321,46 @@ GameReturnStatus delete_game_by_id(sqlite3 *db, int id_game) {
     sqlite3_stmt *stmt = NULL;
 
     int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
-
-    if (rc != SQLITE_OK) {
-        sqlite3_finalize(stmt);
-        return GAME_SQL_ERROR;
-    }
+    if (rc != SQLITE_OK) goto prepare_fail; 
 
     sqlite3_bind_int(stmt, 1, id_game);
+    if (rc != SQLITE_OK) goto bind_fail; 
 
     rc = sqlite3_step(stmt);
-
-    if (rc != SQLITE_DONE) {
-        if (stmt) {
-            fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
-            sqlite3_finalize(stmt);
-            return GAME_SQL_ERROR;
-        }
-    }
+    if(rc != SQLITE_DONE) goto step_fail;
 
     sqlite3_finalize(stmt);
 
     if (sqlite3_changes(db) == 0) return GAME_NOT_FOUND;
 
     return GAME_OK;
+
+    prepare_fail:
+        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return GAME_SQL_ERROR;
+    
+    bind_fail:
+        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return GAME_SQL_ERROR;
+
+    step_fail:
+        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return GAME_SQL_ERROR;
 }
 
 GameReturnStatus insert_game(sqlite3 *db, const Game *in_game) {
 
     if (db == NULL || in_game == NULL) {
+        return GAME_INVALID_INPUT;
+    }
+
+    if (in_game->id_creator <= 0 || in_game->id_owner <= 0 || in_game->created_at[0] == '\0') {
+        return GAME_INVALID_INPUT;
+    }
+
+    if (in_game->state < NEW || in_game->state > FINISHED) {
         return GAME_INVALID_INPUT;
     }
 
@@ -323,54 +371,48 @@ GameReturnStatus insert_game(sqlite3 *db, const Game *in_game) {
         " VALUES ( ?, ?, ?, ?)";
 
     int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
-
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
-        return GAME_SQL_ERROR;
-    }
+    if (rc != SQLITE_OK) goto prepare_fail;
 
     int param_index = 1;
 
-    if (in_game->id_creator <= 0) {
-        sqlite3_finalize(stmt);
-        return GAME_INVALID_INPUT;
-    } 
+    rc = sqlite3_bind_int(stmt, param_index++, in_game->id_creator);
+    if (rc != SQLITE_OK) goto bind_fail;
 
-    sqlite3_bind_int(stmt, param_index++, in_game->id_creator);
-
-    if (in_game->id_owner <= 0) {
-        sqlite3_finalize(stmt);
-        return GAME_INVALID_INPUT;
-    }
-
-    sqlite3_bind_int(stmt, param_index++, in_game->id_owner);
+    rc = sqlite3_bind_int(stmt, param_index++, in_game->id_owner);
+    if (rc != SQLITE_OK) goto bind_fail;
 
     const char* g_st = game_status_to_string(in_game->state);
-
-    if (!g_st || (strcmp(g_st, "new") != 0 && strcmp(g_st, "active")  != 0 && strcmp(g_st, "waiting") != 0 && strcmp(g_st, "finished")!= 0)) {
+    if(!g_st) {
         sqlite3_finalize(stmt);
         return GAME_INVALID_INPUT;
     }
 
-    sqlite3_bind_text(stmt, param_index++, game_status_to_string(in_game->state), -1, SQLITE_STATIC);
+    rc = sqlite3_bind_text(stmt, param_index++, g_st, -1, SQLITE_STATIC);
+    if (rc != SQLITE_OK) goto bind_fail;
 
-    if(in_game->created_at[0] == '\0') {
-        sqlite3_finalize(stmt);
-        return GAME_INVALID_INPUT;
-    }
+    rc = sqlite3_bind_text(stmt, param_index++, in_game->created_at, -1, SQLITE_STATIC);
+    if (rc != SQLITE_OK) goto bind_fail;
 
-    sqlite3_bind_text(stmt, param_index++, in_game->created_at, -1, SQLITE_STATIC);
-
-    if (sqlite3_step(stmt) != SQLITE_DONE) {
-        sqlite3_finalize(stmt);
-        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
-        return GAME_SQL_ERROR;
-    }
+    if (sqlite3_step(stmt) != SQLITE_DONE) goto step_fail;
 
     if (sqlite3_changes(db) == 0) return GAME_NOT_MODIFIED;
 
     sqlite3_finalize(stmt);
     return GAME_OK;
+
+    prepare_fail:
+        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return GAME_SQL_ERROR;
+
+    bind_fail:
+        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return GAME_SQL_ERROR;
+
+    step_fail:
+        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return GAME_SQL_ERROR;
 }
 
 
