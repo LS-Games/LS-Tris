@@ -19,7 +19,7 @@ const char* return_play_status_to_string(PlayReturnStatus status) {
         case PLAY_INVALID_INPUT:  return "PLAY_INVALID_INPUT";
         case PLAY_SQL_ERROR:      return "PLAY_SQL_ERROR";
         case PLAY_NOT_FOUND:      return "PLAY_NOT_FOUND";
-        default:                  return NULL;
+        default:                  return "PLAY_UNKNOWN";
     }
 }
 
@@ -194,7 +194,7 @@ PlayReturnStatus update_play_by_pk(sqlite3 *db, const Play *upd_play) {
     int rc = sqlite3_prepare_v2(db, query, -1, &st, NULL); 
     if (rc != SQLITE_OK) goto prepare_fail;
 
-    rc = sqlite3_bind_text(st, 1, res_str, -1, SQLITE_STATIC);
+    rc = sqlite3_bind_text(st, 1, res_str, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail; 
 
     rc = sqlite3_bind_int(st, 2, upd_play->id_player);
@@ -301,7 +301,7 @@ PlayReturnStatus insert_play(sqlite3 *db, const Play *in_play) {
         return PLAY_INVALID_INPUT;
     }
 
-    rc = sqlite3_bind_text(stmt, 3, p_st, -1, SQLITE_STATIC);
+    rc = sqlite3_bind_text(stmt, 3, p_st, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail;
 
     if (sqlite3_step(stmt) != SQLITE_DONE) goto step_fail;

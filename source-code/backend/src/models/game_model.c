@@ -21,7 +21,7 @@ const char* return_game_status_to_string(GameReturnStatus status) {
         case GAME_INVALID_INPUT:  return "GAME_INVALID_INPUT";
         case GAME_SQL_ERROR:      return "GAME_SQL_ERROR";
         case GAME_NOT_FOUND:      return "GAME_NOT_FOUND";
-        default:                  return NULL;
+        default:                  return "GAME_UNKNOWN";
     }
 }
 
@@ -150,7 +150,7 @@ GameReturnStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count) {
         g.id_game = sqlite3_column_int(st,0);
         g.id_creator = sqlite3_column_int(st, 1);
         g.id_owner = sqlite3_column_int(st,2);
-        const unsigned char *state = sqlite3_column_text(st, 4);
+        const unsigned char *state = sqlite3_column_text(st, 3);
         const unsigned char *created_at = sqlite3_column_text(st,4);
 
         if(created_at)
@@ -256,8 +256,6 @@ GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
 
     strcat(query, " WHERE id_game = ?");
 
-    printf("\n\nQUERY\n\n: %s", query);
-
     int rc = sqlite3_prepare_v2(db, query, -1, &st, NULL); 
     if (rc != SQLITE_OK) goto prepare_fail;
 
@@ -274,12 +272,12 @@ GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
     }
 
     if (flags & UPDATE_GAME_STATE) {
-        rc = sqlite3_bind_text(st, param_index++, game_status_to_string(upd_game->state), -1, SQLITE_STATIC);
+        rc = sqlite3_bind_text(st, param_index++, game_status_to_string(upd_game->state), -1, SQLITE_TRANSIENT);
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
     if (flags & UPDATE_GAME_CREATED_AT) {
-        rc = sqlite3_bind_text(st, param_index++, upd_game->created_at, -1, SQLITE_STATIC);
+        rc = sqlite3_bind_text(st, param_index++, upd_game->created_at, -1, SQLITE_TRANSIENT);
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
@@ -387,10 +385,10 @@ GameReturnStatus insert_game(sqlite3 *db, const Game *in_game) {
         return GAME_INVALID_INPUT;
     }
 
-    rc = sqlite3_bind_text(stmt, param_index++, g_st, -1, SQLITE_STATIC);
+    rc = sqlite3_bind_text(stmt, param_index++, g_st, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    rc = sqlite3_bind_text(stmt, param_index++, in_game->created_at, -1, SQLITE_STATIC);
+    rc = sqlite3_bind_text(stmt, param_index++, in_game->created_at, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail;
 
     if (sqlite3_step(stmt) != SQLITE_DONE) goto step_fail;

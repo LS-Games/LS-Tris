@@ -306,8 +306,6 @@ PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player) {
 
     strcat(query, " WHERE id_player = ?");
 
-    printf("\n\nQUERY: %s", query);
-
     int rc = sqlite3_prepare_v2(db, query, -1, &st, NULL); //We have to do prepare before the bind
     if (rc != SQLITE_OK) goto prepare_fail;
 
@@ -315,17 +313,17 @@ PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player) {
     int param_index = 1;
 
     if (flags & UPDATE_PLAYER_NICKNAME) {
-        rc = sqlite3_bind_text(st, param_index++, upd_player->nickname, -1, SQLITE_STATIC);
+        rc = sqlite3_bind_text(st, param_index++, upd_player->nickname, -1, SQLITE_TRANSIENT);
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
     if (flags & UPDATE_PLAYER_EMAIL) {
-        rc = sqlite3_bind_text(st, param_index++, upd_player->email, -1, SQLITE_STATIC);
+        rc = sqlite3_bind_text(st, param_index++, upd_player->email, -1, SQLITE_TRANSIENT);
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
     if (flags & UPDATE_PLAYER_PASSWORD) {
-        rc =sqlite3_bind_text(st, param_index++, upd_player->password, -1, SQLITE_STATIC);
+        rc =sqlite3_bind_text(st, param_index++, upd_player->password, -1, SQLITE_TRANSIENT);
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
@@ -340,7 +338,7 @@ PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player) {
     }
 
     if (flags & UPDATE_PLAYER_REG_DATE) {
-        rc =sqlite3_bind_text(st, param_index++, upd_player->registration_date, -1, SQLITE_STATIC);
+        rc =sqlite3_bind_text(st, param_index++, upd_player->registration_date, -1, SQLITE_TRANSIENT);
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
@@ -436,13 +434,13 @@ PlayerReturnStatus insert_player(sqlite3* db, const Player *in_player) {
 
     int param_index = 1;
 
-    rc = sqlite3_bind_text(stmt, param_index++, in_player->nickname, -1, SQLITE_STATIC);
+    rc = sqlite3_bind_text(stmt, param_index++, in_player->nickname, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    rc = sqlite3_bind_text(stmt, param_index++, in_player->email, -1, SQLITE_STATIC);
+    rc = sqlite3_bind_text(stmt, param_index++, in_player->email, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    rc = sqlite3_bind_text(stmt, param_index++, in_player->password, -1, SQLITE_STATIC);
+    rc = sqlite3_bind_text(stmt, param_index++, in_player->password, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail;
 
     rc = sqlite3_bind_int(stmt, param_index++, in_player->current_streak);
@@ -451,7 +449,7 @@ PlayerReturnStatus insert_player(sqlite3* db, const Player *in_player) {
     rc = sqlite3_bind_int(stmt, param_index++, in_player->max_streak);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    rc = sqlite3_bind_text(stmt, param_index++, in_player->registration_date, -1, SQLITE_STATIC);
+    rc = sqlite3_bind_text(stmt, param_index++, in_player->registration_date, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail;
 
     if (sqlite3_step(stmt) != SQLITE_DONE) goto step_fail;

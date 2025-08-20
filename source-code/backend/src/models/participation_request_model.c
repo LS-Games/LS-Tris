@@ -11,7 +11,8 @@ const char* return_participation_request_status_to_string(ParticipationRequestRe
         case PARTICIPATION_REQUEST_INVALID_INPUT:  return "PARTICIPATION_REQUEST_INVALID_INPUT";
         case PARTICIPATION_REQUEST_SQL_ERROR:      return "PARTICIPATION_REQUEST_SQL_ERROR";
         case PARTICIPATION_REQUEST_NOT_FOUND:      return "PARTICIPATION_REQUEST_NOT_FOUND";
-        default:                    return "PARTICIPATION_REQUEST_UNKNOWN";
+        case PARTICIPATION_REQUEST_MALLOC_ERROR:   return  "PARTICIPATION_REQUEST_MALLOC_ERROR";
+        default:                                   return "PARTICIPATION_REQUEST_UNKNOWN";
     }
 }
 
@@ -255,8 +256,6 @@ ParticipationRequestReturnStatus update_participation_request_by_id(sqlite3 *db,
 
     strcat(query, " WHERE id_request = ?");
 
-    printf("\n\nQUERY: %s\n\n", query);
-
     int rc = sqlite3_prepare_v2(db, query, -1, &st, NULL); 
     if (rc != SQLITE_OK) goto prepare_fail;
 
@@ -273,12 +272,12 @@ ParticipationRequestReturnStatus update_participation_request_by_id(sqlite3 *db,
     }
 
     if (flags & UPDATE_REQUEST_CREATED_AT) {
-        rc = sqlite3_bind_text(st, param_index++, upd_participation_request->created_at, -1, SQLITE_STATIC);
+        rc = sqlite3_bind_text(st, param_index++, upd_participation_request->created_at, -1, SQLITE_TRANSIENT);
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
     if (flags & UPDATE_REQUEST_STATE) {
-        rc = sqlite3_bind_text(st, param_index++, request_participation_status_to_string(upd_participation_request->state), -1, SQLITE_STATIC);
+        rc = sqlite3_bind_text(st, param_index++, request_participation_status_to_string(upd_participation_request->state), -1, SQLITE_TRANSIENT);
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 

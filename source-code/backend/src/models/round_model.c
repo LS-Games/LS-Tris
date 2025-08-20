@@ -9,7 +9,7 @@ const char* round_status_to_string(RoundStatus state) {
         case ACTIVE_ROUND :               return "active";
         case PENDING_ROUND :              return "pending";
         case FINISHED_ROUND :             return "finished";
-        default:                    return NULL;
+        default:                          return NULL;
     }
 }
 
@@ -19,7 +19,7 @@ const char* return_round_status_to_string(RoundReturnStatus status) {
         case ROUND_INVALID_INPUT:  return "ROUND_INVALID_INPUT";
         case ROUND_SQL_ERROR:      return "ROUND_SQL_ERROR";
         case ROUND_NOT_FOUND:      return "ROUND_NOT_FOUND";
-        default:                  return NULL;
+        default:                   return "ROUND_UNKNOWN";
     }
 }
 
@@ -227,8 +227,6 @@ RoundReturnStatus update_round_by_id(sqlite3 *db, const Round *upd_round) {
 
     strcat(query, " WHERE id_round = ?");
 
-    printf("\n\nQUERY\n\n: %s", query);
-
     int rc = sqlite3_prepare_v2(db, query, -1, &st, NULL); 
     if (rc != SQLITE_OK) goto prepare_fail;
 
@@ -240,7 +238,7 @@ RoundReturnStatus update_round_by_id(sqlite3 *db, const Round *upd_round) {
     }
 
     if (flags & UPDATE_ROUND_STATE) {
-        rc = sqlite3_bind_text(st, param_index++, round_status_to_string(upd_round->state), -1, SQLITE_STATIC);
+        rc = sqlite3_bind_text(st, param_index++, round_status_to_string(upd_round->state), -1, SQLITE_TRANSIENT);
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
@@ -350,7 +348,7 @@ RoundReturnStatus insert_round(sqlite3 *db, const Round *in_round) {
         return ROUND_INVALID_INPUT;
     }
 
-    rc = sqlite3_bind_text(stmt, param_index++, r_st, -1, SQLITE_STATIC);
+    rc = sqlite3_bind_text(stmt, param_index++, r_st, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail;
 
     rc = sqlite3_bind_int64(stmt, param_index++, in_round->duration);
