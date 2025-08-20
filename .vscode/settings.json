@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "db_connection.h": "c"
+        "db_connection.h": "c",
+        "game_model.h": "c"
     }
 }

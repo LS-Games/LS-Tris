@@ -160,7 +160,7 @@ GameReturnStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count) {
         }
 
         if (state) {
-            g.state = string_to_request_participation_status((const char*) state);
+            g.state = string_to_game_status((const char*) state);
         } else {
             g.state = GAME_STATUS_INVALID;
         }
@@ -231,8 +231,8 @@ GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
     bool first = true; 
 
     if (flags & UPDATE_GAME_ID_CREATOR) { 
-        if (!first) strcat(query, ", "); //If it isn't the first it adds the "," and then adds the correct column
-        strcat(query, "id_creator = ?"); //We won't have the "," at the end becuase it added earlier
+        if (!first) strcat(query, ", "); 
+        strcat(query, "id_creator = ?"); 
         first = false;
     }
 
@@ -323,7 +323,7 @@ GameReturnStatus delete_game_by_id(sqlite3 *db, int id_game) {
     int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
     if (rc != SQLITE_OK) goto prepare_fail; 
 
-    sqlite3_bind_int(stmt, 1, id_game);
+    rc = sqlite3_bind_int(stmt, 1, id_game);
     if (rc != SQLITE_OK) goto bind_fail; 
 
     rc = sqlite3_step(stmt);
