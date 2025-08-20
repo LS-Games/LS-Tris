@@ -1,20 +1,24 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #include "./models/player_model.h"
 #include "./models/game_model.h"
 #include "./db/db_connection.h"
 #include "./models/participation_request_model.h"
 #include "./models/play_model.h"
+#include "./models/round_model.h"
 
 static void divline(const char *title) {
     printf("\n==================== %s ====================\n", title);
 }
 
-static void print_play(const Play *p, const char *prefix) {
-    printf("%s player=%d round=%d result=%s\n",
+static void print_round(const Round *r, const char *prefix) {
+    printf("%s id_round=%d id_game=%d state=%s duration=%" PRId64 "s\n",
            prefix ? prefix : "",
-           p->id_player, p->id_round, play_result_to_string(p->result));
+           r->id_round, r->id_game,
+           round_status_to_string(r->state),
+           r->duration);
 }
 
 int main(void) {
@@ -25,101 +29,106 @@ int main(void) {
         return 1;
     }
 
-    /* ==================== GET BY PK (player 1..3, round 1..3) ==================== */
-    divline("PLAY get_by_pk (player 1..3, round 1..3)");
-    for (int pid = 1; pid <= 3; ++pid) {
-        for (int rid = 1; rid <= 3; ++rid) {
-            Play p;
-            PlayReturnStatus st = get_play_by_pk(db, pid, rid, &p);
-            printf("[get_by_pk p=%d r=%d] -> %s\n",
-                   pid, rid, return_play_status_to_string(st));
-            if (st == PLAY_OK) print_play(&p, "  ");
-        }
+    /* ==================== GET BY ID (ID esistenti 1..3 se presenti) ==================== */
+    divline("ROUND get_by_id (1..3)");
+    for (int id = 1; id <= 3; ++id) {
+        Round r;
+        RoundReturnStatus st = get_round_by_id(db, id, &r);
+        printf("[get_by_id %d] -> %s\n", id, return_round_status_to_string(st));
+        if (st == ROUND_OK) print_round(&r, "  ");
     }
 
     /* ==================== GET ALL ==================== */
-    divline("PLAY get_all");
-    Play *parr = NULL;
-    int pcount = 0;
-    PlayReturnStatus pst = get_all_plays(db, &parr, &pcount);
-    printf("[get_all] -> %s (count=%d)\n", return_play_status_to_string(pst), pcount);
-    if (pst == PLAY_OK && parr) {
-        int show = pcount < 10 ? pcount : 10; // stampa max i primi 10
+    divline("ROUND get_all");
+    Round *rarr = NULL;
+    int rcount = 0;
+    RoundReturnStatus rst = get_all_rounds(db, &rarr, &rcount);
+    printf("[get_all] -> %s (count=%d)\n", return_round_status_to_string(rst), rcount);
+    if (rst == ROUND_OK && rarr) {
+        int show = rcount < 10 ? rcount : 10; // stampa al massimo i primi 10
         for (int i = 0; i < show; ++i) {
-            print_play(&parr[i], "  ");
+            print_round(&rarr[i], "  ");
         }
-        free(parr);
+        free(rarr);
     }
 
-    /* ==================== INSERT su (player=3, round=3) ==================== */
-    divline("PLAY insert (p=3, r=3)");
-    // Elimino l'eventuale riga esistente per evitare vincoli di PK duplicata
-    // (void)delete_play_by_pk(db, 3, 3);
+    /* ==================== INSERT ==================== */
+    divline("ROUND insert");
+    Round new_r;
+    memset(&new_r, 0, sizeof new_r);
+    new_r.id_game  = 1;            // FK valida (1..3)
+    new_r.state    = PENDING_ROUND;      // ACTIVE/PENDING/FINISHED
+    new_r.duration = 120;          // secondi
 
-    Play new_p;
-    new_p.id_player = 3;  // esistono (1..3)
-    new_p.id_round  = 3;  // esistono (1..3)
-    new_p.result    = WIN;
+    rst = insert_round(db, &new_r);
+    printf("[insert] -> %s\n", return_round_status_to_string(rst));
+    if (rst != ROUND_OK) { db_close(db); return 1; }
 
-    pst = insert_play(db, &new_p);
-    printf("[insert p=3 r=3] -> %s\n", return_play_status_to_string(pst));
-    if (pst != PLAY_OK) { db_close(db); return 1; }
+    int new_id = (int)sqlite3_last_insert_rowid(db);
+    printf("  nuovo id_round inserito = %d\n", new_id);
 
-    Play fetched;
-    pst = get_play_by_pk(db, 3, 3, &fetched);
-    printf("[get_by_pk p=3 r=3 dopo insert] -> %s\n", return_play_status_to_string(pst));
-    if (pst == PLAY_OK) print_play(&fetched, "  ");
+    Round fetched;
+    rst = get_round_by_id(db, new_id, &fetched);
+    printf("[get_by_id %d dopo insert] -> %s\n", new_id, return_round_status_to_string(rst));
+    if (rst == ROUND_OK) print_round(&fetched, "  ");
 
-    /* ==================== UPDATE sulla riga inserita ==================== */
-    divline("PLAY update (sulla riga inserita p=3 r=3)");
-    Play before = fetched;
+    /* ==================== UPDATE sulla riga appena inserita ==================== */
+    divline("ROUND update (sulla riga inserita)");
+    Round before = fetched;
 
-    // Cambia il result in modo certo (diverso dall'attuale)
-    Play to_update = before;
-    to_update.result = (before.result == WIN ? LOSE : WIN);
+    // Cambia alcuni campi mantenendo FK valide (1..3)
+    fetched.id_game  = (before.id_game == 1 ? 2 : 1);
+    fetched.state    = (before.state == FINISHED_ROUND ? PENDING : FINISHED_ROUND);
+    fetched.duration = before.duration + 30;
 
-    pst = update_play_by_pk(db, &to_update);
-    printf("[update p=3 r=3] -> %s\n", return_play_status_to_string(pst));
+    rst = update_round_by_id(db, &fetched);
+    printf("[update id_round=%d] -> %s\n", new_id, return_round_status_to_string(rst));
 
-    Play after;
-    pst = get_play_by_pk(db, 3, 3, &after);
-    printf("[get_by_pk p=3 r=3 dopo update] -> %s\n", return_play_status_to_string(pst));
-    if (pst == PLAY_OK) print_play(&after, "  ");
-
-    /* Provo un update NOT_MODIFIED (stesso result) */
-    divline("PLAY update (NOT_MODIFIED atteso)");
-    pst = update_play_by_pk(db, &after);
-    printf("[update identico p=3 r=3] -> %s (atteso: NOT_MODIFIED)\n",
-           return_play_status_to_string(pst));
+    Round after;
+    rst = get_round_by_id(db, new_id, &after);
+    printf("[get_by_id %d dopo update] -> %s\n", new_id, return_round_status_to_string(rst));
+    if (rst == ROUND_OK) print_round(&after, "  ");
 
     /* ==================== DELETE (pulizia) ==================== */
-    // divline("PLAY delete (pulizia p=3 r=3)");
-    // pst = delete_play_by_pk(db, 3, 3);
-    // printf("[delete p=3 r=3] -> %s\n", return_play_status_to_string(pst));
+    // divline("ROUND delete (pulizia riga inserita)");
+    // rst = delete_round_by_id(db, new_id);
+    // printf("[delete id_round=%d] -> %s\n", new_id, return_round_status_to_string(rst));
 
-    Play probe;
-    pst = get_play_by_pk(db, 3, 3, &probe);
-    printf("[get_by_pk p=3 r=3 dopo delete] -> %s (atteso: NOT_FOUND)\n",
-           return_play_status_to_string(pst));
+    Round probe;
+    rst = get_round_by_id(db, new_id, &probe);
+    printf("[get_by_id %d dopo delete] -> %s (atteso: NOT_FOUND)\n",
+           new_id, return_round_status_to_string(rst));
+
+    /* ==================== TEST NOT_MODIFIED (se esiste id=1) ==================== */
+    divline("ROUND not modified (se id=1 esiste)");
+    Round r1;
+    rst = get_round_by_id(db, 1, &r1);
+    if (rst == ROUND_OK) {
+        Round same = r1; // nessuna modifica
+        rst = update_round_by_id(db, &same);
+        printf("[update senza cambi id_round=1] -> %s (atteso: ROUND_NOT_MODIFIED)\n",
+               return_round_status_to_string(rst));
+    } else {
+        printf("  (round id=1 non presente, salto test NOT_MODIFIED)\n");
+    }
 
     /* ==================== TEST INPUT INVALIDI (rapidi) ==================== */
-    divline("PLAY invalid inputs (smoke tests)");
-    pst = get_play_by_pk(db, 0, 1, &probe);
-    printf("[get_by_pk p=0 r=1] -> %s (atteso: INVALID_INPUT)\n",
-           return_play_status_to_string(pst));
+    divline("ROUND invalid inputs (smoke tests)");
+    rst = get_round_by_id(db, 0, &probe);
+    printf("[get_by_id id=0] -> %s (atteso: INVALID_INPUT)\n", return_round_status_to_string(rst));
 
-    pst = delete_play_by_pk(db, 1, 0);
-    printf("[delete p=1 r=0] -> %s (atteso: INVALID_INPUT)\n",
-           return_play_status_to_string(pst));
+    rst = delete_round_by_id(db, 0);
+    printf("[delete id=0] -> %s (atteso: INVALID_INPUT)\n", return_round_status_to_string(rst));
 
-    Play bad;
-    bad.id_player = 1;
-    bad.id_round  = 1;
-    bad.result    = PLAY_RESULT_INVALID; // fuori range
-    pst = insert_play(db, &bad);
-    printf("[insert result invalid] -> %s (atteso: INVALID_INPUT)\n",
-           return_play_status_to_string(pst));
+    Round bad;
+    memset(&bad, 0, sizeof bad);
+    bad.id_game  = 0;                   // FK non valida
+    bad.state    = ROUND_STATUS_INVALID; // stato non valido
+    bad.duration = -1;                  // durata negativa
+    rst = insert_round(db, &bad);
+    printf("[insert dati invalidi] -> %s (atteso: INVALID_INPUT)\n", return_round_status_to_string(rst));
 
+    divline("DONE");
     db_close(db);
     return 0;
 }

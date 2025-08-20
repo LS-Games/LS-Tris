@@ -6,10 +6,10 @@
 #define DATE_MAX 100
 
 typedef enum {
-    NEW,
-    ACTIVE,
-    WAITING,
-    FINISHED,
+    NEW_GAME,
+    ACTIVE_GAME,
+    WAITING_GAME,
+    FINISHED_GAME,
     GAME_STATUS_INVALID
 } GameStatus;
 
@@ -35,7 +35,7 @@ typedef enum {
     UPDATE_GAME_ID_CREATOR     = 1 << 1,  
     UPDATE_GAME_ID_OWNER       = 1 << 2,  
     UPDATE_GAME_STATE          = 1 << 3,
-    UPDATE_GAME_CREATED_AT     = 1 << 4,  
+    UPDATE_GAME_CREATED_AT     = 1 << 4  
 } UpdateGameFlags;
 
 GameReturnStatus get_game_by_id(sqlite3 *db, int id_game, Game *out); 
