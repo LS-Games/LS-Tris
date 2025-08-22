@@ -59,7 +59,6 @@
                 "humao.rest-client", // REST Client
 
                 "ms-vscode.cpptools", // C/C++ extension
-
 				"alexcvzz.vscode-sqlite", // SQLite extension 
 
                 // Frontend extensions

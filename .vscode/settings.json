@@ -1,7 +1,5 @@
 {
     "files.associations": {
-        "db_connection.h": "c",
-        "game_model.h": "c",
-        "participation_request_model.h": "c"
+        "**/backend/**/*.h": "c"
     }
 }
