@@ -4,7 +4,7 @@ WARN    := -Wall -Wextra -Wpedantic
 DEBUG   := -g
 CFLAGS  := $(CSTD) $(WARN) $(DEBUG) -MMD -MP
 LDFLAGS :=
-LDLIBS  := -lm
+LDLIBS  := -lm -lsqlite3
 
 SRC_DIR := src
 OBJ_DIR := build
