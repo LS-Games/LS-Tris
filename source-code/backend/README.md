@@ -28,5 +28,5 @@ Tuttavia, tramite l'estensione [SQLite](https://marketplace.visualstudio.com/ite
 Nella directory [backend/src/db/](./src/db/), creiamo un file `populate_db.sql`, contenente le istruzioni SQL per popolare il database. Popoleremo il database con il comando:
 
 ```bash
-backend/data/database.sqlite < backend/db/populate_db.sql
+sqlite3 backend/data/database.sqlite < backend/src/db/populate_db.sql
 ```
