@@ -18,8 +18,8 @@ CREATE TABLE Game (
     id_owner            INTEGER NOT NULL,
     state               TEXT    NOT NULL CHECK (state IN ('new', 'active', 'waiting', 'finished')), 
     created_at          TEXT    NOT NULL, 
-    FOREIGN KEY (id_creator) REFERENCES Player(id_player) ON DELETE RESTRICT,
-    FOREIGN KEY (id_owner) REFERENCES Player(id_player) ON DELETE RESTRICT
+    FOREIGN KEY (id_creator) REFERENCES Player(id_player) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (id_owner) REFERENCES Player(id_player) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 CREATE TABLE Round (
@@ -27,21 +27,16 @@ CREATE TABLE Round (
     id_game             INTEGER NOT NULL, 
     state               TEXT    NOT NULL CHECK (state IN ('pending', 'active', 'finished')), 
     duration            INTEGER NOT NULL, 
-    FOREIGN KEY (id_game) REFERENCES Game(id_game) ON DELETE CASCADE
+    FOREIGN KEY (id_game) REFERENCES Game(id_game) ON DELETE CASCADE ON UPDATE CASCADE
 );
-
--- We should add an attribute "role" to limit game to two player
--- So we can use UNIQUE()
 
 CREATE TABLE Play (
     id_player           INTEGER NOT NULL, 
     id_round            INTEGER NOT NULL, 
     result              TEXT NOT NULL CHECK (result IN ('win', 'lose', 'draw')), 
-    -- role             TEXT NOT NULL,         -- We mean X or O
-    -- UNIQUE (id_round, role),
     PRIMARY KEY (id_player, id_round),
-    FOREIGN KEY (id_round) REFERENCES Round(id_round) ON DELETE CASCADE,
-    FOREIGN KEY (id_player) REFERENCES Player(id_player) ON DELETE CASCADE 
+    FOREIGN KEY (id_round) REFERENCES Round(id_round) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (id_player) REFERENCES Player(id_player) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE Participation_request (
@@ -50,6 +45,6 @@ CREATE TABLE Participation_request (
     id_game             INTEGER NOT NULL, 
     created_at          TEXT NOT NULL,
     state               TEXT NOT NULL CHECK (state IN ('pending', 'accepted', 'rejected', 'canceled')), 
-    FOREIGN KEY (id_player) REFERENCES Player(id_player) ON DELETE CASCADE,
-    FOREIGN KEY (id_game) REFERENCES Game(id_game) ON DELETE CASCADE  
+    FOREIGN KEY (id_player) REFERENCES Player(id_player) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (id_game) REFERENCES Game(id_game) ON DELETE CASCADE ON UPDATE CASCADE
 );

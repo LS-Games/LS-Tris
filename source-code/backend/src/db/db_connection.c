@@ -5,7 +5,7 @@ sqlite3* db_open(const char* filename) {
     sqlite3* db = NULL;
 
 
-    //If an error occured in database oppening we print the error and close it, even if it was partially opened
+    //If an error occured in database opening we print the error and close it, even if it was partially opened
     if(sqlite3_open(filename, &db) != SQLITE_OK) {
         fprintf(stderr, "Error occurred in database opening: %s\n", sqlite3_errmsg(db));
         if (db) sqlite3_close(db); //Even if it is partially open we close it
