@@ -14,8 +14,11 @@ RUN apt update \
     ### Installa il C debugger
     && apt-get install gdb -y \
 
-    ### Installa SQLite
+    ### Installa SQLite (e la CLI sqlite3)
     && apt install sqlite3 libsqlite3-dev -y \
+
+    ### Installa json-c
+    && apt install libjson-c-dev -y \
 
     ### Clean della cache
     && apt clean

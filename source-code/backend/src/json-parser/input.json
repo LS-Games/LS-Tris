@@ -1,0 +1,10 @@
+{
+    "nickname": "fratm",
+    "email": "fratm@napule.com",
+    "password": "forzanapoli",
+    "current_streak": 20,
+    "max_streak": 12,
+    "registration_date": "2025-01-15",
+
+    "test_array": ["first", "second", "third"]
+}

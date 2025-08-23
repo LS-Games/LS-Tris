@@ -8,25 +8,25 @@
         
         // Backend configurations
         {
-            "name": "Debug C backend",                                      // Debugging configuration name
-            "type": "cppdbg",                                               // Sets the GDB (or LLDB) debugger
-            "request": "launch",                                            // Tells that this configuration will launch a new instance of the program
-            "program": "${workspaceFolder}/source-code/backend/bin/main",   // Path of the executable to be launched in debug mode
-            "args": [],                                                     // Args passed to the executable
-            "stopAtEntry": false,                                           // The debugger won't stop at the entry-point
-            "cwd": "${workspaceFolder}/source-code/backend",                // Sets the working directory of the application
-            "environment": [],                                              // Environment variables passed to the executable
-            "externalConsole": false,                                       // It won't open a new terminal window
-            "MIMode": "gdb",                                                // Uses the GDB debugger
-            "miDebuggerPath": "/usr/bin/gdb",                               // Path to the debugger
-            "setupCommands": [                                              // List of commands to execute in order to setup the debugger
+            "name": "Debug C backend",                                          // Debugging configuration name
+            "type": "cppdbg",                                                   // Sets the GDB (or LLDB) debugger
+            "request": "launch",                                                // Tells that this configuration will launch a new instance of the program
+            "program": "${workspaceFolder}/source-code/backend/bin/ls-tris",    // Path of the executable to be launched in debug mode
+            "args": [],                                                         // Args passed to the executable
+            "stopAtEntry": false,                                               // The debugger won't stop at the entry-point
+            "cwd": "${workspaceFolder}/source-code/backend",                    // Sets the working directory of the application
+            "environment": [],                                                  // Environment variables passed to the executable
+            "externalConsole": false,                                           // It won't open a new terminal window
+            "MIMode": "gdb",                                                    // Uses the GDB debugger
+            "miDebuggerPath": "/usr/bin/gdb",                                   // Path to the debugger
+            "setupCommands": [                                                  // List of commands to execute in order to setup the debugger
                 {
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "C: make build"                                // Launch a task before the start of the debug session. It must be equal to the "label" of the task we want to launch in tasks.json  
+            "preLaunchTask": "C: make build"                                    // Launch a task before the start of the debug session. It must be equal to the "label" of the task we want to launch in tasks.json  
         },
 
         // Frontend configurations
