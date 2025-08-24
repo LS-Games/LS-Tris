@@ -4,10 +4,10 @@
 
 ### Creazione dello schema da terminale
 
-Nella directory [backend/src/db/](./src/db/), creiamo un file `scheme.sql`, contenente lo schema del database in linguaggio SQL. Creeremo le tabelle con il comando:
+Nella directory [backend/src/db/](./src/db/), creiamo un file `scheme.sql`, contenente lo schema del database in linguaggio SQL. Creeremo le tabelle con il comando (working directory backend):
 
 ```bash
-sqlite3 data/database.sqlite < db/scheme.sql
+sqlite3 ./data/database.sqlite < ./src/db/scheme.sql
 ```
 
 ### Visualizzazione del database da terminale
@@ -30,3 +30,5 @@ Nella directory [backend/src/db/](./src/db/), creiamo un file `populate_db.sql`,
 ```bash
 sqlite3 backend/data/database.sqlite < backend/src/db/populate_db.sql
 ```
+
+

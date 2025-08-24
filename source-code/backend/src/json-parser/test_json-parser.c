@@ -57,10 +57,10 @@ void json_c() {
 
     // Array convertion
     test_array_length = json_object_array_length(test_array);
-    printf("Found %lu items\n", test_array_length);
+    printf("Found %zu items\n", test_array_length);
 
     for (int i=0; i<test_array_length; i++) {
         test_array_item = json_object_array_get_idx(test_array, i);
-        printf ("%lu: %s\n", i+1, json_object_get_string(test_array_item));
+        printf ("%zu: %s\n", i+1, json_object_get_string(test_array_item));
     }
 }

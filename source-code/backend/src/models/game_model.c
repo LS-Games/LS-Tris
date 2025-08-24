@@ -43,7 +43,7 @@ GameReturnStatus get_game_by_id(sqlite3 *db, int id_game, Game *out) {
     }
 
     const char *sql = 
-        "SELECT id_game, id_creator, id_owner, state, created_at "
+        "SELECT id_game, id_creator, id_owner, state, created_at, board "
         "FROM Game WHERE id_game = ?1";
 
     sqlite3_stmt *st = NULL;    
@@ -412,7 +412,3 @@ GameReturnStatus insert_game(sqlite3 *db, const Game *in_game) {
         sqlite3_finalize(stmt);
         return GAME_SQL_ERROR;
 }
-
-
-
-

@@ -12,11 +12,11 @@ INSERT INTO Game (id_creator, id_owner, state, created_at) VALUES
 (3, 4, 'waiting', '2025-08-03 18:45:00'),
 (4, 1, 'finished', '2025-08-04 20:15:00');
 
-INSERT INTO Round (id_game, state, duration) VALUES
-(1, 'pending', 60),
-(2, 'active', 120),
-(2, 'finished', 90),
-(4, 'finished', 75);
+INSERT INTO Round (id_game, state, duration, board) VALUES
+(1, 'pending', 60, 'X__-XOO-X__'),
+(2, 'active', 120, 'XOO-XOO-X__'),
+(2, 'finished', 90, 'XOO-XOO-XXX'),
+(4, 'finished', 75, '___-___-___');
 
 INSERT INTO Play (id_player, id_round, result) VALUES
 (1, 1, 'win'),

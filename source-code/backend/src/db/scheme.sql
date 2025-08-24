@@ -27,6 +27,7 @@ CREATE TABLE Round (
     id_game             INTEGER NOT NULL, 
     state               TEXT    NOT NULL CHECK (state IN ('pending', 'active', 'finished')), 
     duration            INTEGER NOT NULL, 
+    board               TEXT    NOT NULL,
     FOREIGN KEY (id_game) REFERENCES Game(id_game) ON DELETE CASCADE ON UPDATE CASCADE
 );
 

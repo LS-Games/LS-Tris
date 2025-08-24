@@ -4,6 +4,8 @@
 #include <sqlite3.h>
 #include <stdint.h>
 
+#define BOARD_MAX 12
+
 typedef enum {
     ACTIVE_ROUND,
     PENDING_ROUND,
@@ -16,6 +18,7 @@ typedef struct {
     int id_game;
     RoundStatus state;
     int64_t duration;
+    char board[BOARD_MAX];
 } Round;
 
 typedef enum {
@@ -31,6 +34,7 @@ typedef enum {
     UPDATE_ROUND_ID_GAME        = 1 << 0,
     UPDATE_ROUND_STATE          = 1 << 1,
     UPDATE_ROUND_DURATION       = 1 << 2,
+    UPDATE_ROUND_BOARD          = 1 << 3
 } UpdateRoundFlags;
 
 RoundReturnStatus get_round_by_id(sqlite3 *db, int id_round, Round *out); 
