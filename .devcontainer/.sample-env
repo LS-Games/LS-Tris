@@ -12,6 +12,7 @@ COMPOSE_PROFILES=dev
 ### Sets the port on wich we will access the apps
 DEV_BACKEND_PORT=
 DEV_FRONTEND_PORT=
+DEV_KARMA_PORT=
 
 
 ## Backend
