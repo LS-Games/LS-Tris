@@ -25,7 +25,7 @@
 
         // Frontend tasks
         {
-            "label": "npm: start:docker",                           // The task label
+            "label": "start: npm start:docker",                     // The task label
             "type": "npm",                                          // The command is interpreed as a process to execute
             "script": "start:docker",                               // The script to execute
             "options": {                                            // Override the defaults for "cwd", "env", or "shell"
@@ -58,7 +58,7 @@
             }
         },
         {
-            "label": "npm: test",                                   // The task label
+            "label": "start: npm test",                             // The task label
             "type": "npm",                                          // The command is interpreed as a process to execute
             "script": "test",                                       // The script to execute
             "options": {                                            // Override the defaults for "cwd", "env", or "shell"
