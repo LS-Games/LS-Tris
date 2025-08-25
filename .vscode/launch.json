@@ -8,7 +8,7 @@
         
         // Backend configurations
         {
-            "name": "C backend: Debug",                                         // Debugging configuration name
+            "name": "Debug: C backend",                                         // Debugging configuration name
             "type": "cppdbg",                                                   // Sets the GDB (or LLDB) debugger
             "request": "launch",                                                // Tells that this configuration will launch a new instance of the program
             "program": "${workspaceFolder}/source-code/backend/bin/ls-tris",    // Path of the executable to be launched in debug mode
@@ -31,19 +31,23 @@
 
         // Frontend configurations
         {
-            "name": "Angular frontend: Debug",                          // Debugging configuration name
+            "name": "Debug: Angular frontend",                          // Debugging configuration name
             "type": "chrome",                                           // Sets the type of configuration
             "request": "launch",                                        // Tells that this configuration will launch a new instance of the program
             "cwd": "${workspaceFolder}/source-code/frontend",           // Sets the working directory of the application
-            "preLaunchTask": "npm: start:docker",                       // Launch a task before the start of the debug session. It must be equal to the "label" of the task we want to launch in tasks.json  
+            "webRoot": "${workspaceFolder}/source-code/frontend",       // Specifies the workspace absolute path to the webserver root
+            "preLaunchTask": "npm: start:docker",                       // Launch a task before the start of the debug session. It must be equal to the "label" of the task we want to launch in tasks.json
+            "postDebugTask": "stop: npm start:docker",                  // Task to run after debug session ends. It must be equal to the "label" of the task we want to launch in tasks.json
             "url": "http://localhost:${input:FRONTEND_PORT}/"           // Will search for a tab with this exact url and attach to it, if found. Input variable defined later.
         },
         {
-            "name": "Angular frontend: Test",                           // Debugging configuration name
+            "name": "Test: Angular frontend",                           // Debugging configuration name
             "type": "chrome",                                           // Sets the type of configuration
             "request": "launch",                                        // Tells that this configuration will launch a new instance of the program
             "cwd": "${workspaceFolder}/source-code/frontend",           // Sets the working directory of the application
+            "webRoot": "${workspaceFolder}/source-code/frontend",       // Specifies the workspace absolute path to the webserver root
             "preLaunchTask": "npm: test",                               // Launch a task before the start of the debug session. It must be equal to the "label" of the task we want to launch in tasks.json  
+            "postDebugTask": "stop: npm test",                          // Task to run after debug session ends. It must be equal to the "label" of the task we want to launch in tasks.json
             "url": "http://localhost:${input:KARMA_PORT}/debug.html"    // Will search for a tab with this exact url and attach to it, if found. Input variable defined later.
         }
     ],
@@ -57,8 +61,8 @@
         {
             "type": "promptString",
             "id": "KARMA_PORT",
-            "description": "Enter your frontend host port",
-            "default": "55512"
+            "description": "Enter your frontend Karma's tests report host port",
+            "default": "55513"
         },
-  ]
+    ]
 }

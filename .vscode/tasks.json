@@ -44,6 +44,17 @@
                         "regexp": "bundle generation complete"
                     }
                 }
+            },
+            "presentation": {
+                "group": "debugFrontend"
+            }
+        },
+        {
+            "label": "stop: npm start:docker",
+            "type": "shell",
+            "command": "pkill -f 'ng serve'",
+            "presentation": {
+                "group": "debugFrontend"
             }
         },
         {
@@ -66,6 +77,17 @@
                         "regexp": "bundle generation complete"
                     }
                 }
+            },
+            "presentation": {
+                "group": "testFrontend"
+            }
+        },
+        {
+            "label": "stop: npm test",
+            "type": "shell",
+            "command": "pkill -f 'ng test'",
+            "presentation": {
+                "group": "testFrontend"
             }
         }
     ]
