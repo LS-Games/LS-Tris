@@ -12,10 +12,10 @@
             "command": "make",                                  // The actual command to execute
             "args": ["all"],                                    // Args of the command to execute
             "options": {                                        // Override the defaults for "cwd", "env", or "shell"
-                "cwd": "${workspaceFolder}/source-code/backend"     // Sets the working directory of the command to execute
+                "cwd": "${workspaceFolder}/source-code/backend" // Sets the working directory of the command to execute
             }, 
             "problemMatcher": [                                 // Defines which informations will be shown in the VSCode's "Problems" panel
-                "$gcc"                                              // Uses the gcc predefined problem matcher
+                "$gcc"                                          // Uses the gcc predefined problem matcher
             ], 
             "group": {                                          // Defines to which group the task belongs. Will be executed by running "Run <KIND_VALUE> Tasks from the VSCode's Command Palette
                 "kind": "build",
@@ -25,22 +25,70 @@
 
         // Frontend tasks
         {
-            "type": "npm",
-            "script": "start:docker",
-            "label": "npm: start:docker",
-            "options": {
-                "cwd": "${workspaceFolder}/source-code/frontend"
-            },
-            "isBackground": true,
-            "problemMatcher": {
+            "label": "npm: start:docker",                           // The task label
+            "type": "npm",                                          // The command is interpreed as a process to execute
+            "script": "start:docker",                               // The script to execute
+            "options": {                                            // Override the defaults for "cwd", "env", or "shell"
+                "cwd": "${workspaceFolder}/source-code/frontend"    // Sets the working directory of the command to execute
+            }, 
+            "isBackground": true,                                   // The task will keep running in the background
+            "problemMatcher": {                                     // Defines which informations will be shown in the VSCode's "Problems" panel
                 "owner": "typescript",
                 "pattern": "$tsc",
                 "background": {
-                "activeOnStart": true,
-                "beginsPattern": { "regexp": ".*" },
-                "endsPattern": { "regexp": "Application bundle generation complete\\.|bundle generation complete\\." }
+                    "activeOnStart": true,
+                    "beginsPattern": {
+                        "regexp": "(.*?)"
+                    },
+                    "endsPattern": {
+                        "regexp": "bundle generation complete"
+                    }
                 }
+            },
+            "presentation": {
+                "group": "debugFrontend"
             }
+        },
+        {
+            "label": "stop: npm start:docker",
+            "type": "shell",
+            "command": "pkill -f 'ng serve'",
+            "presentation": {
+                "group": "debugFrontend"
             }
+        },
+        {
+            "label": "npm: test",                                   // The task label
+            "type": "npm",                                          // The command is interpreed as a process to execute
+            "script": "test",                                       // The script to execute
+            "options": {                                            // Override the defaults for "cwd", "env", or "shell"
+                "cwd": "${workspaceFolder}/source-code/frontend"    // Sets the working directory of the command to execute
+            }, 
+            "isBackground": true,                                   // The task will keep running in the background
+            "problemMatcher": {                                     // Defines which informations will be shown in the VSCode's "Problems" panel
+                "owner": "typescript",
+                "pattern": "$tsc",
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": {
+                        "regexp": "(.*?)"
+                    },
+                    "endsPattern": {
+                        "regexp": "bundle generation complete"
+                    }
+                }
+            },
+            "presentation": {
+                "group": "testFrontend"
+            }
+        },
+        {
+            "label": "stop: npm test",
+            "type": "shell",
+            "command": "pkill -f 'ng test'",
+            "presentation": {
+                "group": "testFrontend"
+            }
+        }
     ]
 }

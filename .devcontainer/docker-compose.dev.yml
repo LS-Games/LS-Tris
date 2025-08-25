@@ -22,7 +22,9 @@ services:
 
     # List of the ports to be forwarded from the container (necessary if not using the "host" network)
     ports: # Maps <hostPort>:<containerPort>
-      - ${DEV_BACKEND_PORT:-55511}:3000 # default: 55511
+      - ${DEV_BACKEND_PORT:-55511}:3000 # Port used to access backend app. Default: 55511
+      - ${DEV_FRONTEND_PORT:-55512}:4200 # Port used to access frontend app. Default: 55512
+      - ${DEV_KARMA_PORT:-55513}:9876 # Port used to access frontend Karma's tests report. Default: 55513
 
     volumes:
       # Update this to wherever you want VS Code to mount the folder of your project

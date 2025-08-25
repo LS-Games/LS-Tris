@@ -8,7 +8,7 @@
         
         // Backend configurations
         {
-            "name": "Debug C backend",                                          // Debugging configuration name
+            "name": "Debug: C backend",                                         // Debugging configuration name
             "type": "cppdbg",                                                   // Sets the GDB (or LLDB) debugger
             "request": "launch",                                                // Tells that this configuration will launch a new instance of the program
             "program": "${workspaceFolder}/source-code/backend/bin/ls-tris",    // Path of the executable to be launched in debug mode
@@ -29,19 +29,40 @@
             "preLaunchTask": "C: make build"                                    // Launch a task before the start of the debug session. It must be equal to the "label" of the task we want to launch in tasks.json  
         },
 
+        // Frontend configurations
         {
-            "name": "Angular (dev Docker): serve + Chrome",
-            "type": "chrome",
-            "request": "launch",
-            "cwd": "${workspaceFolder}/source-code/frontend",
-            "preLaunchTask": "npm: start:docker",
-            "url": "http://localhost:55511",
-            "webRoot": "${workspaceFolder}/source-code/frontend",
-            "sourceMapPathOverrides": {
-                "/workspaces/LS-Tris/*": "${workspaceFolder}/*",
-                "webpack:/*": "${workspaceFolder}/*",
-                "/*": "${workspaceFolder}/*"
-            }
+            "name": "Debug: Angular frontend",                          // Debugging configuration name
+            "type": "chrome",                                           // Sets the type of configuration
+            "request": "launch",                                        // Tells that this configuration will launch a new instance of the program
+            "cwd": "${workspaceFolder}/source-code/frontend",           // Sets the working directory of the application
+            "webRoot": "${workspaceFolder}/source-code/frontend",       // Specifies the workspace absolute path to the webserver root
+            "preLaunchTask": "npm: start:docker",                       // Launch a task before the start of the debug session. It must be equal to the "label" of the task we want to launch in tasks.json
+            "postDebugTask": "stop: npm start:docker",                  // Task to run after debug session ends. It must be equal to the "label" of the task we want to launch in tasks.json
+            "url": "http://localhost:${input:FRONTEND_PORT}/"           // Will search for a tab with this exact url and attach to it, if found. Input variable defined later.
+        },
+        {
+            "name": "Test: Angular frontend",                           // Debugging configuration name
+            "type": "chrome",                                           // Sets the type of configuration
+            "request": "launch",                                        // Tells that this configuration will launch a new instance of the program
+            "cwd": "${workspaceFolder}/source-code/frontend",           // Sets the working directory of the application
+            "webRoot": "${workspaceFolder}/source-code/frontend",       // Specifies the workspace absolute path to the webserver root
+            "preLaunchTask": "npm: test",                               // Launch a task before the start of the debug session. It must be equal to the "label" of the task we want to launch in tasks.json  
+            "postDebugTask": "stop: npm test",                          // Task to run after debug session ends. It must be equal to the "label" of the task we want to launch in tasks.json
+            "url": "http://localhost:${input:KARMA_PORT}/debug.html"    // Will search for a tab with this exact url and attach to it, if found. Input variable defined later.
         }
+    ],
+    "inputs": [
+        {
+            "type": "promptString",
+            "id": "FRONTEND_PORT",
+            "description": "Enter your frontend host port",
+            "default": "55512"
+        },
+        {
+            "type": "promptString",
+            "id": "KARMA_PORT",
+            "description": "Enter your frontend Karma's tests report host port",
+            "default": "55513"
+        },
     ]
 }
