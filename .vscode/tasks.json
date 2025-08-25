@@ -12,10 +12,10 @@
             "command": "make",                                  // The actual command to execute
             "args": ["all"],                                    // Args of the command to execute
             "options": {                                        // Override the defaults for "cwd", "env", or "shell"
-                "cwd": "${workspaceFolder}/source-code/backend"     // Sets the working directory of the command to execute
+                "cwd": "${workspaceFolder}/source-code/backend" // Sets the working directory of the command to execute
             }, 
             "problemMatcher": [                                 // Defines which informations will be shown in the VSCode's "Problems" panel
-                "$gcc"                                              // Uses the gcc predefined problem matcher
+                "$gcc"                                          // Uses the gcc predefined problem matcher
             ], 
             "group": {                                          // Defines to which group the task belongs. Will be executed by running "Run <KIND_VALUE> Tasks from the VSCode's Command Palette
                 "kind": "build",
@@ -28,7 +28,7 @@
             "type": "npm",                                          // The command is interpreed as a process to execute
             "script": "start",                                      // The script to execute
             "options": {                                            // Override the defaults for "cwd", "env", or "shell"
-                "cwd": "${workspaceFolder}/source-code/frontend"        // Sets the working directory of the command to execute
+                "cwd": "${workspaceFolder}/source-code/frontend"    // Sets the working directory of the command to execute
             }, 
             "isBackground": true,                                   // The task will keep running in the background
             "problemMatcher": {                                     // Defines which informations will be shown in the VSCode's "Problems" panel
@@ -49,7 +49,7 @@
             "type": "npm",                                          // The command is interpreed as a process to execute
             "script": "test",                                       // The script to execute
             "options": {                                            // Override the defaults for "cwd", "env", or "shell"
-                "cwd": "${workspaceFolder}/source-code/frontend"        // Sets the working directory of the command to execute
+                "cwd": "${workspaceFolder}/source-code/frontend"    // Sets the working directory of the command to execute
             }, 
             "isBackground": true,                                   // The task will keep running in the background
             "problemMatcher": {                                     // Defines which informations will be shown in the VSCode's "Problems" panel

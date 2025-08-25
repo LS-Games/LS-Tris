@@ -23,6 +23,7 @@ services:
     # List of the ports to be forwarded from the container (necessary if not using the "host" network)
     ports: # Maps <hostPort>:<containerPort>
       - ${DEV_BACKEND_PORT:-55511}:3000 # default: 55511
+      - ${DEV_FRONTEND_PORT:-55512}:4200 # default: 55512
 
     volumes:
       # Update this to wherever you want VS Code to mount the folder of your project

@@ -9,8 +9,9 @@ COMPOSE_PROFILES=dev
 
 ## Ports
 
-### Sets the port on wich we will access the backend
+### Sets the port on wich we will access the apps
 DEV_BACKEND_PORT=
+DEV_FRONTEND_PORT=
 
 
 ## Backend

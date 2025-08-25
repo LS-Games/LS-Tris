@@ -29,19 +29,22 @@
             "preLaunchTask": "C: make build"                                    // Launch a task before the start of the debug session. It must be equal to the "label" of the task we want to launch in tasks.json  
         },
 
+        // Frontend configurations
         {
-            "name": "Angular (dev Docker): serve + Chrome",
-            "type": "chrome",
-            "request": "launch",
-            "cwd": "${workspaceFolder}/source-code/frontend",
-            "preLaunchTask": "npm: start:docker",
-            "url": "http://localhost:55511",
-            "webRoot": "${workspaceFolder}/source-code/frontend",
-            "sourceMapPathOverrides": {
-                "/workspaces/LS-Tris/*": "${workspaceFolder}/*",
-                "webpack:/*": "${workspaceFolder}/*",
-                "/*": "${workspaceFolder}/*"
-            }
+            "name": "ng serve",                               // Debugging configuration name
+            "type": "chrome",                                 // Sets the type of configuration
+            "request": "launch",                              // Tells that this configuration will launch a new instance of the program
+            "cwd": "${workspaceFolder}/source-code/frontend", // Sets the working directory of the application
+            "preLaunchTask": "npm: start",                    // Launch a task before the start of the debug session. It must be equal to the "label" of the task we want to launch in tasks.json  
+            "url": "http://localhost:4200/"                   // Will search for a tab with this exact url and attach to it, if found
         },
+        {
+            "name": "ng test",                                // Debugging configuration name
+            "type": "chrome",                                 // Sets the type of configuration
+            "request": "launch",                              // Tells that this configuration will launch a new instance of the program
+            "cwd": "${workspaceFolder}/source-code/frontend", // Sets the working directory of the application
+            "preLaunchTask": "npm: test",                     // Launch a task before the start of the debug session. It must be equal to the "label" of the task we want to launch in tasks.json  
+            "url": "http://localhost:9876/debug.html"         // Will search for a tab with this exact url and attach to it, if found
+        }
     ]
 }
