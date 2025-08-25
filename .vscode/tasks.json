@@ -25,46 +25,22 @@
 
         // Frontend tasks
         {
-            "type": "npm",                                          // The command is interpreed as a process to execute
-            "script": "start",                                      // The script to execute
-            "options": {                                            // Override the defaults for "cwd", "env", or "shell"
-                "cwd": "${workspaceFolder}/source-code/frontend"        // Sets the working directory of the command to execute
-            }, 
-            "isBackground": true,                                   // The task will keep running in the background
-            "problemMatcher": {                                     // Defines which informations will be shown in the VSCode's "Problems" panel
+            "type": "npm",
+            "script": "start:docker",
+            "label": "npm: start:docker",
+            "options": {
+                "cwd": "${workspaceFolder}/source-code/frontend"
+            },
+            "isBackground": true,
+            "problemMatcher": {
                 "owner": "typescript",
                 "pattern": "$tsc",
                 "background": {
-                    "activeOnStart": true,
-                    "beginsPattern": {
-                        "regexp": "(.*?)"
-                    },
-                    "endsPattern": {
-                        "regexp": "bundle generation complete"
-                    }
+                "activeOnStart": true,
+                "beginsPattern": { "regexp": ".*" },
+                "endsPattern": { "regexp": "Application bundle generation complete\\.|bundle generation complete\\." }
                 }
             }
-        },
-        {
-            "type": "npm",                                          // The command is interpreed as a process to execute
-            "script": "test",                                       // The script to execute
-            "options": {                                            // Override the defaults for "cwd", "env", or "shell"
-                "cwd": "${workspaceFolder}/source-code/frontend"        // Sets the working directory of the command to execute
-            }, 
-            "isBackground": true,                                   // The task will keep running in the background
-            "problemMatcher": {                                     // Defines which informations will be shown in the VSCode's "Problems" panel
-                "owner": "typescript",
-                "pattern": "$tsc",
-                "background": {
-                    "activeOnStart": true,
-                    "beginsPattern": {
-                        "regexp": "(.*?)"
-                    },
-                    "endsPattern": {
-                        "regexp": "bundle generation complete"
-                    }
-                }
             }
-        }
     ]
 }
