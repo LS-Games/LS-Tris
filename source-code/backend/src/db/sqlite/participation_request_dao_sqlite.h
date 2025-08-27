@@ -1,24 +1,9 @@
-#ifndef PARTICIPATION_REQUEST_MODEL_H
-#define PARTICIPATION_REQUEST_MODEL_H
+#ifndef PARTICIPATION_REQUEST_DAO_SQLITE_H
+#define PARTICIPATION_REQUEST_DAO_SQLITE_H
 
 #include <sqlite3.h>
 
-#define DATE_MAX 100
-
-typedef enum  {
-    PENDING, 
-    ACCEPTED,
-    REJECTED,
-    REQUEST_STATUS_INVALID
-} RequestStatus;
-
-typedef struct ParticipationRequest {
-    int id_request;
-    int id_player;
-    int id_game;
-    char created_at[DATE_MAX];
-    RequestStatus state;
-} ParticipationRequest;
+#include "../../entities/participation_request_entity.h"
 
 typedef enum {
     PARTICIPATION_REQUEST_OK = 0,
@@ -36,13 +21,15 @@ typedef enum {
     UPDATE_REQUEST_STATE            = 1 << 3
 } UpdateParticipationRequestFlags;
 
+
+// Funzioni CRUD concrete
 ParticipationRequestReturnStatus get_participation_request_by_id(sqlite3 *db, int id_request, ParticipationRequest *out);  
 ParticipationRequestReturnStatus get_all_participation_requests(sqlite3 *db, ParticipationRequest** out_array, int *out_count);
 ParticipationRequestReturnStatus update_participation_request_by_id(sqlite3 *db, const ParticipationRequest *upd_participation_request);
 ParticipationRequestReturnStatus delete_participation_request_by_id(sqlite3 *db, int id_request);
 ParticipationRequestReturnStatus insert_participation_request(sqlite3 *db, const ParticipationRequest *in_request);
+
+// Funzione di utilità per messaggi di errore
 const char* return_participation_request_status_to_string(ParticipationRequestReturnStatus status);
-const char* request_participation_status_to_string(RequestStatus request);
-RequestStatus string_to_request_participation_status(const char *req_str);
 
 #endif

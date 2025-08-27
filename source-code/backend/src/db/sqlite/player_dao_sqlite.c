@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
 #include <stdlib.h>
-#include "player_model.h"
+#include <stdbool.h>
+
+#include "player_dao_sqlite.h"
 
 const char* player_status_to_string(PlayerReturnStatus status) {
     switch (status) {
@@ -473,4 +474,3 @@ PlayerReturnStatus insert_player(sqlite3* db, const Player *in_player) {
         sqlite3_finalize(stmt);
         return PLAYER_SQL_ERROR;
 }
-

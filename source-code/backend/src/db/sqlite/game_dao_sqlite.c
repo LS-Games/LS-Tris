@@ -2,18 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "game_model.h"
 
-
-const char* game_status_to_string(GameStatus state) {
-    switch (state) {
-        case NEW_GAME :              return "new";
-        case ACTIVE_GAME :           return "active";
-        case WAITING_GAME :          return "waiting";
-        case FINISHED_GAME :         return "finished";    
-        default:                return NULL;
-    }
-}
+#include "game_dao_sqlite.h"
 
 const char* return_game_status_to_string(GameReturnStatus status) {
     switch (status) {
@@ -23,17 +13,6 @@ const char* return_game_status_to_string(GameReturnStatus status) {
         case GAME_NOT_FOUND:      return "GAME_NOT_FOUND";
         default:                  return "GAME_UNKNOWN";
     }
-}
-
-GameStatus string_to_game_status(const char *state_str) {
-    if (state_str) {
-        if (strcmp(state_str, "new") == 0) return NEW_GAME;
-        if (strcmp(state_str, "active") == 0) return ACTIVE_GAME;
-        if (strcmp(state_str, "waiting") == 0) return WAITING_GAME;
-        if (strcmp(state_str, "finished") == 0) return FINISHED_GAME;
-    }
-
-    return GAME_STATUS_INVALID; 
 }
 
 GameReturnStatus get_game_by_id(sqlite3 *db, int id_game, Game *out) {

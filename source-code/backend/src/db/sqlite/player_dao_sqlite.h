@@ -1,22 +1,9 @@
-#ifndef PLAYER_MODEL_H
-#define PLAYER_MODEL_H
+#ifndef PLAYER_DAO_SQLITE_H
+#define PLAYER_DAO_SQLITE_H
 
 #include <sqlite3.h>
 
-#define NICKNAME_MAX 100
-#define MAIL_MAX 100
-#define PASSWORD_MAX 100
-#define DATE_MAX 100
-
-typedef struct Player {
-    int id_player;
-    char nickname[NICKNAME_MAX];
-    char email[MAIL_MAX];
-    char password[PASSWORD_MAX];
-    int current_streak;
-    int max_streak;
-    char registration_date[DATE_MAX];
-} Player;
+#include "../../entities/player_entity.h"
 
 typedef enum {
     PLAYER_OK = 0,
@@ -36,12 +23,15 @@ typedef enum {
     UPDATE_PLAYER_REG_DATE          = 1 << 5   
 } UpdatePlayerFlags;
 
+
+// Funzioni CRUD concrete
 PlayerReturnStatus get_player_by_id(sqlite3 *db, int id, Player *out); //We use Player pointer parameter to work by reference rather than by value 
 PlayerReturnStatus get_all_players(sqlite3 *db, Player** out_array, int *out_count);
 PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player);
 PlayerReturnStatus delete_player_by_id(sqlite3 *db, int id);
 PlayerReturnStatus insert_player(sqlite3 *db, const Player *in);
-const char* player_status_to_string(PlayerReturnStatus status);
 
+// Funzione di utilità per messaggi di errore
+const char* player_status_to_string(PlayerReturnStatus status);
 
 #endif

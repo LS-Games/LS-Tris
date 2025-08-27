@@ -2,16 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "play_model.h"
 
-const char* play_result_to_string(PlayResult result) {
-    switch (result) {
-        case WIN :              return "win";
-        case LOSE :             return "lose";
-        case DRAW :             return "draw";
-        default:                return NULL;
-    }
-}
+#include "play_dao_sqlite.h"
 
 const char* return_play_status_to_string(PlayReturnStatus status) {
     switch (status) {
@@ -21,16 +13,6 @@ const char* return_play_status_to_string(PlayReturnStatus status) {
         case PLAY_NOT_FOUND:      return "PLAY_NOT_FOUND";
         default:                  return "PLAY_UNKNOWN";
     }
-}
-
-PlayResult string_to_play_result(const char *result_str) {
-    if (result_str) {
-        if (strcmp(result_str, "win") == 0) return WIN;
-        if (strcmp(result_str, "lose") == 0) return LOSE;
-        if (strcmp(result_str, "draw") == 0) return DRAW;
-    }
-
-    return PLAY_RESULT_INVALID; 
 }
 
 PlayReturnStatus get_play_by_pk(sqlite3 *db, int id_player, int id_round, Play *out) {
@@ -325,9 +307,3 @@ PlayReturnStatus insert_play(sqlite3 *db, const Play *in_play) {
         sqlite3_finalize(stmt);
         return PLAY_SQL_ERROR;
 }
-
-
-
-
-
-

@@ -17,6 +17,7 @@
             "cwd": "${workspaceFolder}/source-code/backend",                    // Sets the working directory of the application
             "environment": [],                                                  // Environment variables passed to the executable
             "externalConsole": false,                                           // It won't open a new terminal window
+            "internalConsoleOptions": "neverOpen",                              // It won't open the debug console window
             "MIMode": "gdb",                                                    // Uses the GDB debugger
             "miDebuggerPath": "/usr/bin/gdb",                                   // Path to the debugger
             "setupCommands": [                                                  // List of commands to execute in order to setup the debugger

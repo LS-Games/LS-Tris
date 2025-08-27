@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "./db/db_connection.h"
+#include "./db/sqlite/db_connection_sqlite.h"
 #include "./json-parser/test_json-parser.h"
 
 int main(void) {

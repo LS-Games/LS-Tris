@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
 #include <stdlib.h>
-#include "participation_request_model.h"
+#include <stdbool.h>
 
+#include "participation_request_dao_sqlite.h"
 
 const char* return_participation_request_status_to_string(ParticipationRequestReturnStatus status) {
     switch (status) {
@@ -14,26 +14,6 @@ const char* return_participation_request_status_to_string(ParticipationRequestRe
         case PARTICIPATION_REQUEST_MALLOC_ERROR:   return  "PARTICIPATION_REQUEST_MALLOC_ERROR";
         default:                                   return "PARTICIPATION_REQUEST_UNKNOWN";
     }
-}
-
-const char* request_participation_status_to_string(RequestStatus state) {
-    switch (state) {
-        case PENDING :          return "pending";
-        case ACCEPTED :         return "accepted";
-        case REJECTED :         return "rejected";
-        default:                return NULL;
-    }
-}
-
-
-RequestStatus string_to_request_participation_status(const char *state_str) {
-    if (state_str) {
-        if (strcmp(state_str, "pending") == 0) return PENDING;
-        if (strcmp(state_str, "accepted") == 0) return ACCEPTED;
-        if (strcmp(state_str, "rejected") == 0) return REJECTED;
-    }
-
-    return REQUEST_STATUS_INVALID; 
 }
 
 ParticipationRequestReturnStatus get_participation_request_by_id(sqlite3 *db, int id_request, ParticipationRequest *out) {
