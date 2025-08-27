@@ -8,7 +8,7 @@
 int main(void) {
 
     // Declare .sqlite file path
-    const char *db_path = "data/database.sqlite";
+    const char *db_path = "./db/data/database.sqlite";
 
     // Open database
     sqlite3 *db = db_open(db_path);
