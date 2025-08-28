@@ -21,3 +21,29 @@ RoundStatus string_to_round_status(const char *state_str) {
 
     return ROUND_STATUS_INVALID;
 }
+
+void set_round_board_cell(char board[BOARD_MAX], int row, int col, char symbol) {
+    if (0 <= row && row < BOARD_ROWS) {
+        if (0 <= col && col < BOARD_COLS) {
+            board[BOARD_ROWS*row + col] = symbol;
+        } else {
+            printf ("Provided column not valid!\n");
+        }
+        printf ("Provided row not valid!\n");
+    }
+}
+
+char get_round_board_cell(char board[BOARD_MAX], int row, int col) {
+    char cell = NO_SYMBOL;
+
+    if (0 <= row && row < BOARD_ROWS) {
+        if (0 <= col && col < BOARD_COLS) {
+            cell = board[BOARD_ROWS*row + col];
+        } else {
+            printf ("Provided column not valid!\n");
+        }
+        printf ("Provided row not valid!\n");
+    }
+
+    return cell;
+}
