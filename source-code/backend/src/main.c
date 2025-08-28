@@ -5,13 +5,12 @@
 #include "./db/sqlite/db_connection_sqlite.h"
 #include "./json-parser/test_json-parser.h"
 
+#include "./controllers/round_controller.h"
+
 int main(void) {
 
-    // Declare .sqlite file path
-    const char *db_path = "./db/data/database.sqlite";
-
     // Open database
-    sqlite3 *db = db_open(db_path);
+    sqlite3 *db = db_open();
     if (!db) {
         fprintf(stderr, "Failed to open the database.\n");
         return 1;
@@ -20,8 +19,10 @@ int main(void) {
     // Close database
     db_close(db);
 
-    // Parse json
-    json_c();
+    printf("RoundStatus: %d\n", start_round(1, 500));
 
+    // Parse json
+    // json_c();
+    
     return 0;
 }

@@ -18,6 +18,9 @@ typedef struct ParticipationRequest {
     RequestStatus state;
 } ParticipationRequest;
 
+void print_participation_request(const ParticipationRequest *pr);
+void print_participation_request_inline(const ParticipationRequest *pr);
+
 const char* request_participation_status_to_string(RequestStatus request);
 RequestStatus string_to_request_participation_status(const char *req_str);
 

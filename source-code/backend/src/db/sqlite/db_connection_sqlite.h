@@ -3,11 +3,13 @@
 
 #include <sqlite3.h>
 
+// Declare .sqlite file path
+#define DB_PATH "./db/data/database.sqlite"
+
 //It opens database and return a sqlite3* pointer that is ready to use 
 //It returns NULL if something goes wrong 
 
-sqlite3* db_open(const char* filename);
-
+sqlite3* db_open();
 void db_close(sqlite3* db);
 
 #endif

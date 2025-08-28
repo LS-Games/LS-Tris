@@ -1,7 +1,36 @@
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h> // for PRId64
 
 #include "round_entity.h"
+
+void print_round(const Round *r) {
+    if (!r) {
+        printf("Round: (NULL)\n");
+        return;
+    }
+
+    printf("Round {\n");
+    printf("  id_round: %d\n", r->id_round);
+    printf("  id_game: %d\n", r->id_game);
+    printf("  state: \"%s\"\n", round_status_to_string(r->state));
+    printf("  duration: %" PRId64 "\n", r->duration);
+    printf("  board: \"%s\"\n", r->board);
+    printf("}\n");
+}
+
+void print_round_inline(const Round *r) {
+    if (!r) {
+        printf("Round(NULL)\n");
+        return;
+    }
+    printf("Round[id=%d, game=%d, state=%s, dur=%" PRId64 ", board=%s]\n",
+            r->id_round,
+            r->id_game,
+            round_status_to_string(r->state),
+            r->duration,
+            r->board);
+}
 
 const char* round_status_to_string(RoundStatus state) {
     switch (state) {
@@ -29,6 +58,7 @@ void set_round_board_cell(char board[BOARD_MAX], int row, int col, char symbol) 
         } else {
             printf ("Provided column not valid!\n");
         }
+    } else {
         printf ("Provided row not valid!\n");
     }
 }
@@ -42,6 +72,7 @@ char get_round_board_cell(char board[BOARD_MAX], int row, int col) {
         } else {
             printf ("Provided column not valid!\n");
         }
+    } else {
         printf ("Provided row not valid!\n");
     }
 

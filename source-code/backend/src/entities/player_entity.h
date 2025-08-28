@@ -16,4 +16,7 @@ typedef struct Player {
     char registration_date[DATE_MAX];
 } Player;
 
+void print_player(const Player *p);
+void print_player_inline(const Player *p);
+
 #endif

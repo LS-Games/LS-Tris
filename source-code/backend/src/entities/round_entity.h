@@ -5,9 +5,12 @@
 
 #define BOARD_ROWS 3
 #define BOARD_COLS 3 
-#define BOARD_MAX BOARD_ROWS*BOARD_COLS
+#define BOARD_MAX (BOARD_ROWS*BOARD_COLS)+1 // One more character for trailing \0 char
 
 #define NO_SYMBOL '/'
+#define X_SYMBOL 'X'
+#define O_SYMBOL 'O'
+#define EMPTY_SYMBOL '@'
 
 typedef enum {
     ACTIVE_ROUND,
@@ -23,6 +26,9 @@ typedef struct {
     int64_t duration;
     char board[BOARD_MAX];
 } Round;
+
+void print_round(const Round *r);
+void print_round_inline(const Round *r);
 
 const char* round_status_to_string(RoundStatus state);
 RoundStatus string_to_round_status(const char *state_str);

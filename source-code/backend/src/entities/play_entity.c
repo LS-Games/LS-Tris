@@ -3,6 +3,30 @@
 
 #include "play_entity.h"
 
+void print_play(const Play *p) {
+    if (!p) {
+        printf("Play: (NULL)\n");
+        return;
+    }
+
+    printf("Play {\n");
+    printf("  id_player: %d\n", p->id_player);
+    printf("  id_round: %d\n", p->id_round);
+    printf("  result: \"%s\"\n", play_result_to_string(p->result));
+    printf("}\n");
+}
+
+void print_play_inline(const Play *p) {
+    if (!p) {
+        printf("Play(NULL)\n");
+        return;
+    }
+    printf("Play[player=%d, round=%d, result=%s]\n",
+            p->id_player,
+            p->id_round,
+            play_result_to_string(p->result));
+}
+
 const char* play_result_to_string(PlayResult result) {
     switch (result) {
         case WIN :              return "win";
