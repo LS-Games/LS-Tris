@@ -5,7 +5,7 @@
 #include "round_controller.h"
 #include "../db/sqlite/round_dao_sqlite.h"
 #include "../db/sqlite/db_connection_sqlite.h"
-//#include "../../include/debug_log.h" WIP
+#include "../../include/debug_log.h"
 
 // Private functions
 static char find_horizontal_winner(char board[BOARD_MAX]);
@@ -114,7 +114,7 @@ bool start_round(int id_game, int64_t duration) {
         .id_game = id_game,
         .duration = duration,
         .state = PENDING_ROUND,
-        .board = "@@@@@@@@@"
+        .board = EMPTY_BOARD
     };
 
     RoundReturnStatus status = insert_round(db, &round, NULL);
@@ -125,7 +125,7 @@ bool start_round(int id_game, int64_t duration) {
     if (status != ROUND_OK)
         printf("%s\n", return_round_status_to_string(status));
 
-    //LOG_STRUCT_DEBUG(print_round, &round); WIP
+    LOG_STRUCT_DEBUG(print_round_inline, &round);
 
     return status==ROUND_OK;
 }

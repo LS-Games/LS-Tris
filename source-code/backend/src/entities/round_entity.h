@@ -12,6 +12,8 @@
 #define O_SYMBOL 'O'
 #define EMPTY_SYMBOL '@'
 
+#define EMPTY_BOARD "@@@@@@@@@"
+
 typedef enum {
     ACTIVE_ROUND,
     PENDING_ROUND,
