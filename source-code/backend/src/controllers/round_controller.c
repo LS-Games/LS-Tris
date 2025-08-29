@@ -117,7 +117,7 @@ bool start_round(int id_game, int64_t duration) {
         .board = "@@@@@@@@@"
     };
 
-    RoundReturnStatus status = insert_round(db, &round);
+    RoundReturnStatus status = insert_round(db, &round, NULL);
 
     db_close(db);
 

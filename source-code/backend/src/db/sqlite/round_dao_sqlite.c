@@ -325,7 +325,7 @@ RoundReturnStatus delete_round_by_id(sqlite3 *db, int id_round) {
         return ROUND_SQL_ERROR;
 }
 
-RoundReturnStatus insert_round(sqlite3 *db, const Round *in_round) {
+RoundReturnStatus insert_round(sqlite3 *db, const Round *in_round, sqlite3_int64 *out_id) {
 
     if (db == NULL || in_round == NULL) {
         return ROUND_INVALID_INPUT;
@@ -371,6 +371,10 @@ RoundReturnStatus insert_round(sqlite3 *db, const Round *in_round) {
     if (sqlite3_step(stmt) != SQLITE_DONE) goto step_fail;
 
     if (sqlite3_changes(db) == 0) return ROUND_NOT_MODIFIED;
+
+    sqlite3_int64 id = sqlite3_last_insert_rowid(db);
+
+    if(out_id) { *out_id = id; }
 
     sqlite3_finalize(stmt);
     return ROUND_OK;

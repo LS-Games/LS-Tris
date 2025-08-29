@@ -24,7 +24,7 @@ PlayReturnStatus get_play_by_pk(sqlite3 *db, int id_player, int id_round, Play *
 PlayReturnStatus get_all_plays(sqlite3 *db, Play** out_array, int *out_count);
 PlayReturnStatus update_play_by_pk(sqlite3 *db, const Play *upd_play);
 PlayReturnStatus delete_play_by_pk(sqlite3 *db, int id_play, int id_round);
-PlayReturnStatus insert_play(sqlite3 *db, const Play *in_play);
+PlayReturnStatus insert_play(sqlite3 *db, const Play *in_play, sqlite3_int64 *out_id);
 
 // Funzione di utilità per messaggi di errore
 const char* return_play_status_to_string(PlayReturnStatus status);

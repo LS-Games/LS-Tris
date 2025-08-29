@@ -27,7 +27,7 @@ GameReturnStatus get_game_by_id(sqlite3 *db, int id_game, Game *out);
 GameReturnStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count);
 GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game);
 GameReturnStatus delete_game_by_id(sqlite3 *db, int id_game);
-GameReturnStatus insert_game(sqlite3 *db, const Game *in_game);
+GameReturnStatus insert_game(sqlite3 *db, const Game *in_game, sqlite3_int64 *out_id);
 
 // Funzione di utilità per messaggi di errore
 const char* return_game_status_to_string(GameReturnStatus status);

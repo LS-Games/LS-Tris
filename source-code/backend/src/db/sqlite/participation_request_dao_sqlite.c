@@ -328,7 +328,7 @@ ParticipationRequestReturnStatus delete_participation_request_by_id(sqlite3 *db,
         return PARTICIPATION_REQUEST_SQL_ERROR;
 }
 
-ParticipationRequestReturnStatus insert_participation_request(sqlite3 *db, const ParticipationRequest *in_request) {
+ParticipationRequestReturnStatus insert_participation_request(sqlite3 *db, const ParticipationRequest *in_request, sqlite3_int64 *out_id) {
 
     if (db == NULL || in_request == NULL) {
         return PARTICIPATION_REQUEST_INVALID_INPUT;
@@ -372,6 +372,10 @@ ParticipationRequestReturnStatus insert_participation_request(sqlite3 *db, const
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) goto step_fail;
+
+    sqlite3_int64 id = sqlite3_last_insert_rowid(db);
+
+    if(out_id) { *out_id = id; }
 
     sqlite3_finalize(stmt);
     return PARTICIPATION_REQUEST_OK;

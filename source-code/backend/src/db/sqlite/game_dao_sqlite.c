@@ -327,7 +327,7 @@ GameReturnStatus delete_game_by_id(sqlite3 *db, int id_game) {
         return GAME_SQL_ERROR;
 }
 
-GameReturnStatus insert_game(sqlite3 *db, const Game *in_game) {
+GameReturnStatus insert_game(sqlite3 *db, const Game *in_game, sqlite3_int64 *out_id) {
 
     if (db == NULL || in_game == NULL) {
         return GAME_INVALID_INPUT;
@@ -373,6 +373,10 @@ GameReturnStatus insert_game(sqlite3 *db, const Game *in_game) {
     if (sqlite3_step(stmt) != SQLITE_DONE) goto step_fail;
 
     if (sqlite3_changes(db) == 0) return GAME_NOT_MODIFIED;
+
+    sqlite3_int64 id = sqlite3_last_insert_rowid(db);
+
+    if(out_id) { *out_id = id; }
 
     sqlite3_finalize(stmt);
     return GAME_OK;

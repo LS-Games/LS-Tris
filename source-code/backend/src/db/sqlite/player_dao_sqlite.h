@@ -29,7 +29,7 @@ PlayerReturnStatus get_player_by_id(sqlite3 *db, int id, Player *out); //We use 
 PlayerReturnStatus get_all_players(sqlite3 *db, Player** out_array, int *out_count);
 PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player);
 PlayerReturnStatus delete_player_by_id(sqlite3 *db, int id);
-PlayerReturnStatus insert_player(sqlite3 *db, const Player *in);
+PlayerReturnStatus insert_player(sqlite3 *db, const Player *in_player, sqlite3_int64 *out_id);
 
 // Funzione di utilità per messaggi di errore
 const char* player_status_to_string(PlayerReturnStatus status);

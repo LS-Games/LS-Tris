@@ -252,7 +252,7 @@ PlayReturnStatus delete_play_by_pk(sqlite3 *db, int id_player, int id_round) {
         return PLAY_SQL_ERROR;
 }
 
-PlayReturnStatus insert_play(sqlite3 *db, const Play *in_play) {
+PlayReturnStatus insert_play(sqlite3 *db, const Play *in_play, sqlite3_int64 *out_id) {
 
     if (db == NULL || in_play == NULL) {
         return PLAY_INVALID_INPUT;
@@ -289,6 +289,10 @@ PlayReturnStatus insert_play(sqlite3 *db, const Play *in_play) {
     if (sqlite3_step(stmt) != SQLITE_DONE) goto step_fail;
 
     if (sqlite3_changes(db) == 0) return PLAY_NOT_MODIFIED;
+
+    sqlite3_int64 id = sqlite3_last_insert_rowid(db);
+
+    if(out_id) { *out_id = id; }
 
     sqlite3_finalize(stmt);
     return PLAY_OK;

@@ -411,7 +411,7 @@ PlayerReturnStatus delete_player_by_id(sqlite3 *db, int id) {
         return PLAYER_SQL_ERROR;
 }
 
-PlayerReturnStatus insert_player(sqlite3* db, const Player *in_player) {
+PlayerReturnStatus insert_player(sqlite3* db, const Player *in_player, sqlite3_int64 *out_id) {
 
     if (db == NULL || in_player == NULL) {
         return PLAYER_INVALID_INPUT;
@@ -456,6 +456,11 @@ PlayerReturnStatus insert_player(sqlite3* db, const Player *in_player) {
     if (sqlite3_step(stmt) != SQLITE_DONE) goto step_fail;
 
     if (sqlite3_changes(db) == 0) return PLAYER_NOT_MODIFIED;
+
+    //This function returns the value set in the table as an INTEGER PRIMARY KEY (also AUTOINCREMENT) after an insert.
+    sqlite3_int64 id = sqlite3_last_insert_rowid(db);
+
+    if(out_id) { *out_id = id; }
 
     sqlite3_finalize(stmt);
     return PLAYER_OK;
