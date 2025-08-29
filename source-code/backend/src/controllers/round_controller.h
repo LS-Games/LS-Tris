@@ -2,9 +2,18 @@
 
 #include "../entities/round_entity.h"
 
-char find_winner(char board[BOARD_MAX]);
-bool is_valid_move(char board[BOARD_MAX], int row, int col);
-bool make_move(char board[BOARD_MAX], int row, int col, char symbol);
+typedef enum {
+    ROUND_CONTROLLER_OK = 0,
+    ROUND_CONTROLLER_INVALID_INPUT,
+    ROUND_CONTROLLER_NOT_FOUND,
+    ROUND_CONTROLLER_CONFLICT,
+    ROUND_CONTROLLER_FORBIDDEN,
+    ROUND_CONTROLLER_STATE_VIOLATION,
+    ROUND_CONTROLLER_PERSISTENCE_ERROR,
+    ROUND_CONTROLLER_INTERNAL_ERROR
+} RoundControllerStatus;
 
-bool start_round(int id_game, int64_t duration);
-bool end_round(int id_round);
+
+RoundControllerStatus round_start(int id_game, int64_t duration);
+RoundControllerStatus round_make_move(int id_round, int id_player, int row, int col);
+RoundControllerStatus round_end(int id_round);

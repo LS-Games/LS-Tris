@@ -8,8 +8,8 @@
 #define BOARD_MAX (BOARD_ROWS*BOARD_COLS)+1 // One more character for trailing \0 char
 
 #define NO_SYMBOL '/'
-#define X_SYMBOL 'X'
-#define O_SYMBOL 'O'
+#define P1_SYMBOL 'X'
+#define P2_SYMBOL 'O'
 #define EMPTY_SYMBOL '@'
 
 #define EMPTY_BOARD "@@@@@@@@@"

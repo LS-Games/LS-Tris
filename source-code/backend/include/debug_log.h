@@ -7,8 +7,8 @@
 
 // ====== Defining log levels ======
 
-#define LOG_LEVEL_DEBUG 1   // Controls debug-level logs.
 #define LOG_LEVEL_INFO  1   // Controls info-level logs.
+#define LOG_LEVEL_DEBUG 1   // Controls debug-level logs.
 #define LOG_LEVEL_WARN  1   // Controls warn-level logs.
 #define LOG_LEVEL_ERROR 1   // Controls error-level logs.
 
@@ -37,18 +37,18 @@
             __FILE__, __LINE__, __func__, ##__VA_ARGS__);                           \
 } while (0)
 
-// Debug-level macro
-#if LOG_LEVEL_DEBUG
-#  define LOG_DEBUG(format_string, ...) LOG_BASE(COLOR_DEBUG "DEBUG" COLOR_RESET, format_string, ##__VA_ARGS__)
-#else
-#  define LOG_DEBUG(format_string, ...)
-#endif
-
 // Info-level macro
 #if LOG_LEVEL_INFO
 #  define LOG_INFO(format_string, ...)  LOG_BASE(COLOR_INFO "INFO" COLOR_RESET, format_string, ##__VA_ARGS__)
 #else
 #  define LOG_INFO(format_string, ...)
+#endif
+
+// Debug-level macro
+#if LOG_LEVEL_DEBUG
+#  define LOG_DEBUG(format_string, ...) LOG_BASE(COLOR_DEBUG "DEBUG" COLOR_RESET, format_string, ##__VA_ARGS__)
+#else
+#  define LOG_DEBUG(format_string, ...)
 #endif
 
 // Warn-level macro

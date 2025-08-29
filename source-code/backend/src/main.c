@@ -21,9 +21,6 @@ int main(void) {
     // Close database
     db_close(db);
 
-    LOG_DEBUG("RoundStatus: %d\n", start_round(1, 500));
-    LOG_DEBUG("RoundStatus: %d\n", end_round(0));
-
     // Parse json
     // json_c();
     
