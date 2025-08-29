@@ -2,6 +2,8 @@
 #include <string.h>
 #include <inttypes.h> // for PRId64
 
+#include "../../include/debug_log.h"
+
 #include "round_entity.h"
 
 void print_round(const Round *r) {
@@ -56,10 +58,10 @@ void set_round_board_cell(char board[BOARD_MAX], int row, int col, char symbol) 
         if (0 <= col && col < BOARD_COLS) {
             board[BOARD_ROWS*row + col] = symbol;
         } else {
-            printf ("Provided column not valid!\n");
+            LOG_WARN("%s","Provided column not valid!\n");
         }
     } else {
-        printf ("Provided row not valid!\n");
+        LOG_WARN("%s","Provided row not valid!\n");
     }
 }
 
@@ -70,10 +72,10 @@ char get_round_board_cell(char board[BOARD_MAX], int row, int col) {
         if (0 <= col && col < BOARD_COLS) {
             cell = board[BOARD_ROWS*row + col];
         } else {
-            printf ("Provided column not valid!\n");
+            LOG_WARN("%s","Provided column not valid!\n");
         }
     } else {
-        printf ("Provided row not valid!\n");
+        LOG_WARN("%s","Provided row not valid!\n");
     }
 
     return cell;

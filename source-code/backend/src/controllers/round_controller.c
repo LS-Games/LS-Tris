@@ -2,10 +2,11 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "../../include/debug_log.h"
+
 #include "round_controller.h"
 #include "../db/sqlite/round_dao_sqlite.h"
 #include "../db/sqlite/db_connection_sqlite.h"
-#include "../../include/debug_log.h"
 
 // Private functions
 static char find_horizontal_winner(char board[BOARD_MAX]);
@@ -79,7 +80,7 @@ char find_winner(char board[BOARD_MAX]) {
             }
         }
     } else {
-        printf("This board dimension is not a valid! It should be a %dx%d board.\n", BOARD_ROWS, BOARD_COLS);
+        LOG_WARN("This board dimension is not a valid! It should be a %dx%d board.\n", BOARD_ROWS, BOARD_COLS);
     }
 
     return winner;
@@ -108,7 +109,6 @@ bool make_move(char board[BOARD_MAX], int row, int col, char symbol) {
 }
 
 bool start_round(int id_game, int64_t duration) {
-    sqlite3* db = db_open();
 
     Round round = {
         .id_game = id_game,
@@ -116,14 +116,16 @@ bool start_round(int id_game, int64_t duration) {
         .state = PENDING_ROUND,
         .board = EMPTY_BOARD
     };
-
+    
+    LOG_STRUCT_DEBUG(print_round_inline, &round);
+    
+    sqlite3* db = db_open();
     RoundReturnStatus status = insert_round(db, &round, NULL);
-
     db_close(db);
 
     // Something went wrong
     if (status != ROUND_OK)
-        printf("%s\n", return_round_status_to_string(status));
+        LOG_WARN("%s\n", return_round_status_to_string(status));
 
     LOG_STRUCT_DEBUG(print_round_inline, &round);
 
@@ -131,22 +133,28 @@ bool start_round(int id_game, int64_t duration) {
 }
 
 bool end_round(int id_round) {
-    sqlite3* db = db_open();
-
+    
     Round round;
+
+    sqlite3* db = db_open();
     RoundReturnStatus status = get_round_by_id(db, id_round, &round);
+    db_close(db);
+
+    LOG_STRUCT_DEBUG(print_round_inline, &round);
 
     if (status == ROUND_OK) {
         round.state = FINISHED_ROUND;
 
+        sqlite3* db = db_open();
         update_round_by_id(db, &round);
+        db_close(db);
+
+        LOG_STRUCT_DEBUG(print_round_inline, &round);
     }
-
-    db_close(db);
-
+    
     // Something went wrong
     if (status != ROUND_OK)
-        printf("%s\n", return_round_status_to_string(status));
+        LOG_WARN("%s\n", return_round_status_to_string(status));
 
     return status==ROUND_OK;
 }

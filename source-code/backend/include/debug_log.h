@@ -32,7 +32,7 @@
     time_t seconds = time(NULL);                                                    \
     struct tm timeStruct;                                                           \
     localtime_r(&seconds, &timeStruct);                                             \
-    fprintf(stderr, "[%02d:%02d:%02d][%s] %s:%d:%s(): " format_string "\n",         \
+    fprintf(stderr, "[%02d:%02d:%02d][%s] %s:%d:%s(): " format_string,              \
             timeStruct.tm_hour, timeStruct.tm_min, timeStruct.tm_sec, debug_level,  \
             __FILE__, __LINE__, __func__, ##__VA_ARGS__);                           \
 } while (0)
@@ -71,7 +71,7 @@
  * @param structPointer The pointer to the struct to print throught `print_fn` function.
  */
 #define LOG_STRUCT_DEBUG(print_fn, structPointer) do {                              \
-    LOG_DEBUG("%s", "");                                                            \
+    LOG_DEBUG("%s","");                                                             \
     print_fn(structPointer);                                                        \
 } while (0)
 
