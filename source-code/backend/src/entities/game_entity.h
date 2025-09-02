@@ -3,6 +3,9 @@
 
 #define DATE_MAX 100
 
+#include <stdint.h>
+#include <time.h>
+
 typedef enum {
     NEW_GAME,
     ACTIVE_GAME,
@@ -12,11 +15,11 @@ typedef enum {
 } GameStatus;
 
 typedef struct Game {
-    int id_game;
-    int id_creator;
-    int id_owner;
+    int64_t id_game;
+    int64_t id_creator;
+    int64_t id_owner;
     GameStatus state;
-    char created_at[DATE_MAX];
+    time_t created_at;
 } Game;
 
 void print_game(const Game *g);

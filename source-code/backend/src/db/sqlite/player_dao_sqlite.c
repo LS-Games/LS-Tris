@@ -15,14 +15,16 @@ const char* player_status_to_string(PlayerReturnStatus status) {
     }
 }
 
-PlayerReturnStatus get_player_by_id(sqlite3 *db, int id, Player *out) {
+PlayerReturnStatus get_player_by_id(sqlite3 *db, int64_t id, Player *out) {
 
     if(db == NULL || id <= 0 || out == NULL) {
         return PLAYER_INVALID_INPUT;
     }
 
+    //We have unixepoch(registration_date), which is a sqlite3 function that converts a TEXT db type to time_t entity value
+
     const char *sql = 
-        "SELECT id_player, nickname, email, password, current_streak, max_streak, registration_date "
+        "SELECT id_player, nickname, email, password, current_streak, max_streak, unixepoch(registration_date) "
         "FROM Player WHERE id_player = ?1";
 
     sqlite3_stmt *st = NULL;    //pointer to compiled query (statement)
@@ -40,7 +42,7 @@ PlayerReturnStatus get_player_by_id(sqlite3 *db, int id, Player *out) {
     //This SQLite function used to replace placeholder in the query
     //In our case it replaces placeholder "1" with id value
 
-    rc = sqlite3_bind_int(st , 1, id);
+    rc = sqlite3_bind_int64(st , 1, id);
     if (rc != SQLITE_OK) goto bind_fail;
 
     //This SQLite function executes the statement
@@ -50,13 +52,13 @@ PlayerReturnStatus get_player_by_id(sqlite3 *db, int id, Player *out) {
 
     if (rc == SQLITE_ROW) {
 
-        out->id_player = sqlite3_column_int(st, 0); //It takes the value from column with index 0 and assigns it to id_player
+        out->id_player = sqlite3_column_int64(st, 0); //It takes the value from column with index 0 and assigns it to id_player
         const unsigned char *nickname = sqlite3_column_text(st, 1); //The function returns a const unsigned char
         const unsigned char *email = sqlite3_column_text(st, 2);
         const unsigned char *password = sqlite3_column_text(st, 3);
         out->current_streak = sqlite3_column_int(st, 4);
         out->max_streak = sqlite3_column_int(st, 5);
-        const unsigned char *registration_date = sqlite3_column_text(st, 6);
+        out->registration_date = (time_t) sqlite3_column_int64(st, 6);
 
         //Now we must save all the value returned by sqlite3_column_text function because they will be deleted when the statement closes
         //We cannot use the simple assignment operator (=) because the returned value is a pointer whereas the object fields are arrays of characters
@@ -78,12 +80,6 @@ PlayerReturnStatus get_player_by_id(sqlite3 *db, int id, Player *out) {
             strcpy(out->password, (const char*) password);
         } else {
             out->password[0] = '\0';
-        }
-
-        if (registration_date) {
-            strcpy(out->registration_date, (const char*) registration_date);
-        } else {
-            out->registration_date[0] = '\0';
         }
 
         sqlite3_finalize(st); //We're closing the statement here
@@ -120,7 +116,7 @@ PlayerReturnStatus get_all_players(sqlite3 *db, Player **out_array, int *out_cou
     *out_array = NULL;
     *out_count = 0; 
 
-    const char *sql = "SELECT id_player, nickname, email, password, current_streak, max_streak, registration_date FROM Player"; //Avoid using SELECT *, so if the table will change we won't have problems with columns
+    const char *sql = "SELECT id_player, nickname, email, password, current_streak, max_streak, unixepoch(registration_date) FROM Player"; //Avoid using SELECT *, so if the table will change we won't have problems with columns
 
     sqlite3_stmt *st = NULL;
 
@@ -156,13 +152,13 @@ PlayerReturnStatus get_all_players(sqlite3 *db, Player **out_array, int *out_cou
 
         Player p;
 
-        p.id_player = sqlite3_column_int(st,0);
+        p.id_player = sqlite3_column_int64(st,0);
         const unsigned char *nickname = sqlite3_column_text(st, 1);
         const unsigned char *email = sqlite3_column_text(st, 2);
         const unsigned char *password = sqlite3_column_text(st, 3);
         p.current_streak = sqlite3_column_int(st,4);
         p.max_streak = sqlite3_column_int(st,5);
-        const unsigned char *registration_date = sqlite3_column_text(st,6);
+        p.registration_date = (time_t) sqlite3_column_int64(st,6);
 
         if(nickname) {
             strcpy(p.nickname, (const char*) nickname);
@@ -180,12 +176,6 @@ PlayerReturnStatus get_all_players(sqlite3 *db, Player **out_array, int *out_cou
             strcpy(p.password, (const char*) password);
         } else {
             p.password[0] = '\0';
-        }
-
-        if(registration_date) {
-            strcpy(p.registration_date, (const char*) registration_date);
-        } else {
-            p.registration_date[0] = '\0';
         }
 
         player_array[count++] = p;
@@ -249,7 +239,7 @@ PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player) {
         flags |= UPDATE_PLAYER_MAX_STREAK;
     }
 
-    if (strcmp(original_player.registration_date, upd_player->registration_date) != 0) {
+    if (original_player.registration_date != upd_player->registration_date) {
         flags |= UPDATE_PLAYER_REG_DATE;
     }
 
@@ -301,7 +291,7 @@ PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player) {
 
     if (flags & UPDATE_PLAYER_REG_DATE) {
         if (!first) strcat(query, ", ");
-        strcat(query, "registration_date = ?");
+        strcat(query, "registration_date = datetime(?, 'unixepoch')");
         first = false;
     }
 
@@ -339,11 +329,11 @@ PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player) {
     }
 
     if (flags & UPDATE_PLAYER_REG_DATE) {
-        rc =sqlite3_bind_text(st, param_index++, upd_player->registration_date, -1, SQLITE_TRANSIENT);
+        rc =sqlite3_bind_int64(st, param_index++, (sqlite3_int64) upd_player->registration_date);
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
-    rc = sqlite3_bind_int(st, param_index, upd_player->id_player);
+    rc = sqlite3_bind_int64(st, param_index, upd_player->id_player);
     if (rc != SQLITE_OK) goto bind_fail; 
 
     rc = sqlite3_step(st);
@@ -370,7 +360,7 @@ PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player) {
         return PLAYER_SQL_ERROR;
 } 
 
-PlayerReturnStatus delete_player_by_id(sqlite3 *db, int id) {
+PlayerReturnStatus delete_player_by_id(sqlite3 *db, int64_t id) {
 
     if (db == NULL || id <= 0) {
         return PLAYER_INVALID_INPUT;
@@ -383,7 +373,7 @@ PlayerReturnStatus delete_player_by_id(sqlite3 *db, int id) {
     int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
     if (rc != SQLITE_OK) goto prepare_fail; 
 
-    rc = sqlite3_bind_int(stmt, 1, id);
+    rc = sqlite3_bind_int64(stmt, 1, id);
     if (rc != SQLITE_OK) goto bind_fail; 
 
     rc = sqlite3_step(stmt);
@@ -411,9 +401,9 @@ PlayerReturnStatus delete_player_by_id(sqlite3 *db, int id) {
         return PLAYER_SQL_ERROR;
 }
 
-PlayerReturnStatus insert_player(sqlite3* db, const Player *in_player, sqlite3_int64 *out_id) {
+PlayerReturnStatus insert_player(sqlite3* db, Player *in_out_player) {
 
-    if (db == NULL || in_player == NULL) {
+    if (db == NULL || in_out_player == NULL) {
         return PLAYER_INVALID_INPUT;
     }
 
@@ -421,11 +411,11 @@ PlayerReturnStatus insert_player(sqlite3* db, const Player *in_player, sqlite3_i
 
     const char* query = 
         "INSERT INTO Player (nickname, email, password, current_streak, max_streak, registration_date)"
-        " VALUES ( ?, ?, ?, ?, ?, ?)";
+        " VALUES ( ?, ?, ?, ?, ?, datetime(?,'unixepoch')) RETURNING id_player, nickname, email, password, current_streak, max_streak, unixepoch(registration_date)";
 
-    if (in_player->nickname[0] == '\0' || in_player->email[0]    == '\0' ||
-        in_player->password[0] == '\0' || in_player->current_streak < 0   ||
-        in_player->max_streak    < 0   || in_player->registration_date[0] == '\0') {
+    if (in_out_player->nickname[0] == '\0' || in_out_player->email[0]    == '\0' ||
+        in_out_player->password[0] == '\0' || in_out_player->current_streak < 0   ||
+        in_out_player->max_streak    < 0   || in_out_player->registration_date == 0) {
         return PLAYER_INVALID_INPUT;
     }
 
@@ -435,32 +425,35 @@ PlayerReturnStatus insert_player(sqlite3* db, const Player *in_player, sqlite3_i
 
     int param_index = 1;
 
-    rc = sqlite3_bind_text(stmt, param_index++, in_player->nickname, -1, SQLITE_TRANSIENT);
+    rc = sqlite3_bind_text(stmt, param_index++, in_out_player->nickname, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    rc = sqlite3_bind_text(stmt, param_index++, in_player->email, -1, SQLITE_TRANSIENT);
+    rc = sqlite3_bind_text(stmt, param_index++, in_out_player->email, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    rc = sqlite3_bind_text(stmt, param_index++, in_player->password, -1, SQLITE_TRANSIENT);
+    rc = sqlite3_bind_text(stmt, param_index++, in_out_player->password, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    rc = sqlite3_bind_int(stmt, param_index++, in_player->current_streak);
+    rc = sqlite3_bind_int(stmt, param_index++, in_out_player->current_streak);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    rc = sqlite3_bind_int(stmt, param_index++, in_player->max_streak);
+    rc = sqlite3_bind_int(stmt, param_index++, in_out_player->max_streak);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    rc = sqlite3_bind_text(stmt, param_index++, in_player->registration_date, -1, SQLITE_TRANSIENT);
+    rc = sqlite3_bind_int64(stmt, param_index++, (sqlite3_int64) in_out_player->registration_date);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    if (sqlite3_step(stmt) != SQLITE_DONE) goto step_fail;
+    if (sqlite3_step(stmt) != SQLITE_ROW) goto step_fail;
 
     if (sqlite3_changes(db) == 0) return PLAYER_NOT_MODIFIED;
 
-    //This function returns the value set in the table as an INTEGER PRIMARY KEY (also AUTOINCREMENT) after an insert.
-    sqlite3_int64 id = sqlite3_last_insert_rowid(db);
-
-    if(out_id) { *out_id = id; }
+    in_out_player->id_player = sqlite3_column_int64(stmt, 0);
+    strcpy(in_out_player->nickname, (const char*) sqlite3_column_text(stmt, 1));
+    strcpy(in_out_player->email, (const char*) sqlite3_column_text(stmt, 2));
+    strcpy(in_out_player->password, (const char*) sqlite3_column_text(stmt, 3));
+    in_out_player->current_streak = sqlite3_column_int(stmt, 4);
+    in_out_player->max_streak = sqlite3_column_int(stmt, 5);
+    in_out_player->registration_date = (time_t) sqlite3_column_int64(stmt, 6);
 
     sqlite3_finalize(stmt);
     return PLAYER_OK;

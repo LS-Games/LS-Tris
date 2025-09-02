@@ -23,11 +23,11 @@ typedef enum {
 
 
 // Funzioni CRUD concrete
-RoundReturnStatus get_round_by_id(sqlite3 *db, int id_round, Round *out); 
+RoundReturnStatus get_round_by_id(sqlite3 *db, int64_t id_round, Round *out); 
 RoundReturnStatus get_all_rounds(sqlite3 *db, Round** out_array, int *out_count);
 RoundReturnStatus update_round_by_id(sqlite3 *db, const Round *upd_round);
-RoundReturnStatus delete_round_by_id(sqlite3 *db, int id_round);
-RoundReturnStatus insert_round(sqlite3 *db, const Round *in_round, sqlite3_int64 *out_id);
+RoundReturnStatus delete_round_by_id(sqlite3 *db, int64_t id_round);
+RoundReturnStatus insert_round(sqlite3 *db, Round *in_out_round);
 
 // Funzione di utilità per messaggi di errore
 const char* return_round_status_to_string(RoundReturnStatus status);

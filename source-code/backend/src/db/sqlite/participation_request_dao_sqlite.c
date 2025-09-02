@@ -16,14 +16,14 @@ const char* return_participation_request_status_to_string(ParticipationRequestRe
     }
 }
 
-ParticipationRequestReturnStatus get_participation_request_by_id(sqlite3 *db, int id_request, ParticipationRequest *out) {
+ParticipationRequestReturnStatus get_participation_request_by_id(sqlite3 *db, int64_t id_request, ParticipationRequest *out) {
 
     if(db == NULL || id_request <= 0 || out == NULL) {
         return PARTICIPATION_REQUEST_INVALID_INPUT;
     }
 
     const char *sql = 
-        "SELECT id_request, id_player, id_game, created_at, state"
+        "SELECT id_request, id_player, id_game, unixepoch(created_at), state"
         " FROM Participation_request WHERE id_request = ?1";
 
     sqlite3_stmt *st = NULL;    
@@ -31,24 +31,18 @@ ParticipationRequestReturnStatus get_participation_request_by_id(sqlite3 *db, in
     int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
     if (rc != SQLITE_OK) goto prepare_fail;
 
-    rc = sqlite3_bind_int(st , 1, id_request);
+    rc = sqlite3_bind_int64(st , 1, id_request);
     if (rc != SQLITE_OK) goto bind_fail;
 
     rc = sqlite3_step(st);
 
     if (rc == SQLITE_ROW) {
 
-        out->id_request = sqlite3_column_int(st,0);
-        out->id_player = sqlite3_column_int(st,1);
-        out->id_game = sqlite3_column_int(st,2);
-        const unsigned char *created_at = sqlite3_column_text(st, 3);
+        out->id_request = sqlite3_column_int64(st,0);
+        out->id_player = sqlite3_column_int64(st,1);
+        out->id_game = sqlite3_column_int64(st,2);
+        out->created_at = (time_t) sqlite3_column_int64(st, 3);
         const unsigned char *state = sqlite3_column_text(st,4);
-
-        if (created_at) {
-            strcpy(out->created_at, (const char*) created_at);
-        } else {
-            out->created_at[0] = '\0';
-        }
 
         if (state) {
             out->state = string_to_request_participation_status((const char*) state);
@@ -90,7 +84,7 @@ ParticipationRequestReturnStatus get_all_participation_requests(sqlite3 *db, Par
     *out_array = NULL;
     *out_count = 0; 
 
-    const char *sql = "SELECT id_request, id_player, id_game, created_at, state FROM Participation_request"; 
+    const char *sql = "SELECT id_request, id_player, id_game, unixepoch(created_at), state FROM Participation_request"; 
 
     sqlite3_stmt *st = NULL;
 
@@ -126,17 +120,11 @@ ParticipationRequestReturnStatus get_all_participation_requests(sqlite3 *db, Par
 
         ParticipationRequest p_rqst;
 
-        p_rqst.id_request = sqlite3_column_int(st,0);
-        p_rqst.id_player = sqlite3_column_int(st,1);
-        p_rqst.id_game = sqlite3_column_int(st,2);
-        const unsigned char *created_at = sqlite3_column_text(st, 3);
+        p_rqst.id_request = sqlite3_column_int64(st,0);
+        p_rqst.id_player = sqlite3_column_int64(st,1);
+        p_rqst.id_game = sqlite3_column_int64(st,2);
+        p_rqst.created_at = (time_t) sqlite3_column_int64(st, 3);
         const unsigned char *state = sqlite3_column_text(st, 4);
-
-        if (created_at) {
-            strcpy(p_rqst.created_at, (const char*) created_at);
-        } else {
-            p_rqst.created_at[0] = '\0';
-        }
 
         if (state) {
             p_rqst.state = string_to_request_participation_status((const char*) state);
@@ -172,8 +160,8 @@ ParticipationRequestReturnStatus update_participation_request_by_id(sqlite3 *db,
         return PARTICIPATION_REQUEST_INVALID_INPUT;
     }
 
-    ParticipationRequest original_p_rquest;
-    ParticipationRequestReturnStatus p_request_status = get_participation_request_by_id(db, upd_participation_request->id_request, &original_p_rquest);
+    ParticipationRequest original_p_request;
+    ParticipationRequestReturnStatus p_request_status = get_participation_request_by_id(db, upd_participation_request->id_request, &original_p_request);
 
     if (p_request_status != PARTICIPATION_REQUEST_OK) {
         return p_request_status;
@@ -181,20 +169,20 @@ ParticipationRequestReturnStatus update_participation_request_by_id(sqlite3 *db,
 
     UpdateParticipationRequestFlags flags = 0; 
 
-    if(original_p_rquest.id_game != upd_participation_request->id_game) {
+    if(original_p_request.id_game != upd_participation_request->id_game) {
         flags |= UPDATE_REQUEST_ID_GAME;
     }
 
 
-    if(original_p_rquest.id_player != upd_participation_request->id_player) {
+    if(original_p_request.id_player != upd_participation_request->id_player) {
         flags |= UPDATE_REQUEST_ID_PLAYER;
     }
 
-    if(strcmp(original_p_rquest.created_at, upd_participation_request->created_at) != 0) {
+    if(original_p_request.created_at != upd_participation_request->created_at) {
         flags |= UPDATE_REQUEST_CREATED_AT;
     }
 
-    if(original_p_rquest.state != upd_participation_request->state) {  
+    if(original_p_request.state != upd_participation_request->state) {  
         flags |= UPDATE_REQUEST_STATE;
     }
 
@@ -224,7 +212,7 @@ ParticipationRequestReturnStatus update_participation_request_by_id(sqlite3 *db,
 
     if (flags & UPDATE_REQUEST_CREATED_AT) {
         if (!first) strcat(query, ", ");
-        strcat(query, "created_at = ?");
+        strcat(query, "created_at = datetime(?, 'unixepoch')");
         first = false;
     }
 
@@ -242,17 +230,17 @@ ParticipationRequestReturnStatus update_participation_request_by_id(sqlite3 *db,
     int param_index = 1;
 
     if (flags & UPDATE_REQUEST_ID_GAME) {
-        rc = sqlite3_bind_int(st, param_index++, upd_participation_request->id_game);
+        rc = sqlite3_bind_int64(st, param_index++, upd_participation_request->id_game);
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
     if (flags & UPDATE_REQUEST_ID_PLAYER) {
-        rc = sqlite3_bind_int(st, param_index++, upd_participation_request->id_player);
+        rc = sqlite3_bind_int64(st, param_index++, upd_participation_request->id_player);
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
     if (flags & UPDATE_REQUEST_CREATED_AT) {
-        rc = sqlite3_bind_text(st, param_index++, upd_participation_request->created_at, -1, SQLITE_TRANSIENT);
+        rc = sqlite3_bind_int64(st, param_index++, (sqlite3_int64) upd_participation_request->created_at);
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
@@ -261,7 +249,7 @@ ParticipationRequestReturnStatus update_participation_request_by_id(sqlite3 *db,
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
-    rc = sqlite3_bind_int(st, param_index, upd_participation_request->id_request);
+    rc = sqlite3_bind_int64(st, param_index, upd_participation_request->id_request);
     if (rc != SQLITE_OK) goto bind_fail; 
 
     rc = sqlite3_step(st);
@@ -288,7 +276,7 @@ ParticipationRequestReturnStatus update_participation_request_by_id(sqlite3 *db,
         return PARTICIPATION_REQUEST_SQL_ERROR;
 }
 
-ParticipationRequestReturnStatus delete_participation_request_by_id(sqlite3 *db, int id_request) {
+ParticipationRequestReturnStatus delete_participation_request_by_id(sqlite3 *db, int64_t id_request) {
 
     if (db == NULL || id_request <= 0) {
         return PARTICIPATION_REQUEST_INVALID_INPUT;
@@ -301,7 +289,7 @@ ParticipationRequestReturnStatus delete_participation_request_by_id(sqlite3 *db,
     int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
     if (rc != SQLITE_OK) goto prepare_fail; 
 
-    rc = sqlite3_bind_int(stmt, 1, id_request);
+    rc = sqlite3_bind_int64(stmt, 1, id_request);
     if (rc != SQLITE_OK) goto bind_fail; 
 
     rc = sqlite3_step(stmt);
@@ -328,40 +316,40 @@ ParticipationRequestReturnStatus delete_participation_request_by_id(sqlite3 *db,
         return PARTICIPATION_REQUEST_SQL_ERROR;
 }
 
-ParticipationRequestReturnStatus insert_participation_request(sqlite3 *db, const ParticipationRequest *in_request, sqlite3_int64 *out_id) {
+ParticipationRequestReturnStatus insert_participation_request(sqlite3 *db, ParticipationRequest *in_out_request) {
 
-    if (db == NULL || in_request == NULL) {
+    if (db == NULL || in_out_request == NULL) {
         return PARTICIPATION_REQUEST_INVALID_INPUT;
     }
 
-    if (in_request->id_game <= 0 || in_request->id_player <= 0 || in_request->created_at[0] == '\0') {
+    if (in_out_request->id_game <= 0 || in_out_request->id_player <= 0 || in_out_request->created_at == 0) {
         return PARTICIPATION_REQUEST_INVALID_INPUT;
     }
 
-    if (in_request->state < PENDING || in_request->state > REJECTED) {
+    if (in_out_request->state < PENDING || in_out_request->state > REJECTED) {
         return PARTICIPATION_REQUEST_INVALID_INPUT;
     }
 
     sqlite3_stmt *stmt = NULL;
     const char *query =
         "INSERT INTO Participation_request (id_player, id_game, created_at, state) "
-        "VALUES (?, ?, ?, ?)";
+        "VALUES (?, ?, datetime(?,'unixepoch'), ?) RETURNING id_request, id_player, id_game, unixepoch(created_at), state";
 
     int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
     if (rc != SQLITE_OK) goto prepare_fail;
 
     int p = 1;
 
-    rc = sqlite3_bind_int(stmt, p++, in_request->id_player);
+    rc = sqlite3_bind_int64(stmt, p++, in_out_request->id_player);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    rc = sqlite3_bind_int(stmt, p++, in_request->id_game);
+    rc = sqlite3_bind_int64(stmt, p++, in_out_request->id_game);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    rc = sqlite3_bind_text(stmt, p++, in_request->created_at, -1, SQLITE_TRANSIENT);
+    rc = sqlite3_bind_int64(stmt, p++, (sqlite3_int64) in_out_request->created_at);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    const char *state_str = request_participation_status_to_string(in_request->state);
+    const char *state_str = request_participation_status_to_string(in_out_request->state);
     if (!state_str) { 
         sqlite3_finalize(stmt); 
         return PARTICIPATION_REQUEST_INVALID_INPUT; 
@@ -371,11 +359,14 @@ ParticipationRequestReturnStatus insert_participation_request(sqlite3 *db, const
     if (rc != SQLITE_OK) goto bind_fail;
 
     rc = sqlite3_step(stmt);
-    if (rc != SQLITE_DONE) goto step_fail;
+    if (rc != SQLITE_ROW) goto step_fail;
 
-    sqlite3_int64 id = sqlite3_last_insert_rowid(db);
-
-    if(out_id) { *out_id = id; }
+    in_out_request->id_request = sqlite3_column_int64(stmt, 0);
+    in_out_request->id_player = sqlite3_column_int64(stmt, 1);
+    in_out_request->id_game = sqlite3_column_int64(stmt, 2);
+    in_out_request->created_at = (time_t) sqlite3_column_int64(stmt,3);
+    const unsigned char* state = sqlite3_column_text(stmt, 4);
+    in_out_request->state = string_to_request_participation_status((const char*) state);
 
     sqlite3_finalize(stmt);
     return PARTICIPATION_REQUEST_OK;

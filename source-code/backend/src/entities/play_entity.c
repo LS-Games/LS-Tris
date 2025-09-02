@@ -10,8 +10,8 @@ void print_play(const Play *p) {
     }
 
     printf("Play {\n");
-    printf("  id_player: %d\n", p->id_player);
-    printf("  id_round: %d\n", p->id_round);
+    printf("  id_player: %" PRId64 "\n", p->id_player);
+    printf("  id_round: %" PRId64 "\n", p->id_round);
     printf("  result: \"%s\"\n", play_result_to_string(p->result));
     printf("}\n");
 }
@@ -21,7 +21,7 @@ void print_play_inline(const Play *p) {
         printf("Play(NULL)\n");
         return;
     }
-    printf("Play[player=%d, round=%d, result=%s]\n",
+    printf("Play[player=%" PRId64 ", round=%" PRId64 ", result=%s]\n",
             p->id_player,
             p->id_round,
             play_result_to_string(p->result));

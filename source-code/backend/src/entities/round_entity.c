@@ -13,8 +13,8 @@ void print_round(const Round *r) {
     }
 
     printf("Round {\n");
-    printf("  id_round: %d\n", r->id_round);
-    printf("  id_game: %d\n", r->id_game);
+    printf("  id_round: %" PRId64 "\n", r->id_round);
+    printf("  id_game: %" PRId64 "\n", r->id_game);
     printf("  state: \"%s\"\n", round_status_to_string(r->state));
     printf("  duration: %" PRId64 "\n", r->duration);
     printf("  board: \"%s\"\n", r->board);
@@ -26,7 +26,7 @@ void print_round_inline(const Round *r) {
         printf("Round(NULL)\n");
         return;
     }
-    printf("Round[id=%d, game=%d, state=%s, dur=%" PRId64 ", board=%s]\n",
+    printf("Round[id=%" PRId64 ", game=%" PRId64 ", state=%s, dur=%" PRId64 ", board=%s]\n",
             r->id_round,
             r->id_game,
             round_status_to_string(r->state),

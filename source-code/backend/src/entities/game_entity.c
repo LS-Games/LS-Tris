@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include "game_entity.h"
+
 
 void print_game(const Game *g) {
     if (!g) {
@@ -10,9 +12,9 @@ void print_game(const Game *g) {
     }
 
     printf("Game {\n");
-    printf("  id_game: %d\n", g->id_game);
-    printf("  id_creator: %d\n", g->id_creator);
-    printf("  id_owner: %d\n", g->id_owner);
+    printf("  id_game: %" PRId64 "\n", g->id_game);
+    printf("  id_creator: %" PRId64 "\n", g->id_creator);
+    printf("  id_owner: %" PRId64 "\n", g->id_owner);
     printf("  state: \"%s\"\n", game_status_to_string(g->state));
     printf("  created_at: \"%s\"\n", g->created_at);
     printf("}\n");
@@ -33,7 +35,7 @@ void print_game_inline(const Game *g) {
         printf("Game(NULL)\n");
         return;
     }
-    printf("Game[id=%d, creator=%d, owner=%d, state=%s, created_at=%s]\n",
+    printf("Game[id=%" PRId64 ", creator=%" PRId64 ", owner=%" PRId64 ", state=%s, created_at=%s]\n",
             g->id_game,
             g->id_creator,
             g->id_owner,

@@ -15,14 +15,14 @@ const char* return_game_status_to_string(GameReturnStatus status) {
     }
 }
 
-GameReturnStatus get_game_by_id(sqlite3 *db, int id_game, Game *out) {
+GameReturnStatus get_game_by_id(sqlite3 *db, int64_t id_game, Game *out) {
 
     if(db == NULL || id_game <= 0 || out == NULL) {
         return GAME_INVALID_INPUT;
     }
 
     const char *sql = 
-        "SELECT id_game, id_creator, id_owner, state, created_at, board "
+        "SELECT id_game, id_creator, id_owner, state, unixepoch(created_at) "
         "FROM Game WHERE id_game = ?1";
 
     sqlite3_stmt *st = NULL;    
@@ -30,30 +30,23 @@ GameReturnStatus get_game_by_id(sqlite3 *db, int id_game, Game *out) {
     int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
     if (rc != SQLITE_OK) goto prepare_fail;
 
-    rc = sqlite3_bind_int(st , 1, id_game);
+    rc = sqlite3_bind_int64(st , 1, id_game);
     if (rc != SQLITE_OK) goto bind_fail;
 
     rc = sqlite3_step(st);
 
     if (rc == SQLITE_ROW) {
 
-        out->id_game = sqlite3_column_int(st, 0); 
-        out->id_creator = sqlite3_column_int(st, 1); 
-        out->id_owner = sqlite3_column_int(st, 2); 
+        out->id_game = sqlite3_column_int64(st, 0); 
+        out->id_creator = sqlite3_column_int64(st, 1); 
+        out->id_owner = sqlite3_column_int64(st, 2); 
         const unsigned char *state = sqlite3_column_text(st, 3); 
-        const unsigned char *created_at = sqlite3_column_text(st, 4);
-
+        out->created_at = (time_t) sqlite3_column_int64(st, 4);
 
         if (state) {
             out->state = string_to_game_status((const char*) state);
         } else {
             out->state = GAME_STATUS_INVALID;
-        }
-
-        if (created_at) {
-            strcpy(out->created_at, (const char*) created_at);
-        } else {
-            out->created_at[0] = '\0';
         }
 
         sqlite3_finalize(st); 
@@ -90,7 +83,7 @@ GameReturnStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count) {
     *out_array = NULL;
     *out_count = 0; 
 
-    const char *sql = "SELECT id_game, id_creator, id_owner, state, created_at FROM Game"; 
+    const char *sql = "SELECT id_game, id_creator, id_owner, state, unixepoch(created_at) FROM Game"; 
 
     sqlite3_stmt *st = NULL;
 
@@ -126,17 +119,11 @@ GameReturnStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count) {
 
         Game g;
 
-        g.id_game = sqlite3_column_int(st,0);
-        g.id_creator = sqlite3_column_int(st, 1);
-        g.id_owner = sqlite3_column_int(st,2);
+        g.id_game = sqlite3_column_int64(st,0);
+        g.id_creator = sqlite3_column_int64(st, 1);
+        g.id_owner = sqlite3_column_int64(st,2);
         const unsigned char *state = sqlite3_column_text(st, 3);
-        const unsigned char *created_at = sqlite3_column_text(st,4);
-
-        if(created_at)
-            strcpy(g.created_at, (const char*) created_at);
-        else {
-            g.created_at[0] = '\0';
-        }
+        g.created_at = (time_t) sqlite3_column_int64(st,4);
 
         if (state) {
             g.state = string_to_game_status((const char*) state);
@@ -195,7 +182,7 @@ GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
         flags |= UPDATE_GAME_STATE;
     }
 
-    if(strcmp(original_game.created_at, upd_game->created_at) != 0) {
+    if(original_game.created_at != upd_game->created_at) {
         flags |= UPDATE_GAME_CREATED_AT;
     }
 
@@ -229,11 +216,11 @@ GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
 
     if (flags & UPDATE_GAME_CREATED_AT) {
         if (!first) strcat(query, ", ");
-        strcat(query, "created_at = ?");
+        strcat(query, "created_at = datetime(?, 'unixepoch')");
         first = false;
     }
 
-    strcat(query, " WHERE id_game = ?");
+    strcat(query, " WHERE id_game = ? ");
 
     int rc = sqlite3_prepare_v2(db, query, -1, &st, NULL); 
     if (rc != SQLITE_OK) goto prepare_fail;
@@ -241,12 +228,12 @@ GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
     int param_index = 1;
 
     if (flags & UPDATE_GAME_ID_CREATOR) {
-        rc = sqlite3_bind_int(st, param_index++, upd_game->id_creator);
+        rc = sqlite3_bind_int64(st, param_index++, upd_game->id_creator);
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
     if (flags & UPDATE_GAME_ID_OWNER) {
-        rc = sqlite3_bind_int(st, param_index++, upd_game->id_owner);
+        rc = sqlite3_bind_int64(st, param_index++, upd_game->id_owner);
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
@@ -256,11 +243,11 @@ GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
     }
 
     if (flags & UPDATE_GAME_CREATED_AT) {
-        rc = sqlite3_bind_text(st, param_index++, upd_game->created_at, -1, SQLITE_TRANSIENT);
+        rc = sqlite3_bind_int64(st, param_index++, (sqlite3_int64) upd_game->created_at);
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
-    rc = sqlite3_bind_int(st, param_index, upd_game->id_game);
+    rc = sqlite3_bind_int64(st, param_index, upd_game->id_game);
     if (rc != SQLITE_OK) goto bind_fail; 
 
     rc = sqlite3_step(st);
@@ -287,7 +274,7 @@ GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
         return GAME_SQL_ERROR;
 }
 
-GameReturnStatus delete_game_by_id(sqlite3 *db, int id_game) {
+GameReturnStatus delete_game_by_id(sqlite3 *db, int64_t id_game) {
 
     if (db == NULL || id_game <= 0) {
         return GAME_INVALID_INPUT;
@@ -300,7 +287,7 @@ GameReturnStatus delete_game_by_id(sqlite3 *db, int id_game) {
     int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
     if (rc != SQLITE_OK) goto prepare_fail; 
 
-    rc = sqlite3_bind_int(stmt, 1, id_game);
+    rc = sqlite3_bind_int64(stmt, 1, id_game);
     if (rc != SQLITE_OK) goto bind_fail; 
 
     rc = sqlite3_step(stmt);
@@ -327,17 +314,17 @@ GameReturnStatus delete_game_by_id(sqlite3 *db, int id_game) {
         return GAME_SQL_ERROR;
 }
 
-GameReturnStatus insert_game(sqlite3 *db, const Game *in_game, sqlite3_int64 *out_id) {
+GameReturnStatus insert_game(sqlite3 *db, Game *in_out_game) {
 
-    if (db == NULL || in_game == NULL) {
+    if (db == NULL || in_out_game == NULL) {
         return GAME_INVALID_INPUT;
     }
 
-    if (in_game->id_creator <= 0 || in_game->id_owner <= 0 || in_game->created_at[0] == '\0') {
+    if (in_out_game->id_creator <= 0 || in_out_game->id_owner <= 0 || in_out_game->created_at == 0) {
         return GAME_INVALID_INPUT;
     }
 
-    if (in_game->state < NEW_GAME || in_game->state > FINISHED_GAME) {
+    if (in_out_game->state < NEW_GAME || in_out_game->state > FINISHED_GAME) {
         return GAME_INVALID_INPUT;
     }
 
@@ -345,20 +332,20 @@ GameReturnStatus insert_game(sqlite3 *db, const Game *in_game, sqlite3_int64 *ou
 
     const char* query = 
         "INSERT INTO Game (id_creator, id_owner, state, created_at)"
-        " VALUES ( ?, ?, ?, ?)";
+        " VALUES ( ?, ?, ?, datetime(?,'unixepoch')) RETURNING id_game, id_creator, id_owner, state, unixepoch(created_at)";
 
     int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
     if (rc != SQLITE_OK) goto prepare_fail;
 
     int param_index = 1;
 
-    rc = sqlite3_bind_int(stmt, param_index++, in_game->id_creator);
+    rc = sqlite3_bind_int64(stmt, param_index++, in_out_game->id_creator);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    rc = sqlite3_bind_int(stmt, param_index++, in_game->id_owner);
+    rc = sqlite3_bind_int64(stmt, param_index++, in_out_game->id_owner);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    const char* g_st = game_status_to_string(in_game->state);
+    const char* g_st = game_status_to_string(in_out_game->state);
     if(!g_st) {
         sqlite3_finalize(stmt);
         return GAME_INVALID_INPUT;
@@ -367,18 +354,22 @@ GameReturnStatus insert_game(sqlite3 *db, const Game *in_game, sqlite3_int64 *ou
     rc = sqlite3_bind_text(stmt, param_index++, g_st, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    rc = sqlite3_bind_text(stmt, param_index++, in_game->created_at, -1, SQLITE_TRANSIENT);
+    rc = sqlite3_bind_int64(stmt, param_index++, (sqlite3_int64) in_out_game->created_at);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    if (sqlite3_step(stmt) != SQLITE_DONE) goto step_fail;
+    if (sqlite3_step(stmt) != SQLITE_ROW) goto step_fail;
 
     if (sqlite3_changes(db) == 0) return GAME_NOT_MODIFIED;
 
-    sqlite3_int64 id = sqlite3_last_insert_rowid(db);
-
-    if(out_id) { *out_id = id; }
+    in_out_game->id_game = sqlite3_column_int64(stmt, 0);
+    in_out_game->id_creator = sqlite3_column_int64(stmt, 1);
+    in_out_game->id_owner = sqlite3_column_int64(stmt, 2);
+    const unsigned char* state = sqlite3_column_text(stmt, 3);
+    in_out_game->state = string_to_game_status((const char*) state);
+    in_out_game->created_at = (time_t) sqlite3_column_int64(stmt,4);
 
     sqlite3_finalize(stmt);
+
     return GAME_OK;
 
     prepare_fail:
@@ -393,5 +384,85 @@ GameReturnStatus insert_game(sqlite3 *db, const Game *in_game, sqlite3_int64 *ou
     step_fail:
         fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
+        return GAME_SQL_ERROR;
+}
+
+GameReturnStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickname** out_array, int *out_count) {
+
+    if( db == NULL || out_array == NULL || out_count == NULL) {
+        return GAME_INVALID_INPUT;
+    }
+
+    *out_array = NULL;
+    *out_count = 0;
+    int cap = 12;
+
+    const char *query = "SELECT "
+                        " o.nickname                 AS owner, "
+                        " c.nickname                 AS creator, " 
+                        " g.id_game                  AS id_game, "
+                        " g.state                    AS state, "
+                        " unixepoch(g.created_at)    AS created_at " 
+                      "FROM Game g "
+                      "JOIN Player c ON c.id_player = g.id_creator "
+                      "JOIN Player o ON o.id_player = g.id_owner "
+                      "ORDER BY g.created_at DESC, g.id_game DESC;";
+
+    sqlite3_stmt* stmt = NULL;
+    
+    int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) goto prepare_fail;
+
+    GameWithPlayerNickname *array = malloc(sizeof(GameWithPlayerNickname) * cap);
+    int count = 0;
+
+    while((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+
+            if (count == cap) {
+                int new_cap = cap * 2;
+                GameWithPlayerNickname *tmp = realloc(array, sizeof(GameWithPlayerNickname) * new_cap);
+
+                if(!tmp) {
+                    free(array);
+                    sqlite3_finalize(stmt);
+                    return GAME_MALLOC_ERROR;
+                }
+
+                array = tmp;
+                cap = new_cap;
+            }
+
+            int col = 0; 
+
+            unsigned const char *owner = sqlite3_column_text(stmt, col++);
+            snprintf(array[count].owner, sizeof array[count].owner, "%s", owner ? (const char*) owner : "");
+
+            unsigned const char *creator = sqlite3_column_text(stmt, col++);
+            snprintf(array[count].creator, sizeof array[count].creator, "%s", creator ? (const char*) creator : "");
+
+            array[count].id_game = sqlite3_column_int64(stmt, col++);
+
+            unsigned const char *state = sqlite3_column_text(stmt, col++);
+            array[count].state = string_to_game_status((const char*) state);
+
+            array[count].created_at = (time_t) sqlite3_column_int64(stmt, col++);
+
+            count++;
+    }
+
+    if(rc != SQLITE_DONE) {
+        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        free(array);
+        sqlite3_finalize(stmt);
+        return GAME_SQL_ERROR;
+    }
+
+    sqlite3_finalize(stmt);
+    *out_array = array;
+    *out_count = count;
+    return GAME_OK;
+
+    prepare_fail:
+        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
         return GAME_SQL_ERROR;
 }

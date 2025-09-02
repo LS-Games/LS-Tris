@@ -22,8 +22,8 @@ typedef enum {
 } RoundStatus;
 
 typedef struct {
-    int id_round;
-    int id_game;
+    int64_t id_round;
+    int64_t id_game;
     RoundStatus state;
     int64_t duration;
     char board[BOARD_MAX];

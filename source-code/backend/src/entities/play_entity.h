@@ -1,6 +1,8 @@
 #ifndef PLAY_ENTITY_H
 #define PLAY_ENTITY_H
 
+#include <inttypes.h>
+
 typedef enum {
     WIN,
     LOSE,
@@ -9,9 +11,10 @@ typedef enum {
 } PlayResult;
 
 typedef struct {
-    int id_player;
-    int id_round;
+    int64_t id_player;
+    int64_t id_round;
     PlayResult result;
+    int player_number;
 } Play;
 
 void print_play(const Play *p);

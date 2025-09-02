@@ -3,6 +3,9 @@
 
 #define DATE_MAX 100
 
+#include <stdint.h>
+#include <time.h>
+
 typedef enum {
     PENDING, 
     ACCEPTED,
@@ -11,10 +14,10 @@ typedef enum {
 } RequestStatus;
 
 typedef struct ParticipationRequest {
-    int id_request;
-    int id_player;
-    int id_game;
-    char created_at[DATE_MAX];
+    int64_t id_request;
+    int64_t id_player;
+    int64_t id_game;
+    time_t created_at;
     RequestStatus state;
 } ParticipationRequest;
 

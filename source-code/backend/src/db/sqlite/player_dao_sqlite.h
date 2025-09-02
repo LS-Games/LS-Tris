@@ -25,11 +25,11 @@ typedef enum {
 
 
 // Funzioni CRUD concrete
-PlayerReturnStatus get_player_by_id(sqlite3 *db, int id, Player *out); //We use Player pointer parameter to work by reference rather than by value 
+PlayerReturnStatus get_player_by_id(sqlite3 *db, int64_t id_player, Player *out); //We use Player pointer parameter to work by reference rather than by value 
 PlayerReturnStatus get_all_players(sqlite3 *db, Player** out_array, int *out_count);
 PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player);
-PlayerReturnStatus delete_player_by_id(sqlite3 *db, int id);
-PlayerReturnStatus insert_player(sqlite3 *db, const Player *in_player, sqlite3_int64 *out_id);
+PlayerReturnStatus delete_player_by_id(sqlite3 *db, int64_t id_player);
+PlayerReturnStatus insert_player(sqlite3 *db, Player *in_out_player);
 
 // Funzione di utilità per messaggi di errore
 const char* player_status_to_string(PlayerReturnStatus status);

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include "participation_request_entity.h"
 
@@ -10,9 +11,9 @@ void print_participation_request(const ParticipationRequest *pr) {
     }
 
     printf("ParticipationRequest {\n");
-    printf("  id_request: %d\n", pr->id_request);
-    printf("  id_player: %d\n", pr->id_player);
-    printf("  id_game: %d\n", pr->id_game);
+    printf("  id_request: %" PRId64 "\n", pr->id_request);
+    printf("  id_player: %" PRId64 "\n", pr->id_player);
+    printf("  id_game: %" PRId64 "\n", pr->id_game);
     printf("  created_at: \"%s\"\n", pr->created_at);
     printf("  state: \"%s\"\n", request_participation_status_to_string(pr->state));
     printf("}\n");
@@ -23,7 +24,7 @@ void print_participation_request_inline(const ParticipationRequest *pr) {
         printf("ParticipationRequest(NULL)\n");
         return;
     }
-    printf("ParticipationRequest[id=%d, player=%d, game=%d, created_at=%s, state=%s]\n",
+    printf("ParticipationRequest[id=%" PRId64 ", player=%" PRId64 ", game=%" PRId64 ", created_at=%s, state=%s]\n",
             pr->id_request,
             pr->id_player,
             pr->id_game,

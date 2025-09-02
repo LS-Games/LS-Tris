@@ -137,7 +137,7 @@ RoundControllerStatus round_start(int id_game, int64_t duration) {
     
     // Insert round
     sqlite3* db = db_open();
-    RoundReturnStatus status = insert_round(db, &round, NULL);
+    RoundReturnStatus status = insert_round(db, &round);
     db_close(db);
     if (status != ROUND_OK) {
         LOG_WARN("%s\n", return_round_status_to_string(status));

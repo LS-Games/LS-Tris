@@ -15,7 +15,7 @@ const char* return_round_status_to_string(RoundReturnStatus status) {
     }
 }
 
-RoundReturnStatus get_round_by_id(sqlite3 *db, int id_round, Round *out) {
+RoundReturnStatus get_round_by_id(sqlite3 *db, int64_t id_round, Round *out) {
 
     if(db == NULL || id_round <= 0 || out == NULL) {
         return ROUND_INVALID_INPUT;
@@ -30,15 +30,15 @@ RoundReturnStatus get_round_by_id(sqlite3 *db, int id_round, Round *out) {
     int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
     if (rc != SQLITE_OK) goto prepare_fail;
 
-    rc = sqlite3_bind_int(st , 1, id_round);
+    rc = sqlite3_bind_int64(st , 1, id_round);
     if (rc != SQLITE_OK) goto bind_fail;
 
     rc = sqlite3_step(st);
 
     if (rc == SQLITE_ROW) {
 
-        out->id_round = sqlite3_column_int(st, 0); 
-        out->id_game = sqlite3_column_int(st, 1); 
+        out->id_round = sqlite3_column_int64(st, 0); 
+        out->id_game = sqlite3_column_int64(st, 1); 
         const unsigned char *state = sqlite3_column_text(st, 2); 
         out->duration = sqlite3_column_int64(st, 3); 
         const unsigned char *board = sqlite3_column_text(st, 4); 
@@ -125,8 +125,8 @@ RoundReturnStatus get_all_rounds(sqlite3 *db, Round** out_array, int *out_count)
 
         Round r;
 
-        r.id_round = sqlite3_column_int(st,0);
-        r.id_game = sqlite3_column_int(st, 1);
+        r.id_round = sqlite3_column_int64(st,0);
+        r.id_game = sqlite3_column_int64(st, 1);
         const unsigned char *state = sqlite3_column_text(st, 2);
         r.duration = sqlite3_column_int64(st,3);
         const unsigned char *board = sqlite3_column_text(st,4);
@@ -239,7 +239,7 @@ RoundReturnStatus update_round_by_id(sqlite3 *db, const Round *upd_round) {
     int param_index = 1;
 
     if (flags & UPDATE_ROUND_ID_GAME) {
-        rc = sqlite3_bind_int(st, param_index++, upd_round->id_game);
+        rc = sqlite3_bind_int64(st, param_index++, upd_round->id_game);
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
@@ -258,7 +258,7 @@ RoundReturnStatus update_round_by_id(sqlite3 *db, const Round *upd_round) {
         if (rc != SQLITE_OK) goto bind_fail; 
     }
 
-    rc = sqlite3_bind_int(st, param_index, upd_round->id_round);
+    rc = sqlite3_bind_int64(st, param_index, upd_round->id_round);
     if (rc != SQLITE_OK) goto bind_fail; 
 
     rc = sqlite3_step(st);
@@ -285,7 +285,7 @@ RoundReturnStatus update_round_by_id(sqlite3 *db, const Round *upd_round) {
         return ROUND_SQL_ERROR;
 }
 
-RoundReturnStatus delete_round_by_id(sqlite3 *db, int id_round) {
+RoundReturnStatus delete_round_by_id(sqlite3 *db, int64_t id_round) {
 
     if (db == NULL || id_round <= 0) {
         return ROUND_INVALID_INPUT;
@@ -298,7 +298,7 @@ RoundReturnStatus delete_round_by_id(sqlite3 *db, int id_round) {
     int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
     if (rc != SQLITE_OK) goto prepare_fail; 
 
-    rc = sqlite3_bind_int(stmt, 1, id_round);
+    rc = sqlite3_bind_int64(stmt, 1, id_round);
     if (rc != SQLITE_OK) goto bind_fail; 
 
     rc = sqlite3_step(stmt);
@@ -325,17 +325,17 @@ RoundReturnStatus delete_round_by_id(sqlite3 *db, int id_round) {
         return ROUND_SQL_ERROR;
 }
 
-RoundReturnStatus insert_round(sqlite3 *db, const Round *in_round, sqlite3_int64 *out_id) {
+RoundReturnStatus insert_round(sqlite3 *db, Round *in_out_round) {
 
-    if (db == NULL || in_round == NULL) {
+    if (db == NULL || in_out_round == NULL) {
         return ROUND_INVALID_INPUT;
     }
 
-    if (in_round->id_game <= 0 || in_round->duration < 0) {
+    if (in_out_round->id_game <= 0 || in_out_round->duration < 0) {
         return ROUND_INVALID_INPUT;
     }
 
-    if (in_round->state < ACTIVE_ROUND || in_round->state > FINISHED_ROUND) {
+    if (in_out_round->state < ACTIVE_ROUND || in_out_round->state > FINISHED_ROUND) {
         return ROUND_INVALID_INPUT;
     }
 
@@ -343,17 +343,17 @@ RoundReturnStatus insert_round(sqlite3 *db, const Round *in_round, sqlite3_int64
 
     const char* query = 
         "INSERT INTO Round (id_game, state, duration, board)"
-        " VALUES ( ?1, ?2, ?3, ?4)";
+        " VALUES ( ?1, ?2, ?3, ?4) RETURNING id_round";
 
     int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
     if (rc != SQLITE_OK) goto prepare_fail;
 
     int param_index = 1;
 
-    rc = sqlite3_bind_int(stmt, param_index++, in_round->id_game);
+    rc = sqlite3_bind_int64(stmt, param_index++, in_out_round->id_game);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    const char* r_st = round_status_to_string(in_round->state);
+    const char* r_st = round_status_to_string(in_out_round->state);
     if(!r_st) {
         sqlite3_finalize(stmt);
         return ROUND_INVALID_INPUT;
@@ -362,19 +362,17 @@ RoundReturnStatus insert_round(sqlite3 *db, const Round *in_round, sqlite3_int64
     rc = sqlite3_bind_text(stmt, param_index++, r_st, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    rc = sqlite3_bind_int64(stmt, param_index++, in_round->duration);
+    rc = sqlite3_bind_int64(stmt, param_index++, in_out_round->duration);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    rc = sqlite3_bind_text(stmt, param_index++, in_round->board, -1, SQLITE_TRANSIENT);
+    rc = sqlite3_bind_text(stmt, param_index++, in_out_round->board, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    if (sqlite3_step(stmt) != SQLITE_DONE) goto step_fail;
+    if (sqlite3_step(stmt) != SQLITE_ROW) goto step_fail;
 
     if (sqlite3_changes(db) == 0) return ROUND_NOT_MODIFIED;
 
-    sqlite3_int64 id = sqlite3_last_insert_rowid(db);
-
-    if(out_id) { *out_id = id; }
+    in_out_round->id_round = sqlite3_column_int64(stmt, 0);;
 
     sqlite3_finalize(stmt);
     return ROUND_OK;

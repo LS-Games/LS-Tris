@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "**/backend/**/*.h": "c"
+        "**/backend/**/*.h": "c",
+        "cstring": "c",
+        "typeinfo": "c"
     }
 }
