@@ -386,3 +386,87 @@ ParticipationRequestReturnStatus insert_participation_request(sqlite3 *db, Parti
         return PARTICIPATION_REQUEST_SQL_ERROR;
 }
 
+ParticipationRequestReturnStatus get_all_participation_requests_with_player_info(sqlite3 *db, ParticipationRequestWithPlayerNickname **out_array, int *out_count) {
+
+    if(db == NULL || out_array == NULL || out_count == NULL) { 
+        return PARTICIPATION_REQUEST_INVALID_INPUT;
+    }
+
+    *out_array = NULL;
+    *out_count = 0; 
+
+    const char *sql = "SELECT pr.id_request, pr.id_player, pr.id_game, unixepoch(pr.created_at), pr.state, p.nickname AS player_nickname "
+                      "FROM Participation_request pr JOIN Player p ON pr.id_player = p.id_player "
+                      "ORDER BY pr.created_at DESC"; 
+
+    sqlite3_stmt *st = NULL;
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
+    if (rc != SQLITE_OK) goto prepare_fail;
+
+    int cap = 16; 
+
+    ParticipationRequestWithPlayerNickname *p_request_array = malloc(sizeof(ParticipationRequestWithPlayerNickname) * cap);
+
+    if (!p_request_array) {
+        sqlite3_finalize(st);
+        return PARTICIPATION_REQUEST_MALLOC_ERROR;
+    }
+
+    int count = 0;
+
+    while((rc = sqlite3_step(st)) == SQLITE_ROW) {
+
+        if (count == cap) {
+            int new_cap = cap * 2;
+            ParticipationRequestWithPlayerNickname *tmp = realloc(p_request_array, sizeof(ParticipationRequestWithPlayerNickname) * new_cap); 
+
+            if(!tmp) {
+                free(p_request_array);
+                sqlite3_finalize(st);
+                return PARTICIPATION_REQUEST_MALLOC_ERROR;
+            }
+
+            p_request_array = tmp; 
+            cap = new_cap;
+        }
+
+        ParticipationRequestWithPlayerNickname p_rqst;
+
+        p_rqst.id_request = sqlite3_column_int64(st,0);
+        p_rqst.id_player = sqlite3_column_int64(st,1);
+        p_rqst.id_game = sqlite3_column_int64(st,2);
+        p_rqst.created_at = (time_t) sqlite3_column_int64(st, 3);
+        const unsigned char *state = sqlite3_column_text(st, 4);
+        const unsigned char *player_nickname = sqlite3_column_text(st, 5);
+        snprintf(p_rqst.player_nickname, sizeof p_rqst.player_nickname, "%s", player_nickname ? (const char*) player_nickname : "");
+
+        
+
+        if (state) {
+            p_rqst.state = string_to_request_participation_status((const char*) state);
+        } else {
+            p_rqst.state = REQUEST_STATUS_INVALID;
+        }
+
+        p_request_array[count++] = p_rqst;
+    }
+
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        free(p_request_array);
+        sqlite3_finalize(st);
+        return PARTICIPATION_REQUEST_SQL_ERROR;
+    }
+
+    *out_array = p_request_array;  
+    *out_count = count;
+
+    sqlite3_finalize(st);
+
+    return PARTICIPATION_REQUEST_OK;
+
+    prepare_fail:
+        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PARTICIPATION_REQUEST_SQL_ERROR;
+}

@@ -4,6 +4,7 @@
 #include <sqlite3.h>
 
 #include "../../entities/participation_request_entity.h"
+#include "../../db/sqlite/dto/participation_request_join_player.h"
 
 typedef enum {
     PARTICIPATION_REQUEST_OK = 0,
@@ -32,4 +33,5 @@ ParticipationRequestReturnStatus insert_participation_request(sqlite3 *db, Parti
 // Funzione di utilità per messaggi di errore
 const char* return_participation_request_status_to_string(ParticipationRequestReturnStatus status);
 
+ParticipationRequestReturnStatus get_all_participation_requests_with_player_info(sqlite3 *db, ParticipationRequestWithPlayerNickname **out_array, int *out_count);
 #endif

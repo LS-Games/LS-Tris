@@ -7,6 +7,7 @@
 Nella directory [backend/db/](./db/), creiamo un file `scheme.sql`, contenente lo schema del database in linguaggio SQL. Spostiamoci nella working directory [backend](.). Creeremo le tabelle con il comando:
 
 ```bash
+mkdir -p ./db/data
 sqlite3 ./db/data/database.sqlite < ./db/scheme.sql
 ```
 
