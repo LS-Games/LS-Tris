@@ -1,0 +1,42 @@
+/* Vertical app layout that fills the viewport */
+.main {
+    background-color: white;
+}
+
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; 
+  background-color: #f5f5f5;
+}
+
+.app-layout > app-header,
+.app-layout > app-footer {
+  flex: 0 0 auto;
+}
+
+.app-main {
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
+.app-main .container {
+  padding: 16px;
+  margin-inline: auto;
+  max-width: 1200px;
+  background-color: white;
+}
+
+
+
+@media (min-width: 768px) {
+  .app-main .container {
+    padding: 24px 32px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .app-main .container {
+    max-width: 1400px;
+  }
+}

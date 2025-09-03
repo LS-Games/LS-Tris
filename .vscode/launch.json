@@ -38,7 +38,7 @@
             "webRoot": "${workspaceFolder}/source-code/frontend",       // Specifies the workspace absolute path to the webserver root
             "preLaunchTask": "start: npm start:docker",                 // Launch a task before the start of the debug session. It must be equal to the "label" of the task we want to launch in tasks.json
             "postDebugTask": "stop: npm start:docker",                  // Task to run after debug session ends. It must be equal to the "label" of the task we want to launch in tasks.json
-            "url": "http://localhost:${input:FRONTEND_PORT}/"           // Will search for a tab with this exact url and attach to it, if found. Input variable defined later.
+            "url": "http://localhost:${input:FRONTEND_PORT}/",          // Will search for a tab with this exact url and attach to it, if found. Input variable defined later.
         },
         {
             "name": "Test: Angular frontend",                           // Debugging configuration name

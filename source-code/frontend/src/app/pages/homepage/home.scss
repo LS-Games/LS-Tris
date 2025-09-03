@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Bowlby+One+SC&display=swap');
+
+.homepage {
+    background-color: white;
+}
+
+p {
+    flex-direction: column;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+}
+
+.two-section {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.two-section .first-section,
+.two-section .second-section {
+    flex: 1
+}
+
+.first-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.second-section {
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#homepage-title {
+    color: #2A2438;
+    font-family: 'Bowlby One SC', sans-serif;
+    text-align: center;
+}
+
+#homepage-button {
+    flex: 0;
+    display: inline-block;
+    width: auto;
+
+    color: white;
+    background-color: green;
+    border: 1px;
+    border-radius: 8px;
+    border-color: gray;
+    font-family: 'Bowlby One SC', sans-serif;
+    padding: 10px 10px;
+    cursor: pointer; 
+}
+
+#homepage-button:hover {
+    transform: scale(1.1);
+}
+
+#logo-little-man {
+  max-width: 400px;
+  height: auto;
+  display: block;
+  transition: transform 0.2s ease;
+}

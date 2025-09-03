@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Bowlby+One+SC&display=swap');
+
+.logo-text { font-family: 'Bowlby One SC', sans-serif; }
+
+.site-header {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: white;
+  color: white;
+}
+
+.nav-links {
+  display: flex;
+  flex-direction: row;
+  font-size: 23px;
+  font-family: 'Bowlby One SC', sans-serif;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.nav-links a {
+  color: white;
+  background: #2A2438;
+  border-radius: 8px 8px 8px 8px;
+  padding: 8px;
+
+  text-decoration: none;
+  display: inline-block;
+  transition: color 0.25s ease, transform 0.25s ease;
+  transform-origin: center;
+  cursor: pointer;
+}
+
+.nav-links .active {
+  color: #ECA937;
+  font-weight: bold;
+}
+
+.logo img {
+  max-width: 80px;
+  height: auto;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.logo img:hover { transform: scale(1.15); }
+
+.nav-links a:hover { color: #ECA937; }
+
+@media (min-width: 480px) {
+  .nav-links a:hover { transform: scale(1.06); }
+}
+
+@media (min-width: 768px) {
+  .site-header { flex-wrap: nowrap; padding: 16px 32px; }
+  .nav-links { width: auto; margin-top: 0; font-size: 25px; justify-content: flex-end; gap: 15px; }
+  .logo img { max-width: 90px; }
+  .nav-links a:hover { transform: scale(1.12); }
+}
+
+@media (min-width: 1440px) {
+  .site-header { padding: 20px 64px; }
+  .nav-links { width: auto; margin-top: 0; font-size: 35px; justify-content: flex-end; gap: 20px; }
+  .logo img { max-width: 140px; }
+  .nav-links a:hover { transform: scale(1.18); }
+}
+
