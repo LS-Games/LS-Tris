@@ -7,20 +7,22 @@
 #include "./db/sqlite/db_connection_sqlite.h"
 #include "./json-parser/test_json-parser.h"
 
-#include "./controllers/round_controller.h"
-#include "./entities/participation_request_entity.h"
+#include "./controllers/player_controller.h"
 
 int main(void) {
 
-    ParticipationRequest p = {
-        .id_game = 1,
-        .id_player = 1,
-        .id_request = 1,
-        .state = PENDING,
-        .created_at = time(NULL)
-    };
+    Player* players;
+    int n;
+    player_find_all(&players, &n);
+    for (int i=0; i<n; i++)
+        LOG_STRUCT_DEBUG(print_player_inline, &(players[i]));
 
-    print_participation_request(&p);
+
+    player_signup("pippo", "pippo@gmail.com", "fratm");
+
+    player_find_all(&players, &n);
+    for (int i=0; i<n; i++)
+        LOG_STRUCT_DEBUG(print_player_inline, &(players[i]));
 
     // Parse json
     // json_c();

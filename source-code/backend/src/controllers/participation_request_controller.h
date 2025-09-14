@@ -13,6 +13,7 @@ typedef enum {
     //PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR
 } ParticipationRequestControllerStatus;
 
+
 // ===================== CRUD Operations =====================
 
 ParticipationRequestControllerStatus participation_request_create(ParticipationRequest* participation_requestToCreate);

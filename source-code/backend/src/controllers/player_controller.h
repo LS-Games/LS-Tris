@@ -13,6 +13,9 @@ typedef enum {
     //PLAYER_CONTROLLER_INTERNAL_ERROR
 } PlayerControllerStatus;
 
+
+PlayerControllerStatus player_signup(char* nickname, char* email, char* password);
+
 // ===================== CRUD Operations =====================
 
 PlayerControllerStatus player_create(Player* playerToCreate);

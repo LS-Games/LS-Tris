@@ -13,6 +13,7 @@ typedef enum {
     //GAME_CONTROLLER_INTERNAL_ERROR
 } GameControllerStatus;
 
+
 // ===================== CRUD Operations =====================
 
 GameControllerStatus game_create(Game* gameToCreate);
