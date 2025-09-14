@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "round_dto.h"
+#include "../entities/round_entity.h"
 
 void map_round_to_dto(const Round *round, RoundDTO *out_dto) {
     if (!round || !out_dto) return;

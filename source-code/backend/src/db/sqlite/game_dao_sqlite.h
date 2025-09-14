@@ -7,12 +7,12 @@
 #include "../../db/sqlite/dto/game_join_player.h"
 
 typedef enum {
-    GAME_OK = 0,
-    GAME_NOT_FOUND,
-    GAME_SQL_ERROR,
-    GAME_INVALID_INPUT,
-    GAME_MALLOC_ERROR,
-    GAME_NOT_MODIFIED
+    GAME_DAO_OK = 0,
+    GAME_DAO_NOT_FOUND,
+    GAME_DAO_SQL_ERROR,
+    GAME_DAO_INVALID_INPUT,
+    GAME_DAO_MALLOC_ERROR,
+    GAME_DAO_NOT_MODIFIED
 } GameReturnStatus;
 
 typedef enum {

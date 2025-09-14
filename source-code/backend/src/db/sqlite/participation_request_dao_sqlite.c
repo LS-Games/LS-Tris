@@ -3,23 +3,25 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include "../../../include/debug_log.h"
+
 #include "participation_request_dao_sqlite.h"
 
 const char* return_participation_request_status_to_string(ParticipationRequestReturnStatus status) {
     switch (status) {
-        case PARTICIPATION_REQUEST_OK:             return "PARTICIPATION_REQUEST_OK";
-        case PARTICIPATION_REQUEST_INVALID_INPUT:  return "PARTICIPATION_REQUEST_INVALID_INPUT";
-        case PARTICIPATION_REQUEST_SQL_ERROR:      return "PARTICIPATION_REQUEST_SQL_ERROR";
-        case PARTICIPATION_REQUEST_NOT_FOUND:      return "PARTICIPATION_REQUEST_NOT_FOUND";
-        case PARTICIPATION_REQUEST_MALLOC_ERROR:   return  "PARTICIPATION_REQUEST_MALLOC_ERROR";
-        default:                                   return "PARTICIPATION_REQUEST_UNKNOWN";
+        case PARTICIPATION_DAO_REQUEST_OK:              return "PARTICIPATION_DAO_REQUEST_OK";
+        case PARTICIPATION_DAO_REQUEST_INVALID_INPUT:   return "PARTICIPATION_DAO_REQUEST_INVALID_INPUT";
+        case PARTICIPATION_DAO_REQUEST_SQL_ERROR:       return "PARTICIPATION_DAO_REQUEST_SQL_ERROR";
+        case PARTICIPATION_DAO_REQUEST_NOT_FOUND:       return "PARTICIPATION_DAO_REQUEST_NOT_FOUND";
+        case PARTICIPATION_DAO_REQUEST_MALLOC_ERROR:    return  "PARTICIPATION_DAO_REQUEST_MALLOC_ERROR";
+        default:                                        return "PARTICIPATION_DAO_REQUEST_UNKNOWN";
     }
 }
 
 ParticipationRequestReturnStatus get_participation_request_by_id(sqlite3 *db, int64_t id_request, ParticipationRequest *out) {
 
     if(db == NULL || id_request <= 0 || out == NULL) {
-        return PARTICIPATION_REQUEST_INVALID_INPUT;
+        return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;
     }
 
     const char *sql = 
@@ -51,34 +53,34 @@ ParticipationRequestReturnStatus get_participation_request_by_id(sqlite3 *db, in
         }
 
         sqlite3_finalize(st); 
-        return PARTICIPATION_REQUEST_OK;
+        return PARTICIPATION_DAO_REQUEST_OK;
 
     } else if (rc == SQLITE_DONE) { 
 
         sqlite3_finalize(st);
-        return PARTICIPATION_REQUEST_NOT_FOUND;
+        return PARTICIPATION_DAO_REQUEST_NOT_FOUND;
 
     } else goto step_fail; 
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return PARTICIPATION_REQUEST_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 
     bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
-        return PARTICIPATION_REQUEST_SQL_ERROR;
+        return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 
     step_fail:
-        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
-        return PARTICIPATION_REQUEST_SQL_ERROR;
+        return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 }
 
 ParticipationRequestReturnStatus get_all_participation_requests(sqlite3 *db, ParticipationRequest **out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
-        return PARTICIPATION_REQUEST_INVALID_INPUT;
+        return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;
     }
 
     *out_array = NULL;
@@ -97,7 +99,7 @@ ParticipationRequestReturnStatus get_all_participation_requests(sqlite3 *db, Par
 
     if (!p_request_array) {
         sqlite3_finalize(st);
-        return PARTICIPATION_REQUEST_MALLOC_ERROR;
+        return PARTICIPATION_DAO_REQUEST_MALLOC_ERROR;
     }
 
     int count = 0;
@@ -111,7 +113,7 @@ ParticipationRequestReturnStatus get_all_participation_requests(sqlite3 *db, Par
             if(!tmp) {
                 free(p_request_array);
                 sqlite3_finalize(st);
-                return PARTICIPATION_REQUEST_MALLOC_ERROR;
+                return PARTICIPATION_DAO_REQUEST_MALLOC_ERROR;
             }
 
             p_request_array = tmp; 
@@ -136,10 +138,10 @@ ParticipationRequestReturnStatus get_all_participation_requests(sqlite3 *db, Par
     }
 
     if (rc != SQLITE_DONE) {
-        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(p_request_array);
         sqlite3_finalize(st);
-        return PARTICIPATION_REQUEST_SQL_ERROR;
+        return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
     }
 
     *out_array = p_request_array;  
@@ -147,23 +149,23 @@ ParticipationRequestReturnStatus get_all_participation_requests(sqlite3 *db, Par
 
     sqlite3_finalize(st);
 
-    return PARTICIPATION_REQUEST_OK;
+    return PARTICIPATION_DAO_REQUEST_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return PARTICIPATION_REQUEST_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 }
 
 ParticipationRequestReturnStatus update_participation_request_by_id(sqlite3 *db, const ParticipationRequest *upd_participation_request) {
 
     if (db == NULL || upd_participation_request == NULL || upd_participation_request->id_request <= 0) {
-        return PARTICIPATION_REQUEST_INVALID_INPUT;
+        return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;
     }
 
     ParticipationRequest original_p_request;
     ParticipationRequestReturnStatus p_request_status = get_participation_request_by_id(db, upd_participation_request->id_request, &original_p_request);
 
-    if (p_request_status != PARTICIPATION_REQUEST_OK) {
+    if (p_request_status != PARTICIPATION_DAO_REQUEST_OK) {
         return p_request_status;
     }
 
@@ -188,7 +190,7 @@ ParticipationRequestReturnStatus update_participation_request_by_id(sqlite3 *db,
 
 
     if (flags == 0) {
-        return PARTICIPATION_REQUEST_NOT_MODIFIED;
+        return PARTICIPATION_DAO_REQUEST_NOT_MODIFIED;
     }
 
     char query[512] = "UPDATE Participation_request SET ";
@@ -257,29 +259,29 @@ ParticipationRequestReturnStatus update_participation_request_by_id(sqlite3 *db,
 
     sqlite3_finalize(st);
 
-    if (sqlite3_changes(db) == 0) return PARTICIPATION_REQUEST_NOT_MODIFIED;
+    if (sqlite3_changes(db) == 0) return PARTICIPATION_DAO_REQUEST_NOT_MODIFIED;
     
-    return PARTICIPATION_REQUEST_OK;
+    return PARTICIPATION_DAO_REQUEST_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return PARTICIPATION_REQUEST_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
     
     bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
-        return PARTICIPATION_REQUEST_SQL_ERROR;
+        return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 
     step_fail:
-        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
-        return PARTICIPATION_REQUEST_SQL_ERROR;
+        return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 }
 
 ParticipationRequestReturnStatus delete_participation_request_by_id(sqlite3 *db, int64_t id_request) {
 
     if (db == NULL || id_request <= 0) {
-        return PARTICIPATION_REQUEST_INVALID_INPUT;
+        return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;
     }
 
     const char* query = "DELETE FROM Participation_request WHERE id_request = ?1";
@@ -297,37 +299,37 @@ ParticipationRequestReturnStatus delete_participation_request_by_id(sqlite3 *db,
 
     sqlite3_finalize(stmt);
 
-    if (sqlite3_changes(db) == 0) return PARTICIPATION_REQUEST_NOT_FOUND;
+    if (sqlite3_changes(db) == 0) return PARTICIPATION_DAO_REQUEST_NOT_FOUND;
 
-    return PARTICIPATION_REQUEST_OK;
+    return PARTICIPATION_DAO_REQUEST_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return PARTICIPATION_REQUEST_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
     
     bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
-        return PARTICIPATION_REQUEST_SQL_ERROR;
+        return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 
     step_fail:
-        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
-        return PARTICIPATION_REQUEST_SQL_ERROR;
+        return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 }
 
 ParticipationRequestReturnStatus insert_participation_request(sqlite3 *db, ParticipationRequest *in_out_request) {
 
     if (db == NULL || in_out_request == NULL) {
-        return PARTICIPATION_REQUEST_INVALID_INPUT;
+        return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;
     }
 
     if (in_out_request->id_game <= 0 || in_out_request->id_player <= 0 || in_out_request->created_at == 0) {
-        return PARTICIPATION_REQUEST_INVALID_INPUT;
+        return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;
     }
 
     if (in_out_request->state < PENDING || in_out_request->state > REJECTED) {
-        return PARTICIPATION_REQUEST_INVALID_INPUT;
+        return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;
     }
 
     sqlite3_stmt *stmt = NULL;
@@ -352,7 +354,7 @@ ParticipationRequestReturnStatus insert_participation_request(sqlite3 *db, Parti
     const char *state_str = request_participation_status_to_string(in_out_request->state);
     if (!state_str) { 
         sqlite3_finalize(stmt); 
-        return PARTICIPATION_REQUEST_INVALID_INPUT; 
+        return PARTICIPATION_DAO_REQUEST_INVALID_INPUT; 
     }
 
     rc = sqlite3_bind_text(stmt, p++, state_str, -1, SQLITE_TRANSIENT);
@@ -369,27 +371,27 @@ ParticipationRequestReturnStatus insert_participation_request(sqlite3 *db, Parti
     in_out_request->state = string_to_request_participation_status((const char*) state);
 
     sqlite3_finalize(stmt);
-    return PARTICIPATION_REQUEST_OK;
+    return PARTICIPATION_DAO_REQUEST_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return PARTICIPATION_REQUEST_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 
     bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
-        return PARTICIPATION_REQUEST_SQL_ERROR;
+        return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 
     step_fail:
-        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
-        return PARTICIPATION_REQUEST_SQL_ERROR;
+        return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 }
 
 ParticipationRequestReturnStatus get_all_participation_requests_with_player_info(sqlite3 *db, ParticipationRequestWithPlayerNickname **out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
-        return PARTICIPATION_REQUEST_INVALID_INPUT;
+        return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;
     }
 
     *out_array = NULL;
@@ -410,7 +412,7 @@ ParticipationRequestReturnStatus get_all_participation_requests_with_player_info
 
     if (!p_request_array) {
         sqlite3_finalize(st);
-        return PARTICIPATION_REQUEST_MALLOC_ERROR;
+        return PARTICIPATION_DAO_REQUEST_MALLOC_ERROR;
     }
 
     int count = 0;
@@ -424,7 +426,7 @@ ParticipationRequestReturnStatus get_all_participation_requests_with_player_info
             if(!tmp) {
                 free(p_request_array);
                 sqlite3_finalize(st);
-                return PARTICIPATION_REQUEST_MALLOC_ERROR;
+                return PARTICIPATION_DAO_REQUEST_MALLOC_ERROR;
             }
 
             p_request_array = tmp; 
@@ -453,10 +455,10 @@ ParticipationRequestReturnStatus get_all_participation_requests_with_player_info
     }
 
     if (rc != SQLITE_DONE) {
-        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(p_request_array);
         sqlite3_finalize(st);
-        return PARTICIPATION_REQUEST_SQL_ERROR;
+        return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
     }
 
     *out_array = p_request_array;  
@@ -464,9 +466,9 @@ ParticipationRequestReturnStatus get_all_participation_requests_with_player_info
 
     sqlite3_finalize(st);
 
-    return PARTICIPATION_REQUEST_OK;
+    return PARTICIPATION_DAO_REQUEST_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return PARTICIPATION_REQUEST_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 }

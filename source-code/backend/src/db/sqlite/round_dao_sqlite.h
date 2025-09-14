@@ -6,12 +6,12 @@
 #include "../../entities/round_entity.h"
 
 typedef enum {
-    ROUND_OK = 0,
-    ROUND_NOT_FOUND,
-    ROUND_SQL_ERROR,
-    ROUND_INVALID_INPUT,
-    ROUND_MALLOC_ERROR,
-    ROUND_NOT_MODIFIED
+    ROUND_DAO_OK = 0,
+    ROUND_DAO_NOT_FOUND,
+    ROUND_DAO_SQL_ERROR,
+    ROUND_DAO_INVALID_INPUT,
+    ROUND_DAO_MALLOC_ERROR,
+    ROUND_DAO_NOT_MODIFIED
 } RoundReturnStatus;
 
 typedef enum {

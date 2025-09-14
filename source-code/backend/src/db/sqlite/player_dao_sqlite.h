@@ -6,12 +6,12 @@
 #include "../../entities/player_entity.h"
 
 typedef enum {
-    PLAYER_OK = 0,
-    PLAYER_NOT_FOUND,
-    PLAYER_SQL_ERROR,
-    PLAYER_INVALID_INPUT,
-    PLAYER_MALLOC_ERROR,
-    PLAYER_NOT_MODIFIED
+    PLAYER_DAO_OK = 0,
+    PLAYER_DAO_NOT_FOUND,
+    PLAYER_DAO_SQL_ERROR,
+    PLAYER_DAO_INVALID_INPUT,
+    PLAYER_DAO_MALLOC_ERROR,
+    PLAYER_DAO_NOT_MODIFIED
 } PlayerReturnStatus;
 
 typedef enum {

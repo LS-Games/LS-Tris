@@ -3,22 +3,24 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include "../../../include/debug_log.h"
+
 #include "game_dao_sqlite.h"
 
 const char* return_game_status_to_string(GameReturnStatus status) {
     switch (status) {
-        case GAME_OK:             return "GAME_OK";
-        case GAME_INVALID_INPUT:  return "GAME_INVALID_INPUT";
-        case GAME_SQL_ERROR:      return "GAME_SQL_ERROR";
-        case GAME_NOT_FOUND:      return "GAME_NOT_FOUND";
-        default:                  return "GAME_UNKNOWN";
+        case GAME_DAO_OK:               return "GAME_DAO_OK";
+        case GAME_DAO_INVALID_INPUT:    return "GAME_DAO_INVALID_INPUT";
+        case GAME_DAO_SQL_ERROR:        return "GAME_DAO_SQL_ERROR";
+        case GAME_DAO_NOT_FOUND:        return "GAME_DAO_NOT_FOUND";
+        default:                        return "GAME_DAO_UNKNOWN";
     }
 }
 
 GameReturnStatus get_game_by_id(sqlite3 *db, int64_t id_game, Game *out) {
 
     if(db == NULL || id_game <= 0 || out == NULL) {
-        return GAME_INVALID_INPUT;
+        return GAME_DAO_INVALID_INPUT;
     }
 
     const char *sql = 
@@ -50,34 +52,34 @@ GameReturnStatus get_game_by_id(sqlite3 *db, int64_t id_game, Game *out) {
         }
 
         sqlite3_finalize(st); 
-        return GAME_OK;
+        return GAME_DAO_OK;
 
     } else if (rc == SQLITE_DONE) { 
 
         sqlite3_finalize(st);
-        return GAME_NOT_FOUND;
+        return GAME_DAO_NOT_FOUND;
 
     } else goto step_fail;
     
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return GAME_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return GAME_DAO_SQL_ERROR;
 
     bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
-        return GAME_SQL_ERROR;
+        return GAME_DAO_SQL_ERROR;
 
     step_fail:
-        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
-        return GAME_SQL_ERROR;
+        return GAME_DAO_SQL_ERROR;
 }
 
 GameReturnStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
-        return GAME_INVALID_INPUT;
+        return GAME_DAO_INVALID_INPUT;
     }
 
     *out_array = NULL;
@@ -96,7 +98,7 @@ GameReturnStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count) {
 
     if (!games_array) {
         sqlite3_finalize(st);
-        return GAME_MALLOC_ERROR;
+        return GAME_DAO_MALLOC_ERROR;
     }
 
     int count = 0;
@@ -110,7 +112,7 @@ GameReturnStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count) {
             if(!tmp) {
                 free(games_array);
                 sqlite3_finalize(st);
-                return GAME_MALLOC_ERROR;
+                return GAME_DAO_MALLOC_ERROR;
             }
 
             games_array = tmp; 
@@ -135,10 +137,10 @@ GameReturnStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count) {
     }
 
     if (rc != SQLITE_DONE) {
-        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(games_array);
         sqlite3_finalize(st);
-        return GAME_SQL_ERROR;
+        return GAME_DAO_SQL_ERROR;
     }
 
     *out_array = games_array; 
@@ -146,24 +148,24 @@ GameReturnStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count) {
 
     sqlite3_finalize(st);
 
-    return GAME_OK;
+    return GAME_DAO_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return GAME_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return GAME_DAO_SQL_ERROR;
 
 }
 
 GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
 
     if (db == NULL || upd_game == NULL || upd_game->id_game <= 0) {
-        return GAME_INVALID_INPUT;
+        return GAME_DAO_INVALID_INPUT;
     }
 
     Game original_game;
     GameReturnStatus game_status = get_game_by_id(db, upd_game->id_game, &original_game);
 
-    if (game_status != GAME_OK) {
+    if (game_status != GAME_DAO_OK) {
         return game_status;
     }
 
@@ -187,7 +189,7 @@ GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
     }
 
     if (flags == 0) {
-        return GAME_NOT_MODIFIED;
+        return GAME_DAO_NOT_MODIFIED;
     }
 
     char query[512] = "UPDATE Game SET ";
@@ -255,29 +257,29 @@ GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
 
     sqlite3_finalize(st);
 
-    if (sqlite3_changes(db) == 0) return GAME_NOT_MODIFIED;
+    if (sqlite3_changes(db) == 0) return GAME_DAO_NOT_MODIFIED;
     
-    return GAME_OK;
+    return GAME_DAO_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return GAME_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return GAME_DAO_SQL_ERROR;
     
     bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
-        return GAME_SQL_ERROR;
+        return GAME_DAO_SQL_ERROR;
 
     step_fail:
-        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
-        return GAME_SQL_ERROR;
+        return GAME_DAO_SQL_ERROR;
 }
 
 GameReturnStatus delete_game_by_id(sqlite3 *db, int64_t id_game) {
 
     if (db == NULL || id_game <= 0) {
-        return GAME_INVALID_INPUT;
+        return GAME_DAO_INVALID_INPUT;
     }
 
     const char* query = "DELETE FROM Game WHERE id_game = ?1";
@@ -295,37 +297,37 @@ GameReturnStatus delete_game_by_id(sqlite3 *db, int64_t id_game) {
 
     sqlite3_finalize(stmt);
 
-    if (sqlite3_changes(db) == 0) return GAME_NOT_FOUND;
+    if (sqlite3_changes(db) == 0) return GAME_DAO_NOT_FOUND;
 
-    return GAME_OK;
+    return GAME_DAO_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return GAME_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return GAME_DAO_SQL_ERROR;
     
     bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
-        return GAME_SQL_ERROR;
+        return GAME_DAO_SQL_ERROR;
 
     step_fail:
-        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
-        return GAME_SQL_ERROR;
+        return GAME_DAO_SQL_ERROR;
 }
 
 GameReturnStatus insert_game(sqlite3 *db, Game *in_out_game) {
 
     if (db == NULL || in_out_game == NULL) {
-        return GAME_INVALID_INPUT;
+        return GAME_DAO_INVALID_INPUT;
     }
 
     if (in_out_game->id_creator <= 0 || in_out_game->id_owner <= 0 || in_out_game->created_at == 0) {
-        return GAME_INVALID_INPUT;
+        return GAME_DAO_INVALID_INPUT;
     }
 
     if (in_out_game->state < NEW_GAME || in_out_game->state > FINISHED_GAME) {
-        return GAME_INVALID_INPUT;
+        return GAME_DAO_INVALID_INPUT;
     }
 
     sqlite3_stmt *stmt = NULL;
@@ -348,7 +350,7 @@ GameReturnStatus insert_game(sqlite3 *db, Game *in_out_game) {
     const char* g_st = game_status_to_string(in_out_game->state);
     if(!g_st) {
         sqlite3_finalize(stmt);
-        return GAME_INVALID_INPUT;
+        return GAME_DAO_INVALID_INPUT;
     }
 
     rc = sqlite3_bind_text(stmt, param_index++, g_st, -1, SQLITE_TRANSIENT);
@@ -359,7 +361,7 @@ GameReturnStatus insert_game(sqlite3 *db, Game *in_out_game) {
 
     if (sqlite3_step(stmt) != SQLITE_ROW) goto step_fail;
 
-    if (sqlite3_changes(db) == 0) return GAME_NOT_MODIFIED;
+    if (sqlite3_changes(db) == 0) return GAME_DAO_NOT_MODIFIED;
 
     in_out_game->id_game = sqlite3_column_int64(stmt, 0);
     in_out_game->id_creator = sqlite3_column_int64(stmt, 1);
@@ -370,27 +372,27 @@ GameReturnStatus insert_game(sqlite3 *db, Game *in_out_game) {
 
     sqlite3_finalize(stmt);
 
-    return GAME_OK;
+    return GAME_DAO_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return GAME_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return GAME_DAO_SQL_ERROR;
 
     bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
-        return GAME_SQL_ERROR;
+        return GAME_DAO_SQL_ERROR;
 
     step_fail:
-        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
-        return GAME_SQL_ERROR;
+        return GAME_DAO_SQL_ERROR;
 }
 
 GameReturnStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickname** out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) {
-        return GAME_INVALID_INPUT;
+        return GAME_DAO_INVALID_INPUT;
     }
 
     *out_array = NULL;
@@ -425,7 +427,7 @@ GameReturnStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickn
                 if(!tmp) {
                     free(array);
                     sqlite3_finalize(stmt);
-                    return GAME_MALLOC_ERROR;
+                    return GAME_DAO_MALLOC_ERROR;
                 }
 
                 array = tmp;
@@ -451,18 +453,18 @@ GameReturnStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickn
     }
 
     if(rc != SQLITE_DONE) {
-        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(array);
         sqlite3_finalize(stmt);
-        return GAME_SQL_ERROR;
+        return GAME_DAO_SQL_ERROR;
     }
 
     sqlite3_finalize(stmt);
     *out_array = array;
     *out_count = count;
-    return GAME_OK;
+    return GAME_DAO_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return GAME_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return GAME_DAO_SQL_ERROR;
 }

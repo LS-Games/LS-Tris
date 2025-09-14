@@ -3,22 +3,24 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include "../../../include/debug_log.h"
+
 #include "play_dao_sqlite.h"
 
 const char* return_play_status_to_string(PlayReturnStatus status) {
     switch (status) {
-        case PLAY_OK:             return "PLAY_OK";
-        case PLAY_INVALID_INPUT:  return "PLAY_INVALID_INPUT";
-        case PLAY_SQL_ERROR:      return "PLAY_SQL_ERROR";
-        case PLAY_NOT_FOUND:      return "PLAY_NOT_FOUND";
-        default:                  return "PLAY_UNKNOWN";
+        case PLAY_DAO_OK:               return "PLAY_DAO_OK";
+        case PLAY_DAO_INVALID_INPUT:    return "PLAY_DAO_INVALID_INPUT";
+        case PLAY_DAO_SQL_ERROR:        return "PLAY_DAO_SQL_ERROR";
+        case PLAY_DAO_NOT_FOUND:        return "PLAY_DAO_NOT_FOUND";
+        default:                        return "PLAY_DAO_UNKNOWN";
     }
 }
 
 PlayReturnStatus get_play_by_pk(sqlite3 *db, int64_t id_player, int64_t id_round, Play *out) {
 
     if(db == NULL || id_player <= 0 || id_round <= 0 || out == NULL) {
-        return PLAY_INVALID_INPUT;
+        return PLAY_DAO_INVALID_INPUT;
     }
 
     const char *sql = 
@@ -52,34 +54,34 @@ PlayReturnStatus get_play_by_pk(sqlite3 *db, int64_t id_player, int64_t id_round
         }
 
         sqlite3_finalize(st); 
-        return PLAY_OK;
+        return PLAY_DAO_OK;
 
     } else if (rc == SQLITE_DONE) { 
 
         sqlite3_finalize(st);
-        return PLAY_NOT_FOUND;
+        return PLAY_DAO_NOT_FOUND;
 
     } else goto step_fail;
     
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return PLAY_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PLAY_DAO_SQL_ERROR;
 
     bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
-        return PLAY_SQL_ERROR;
+        return PLAY_DAO_SQL_ERROR;
 
     step_fail:
-        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
-        return PLAY_SQL_ERROR;
+        return PLAY_DAO_SQL_ERROR;
 }
 
 PlayReturnStatus get_all_plays(sqlite3 *db, Play** out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
-        return PLAY_INVALID_INPUT;
+        return PLAY_DAO_INVALID_INPUT;
     }
 
     *out_array = NULL;
@@ -98,7 +100,7 @@ PlayReturnStatus get_all_plays(sqlite3 *db, Play** out_array, int *out_count) {
 
     if (!plays_array) {
         sqlite3_finalize(st);
-        return PLAY_MALLOC_ERROR;
+        return PLAY_DAO_MALLOC_ERROR;
     }
 
     int count = 0;
@@ -112,7 +114,7 @@ PlayReturnStatus get_all_plays(sqlite3 *db, Play** out_array, int *out_count) {
             if(!tmp) {
                 free(plays_array);
                 sqlite3_finalize(st);
-                return PLAY_MALLOC_ERROR;
+                return PLAY_DAO_MALLOC_ERROR;
             }
 
             plays_array = tmp; 
@@ -136,10 +138,10 @@ PlayReturnStatus get_all_plays(sqlite3 *db, Play** out_array, int *out_count) {
     }
 
     if (rc != SQLITE_DONE) {
-        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(plays_array);
         sqlite3_finalize(st);
-        return PLAY_SQL_ERROR;
+        return PLAY_DAO_SQL_ERROR;
     }
 
     *out_array = plays_array; 
@@ -147,28 +149,28 @@ PlayReturnStatus get_all_plays(sqlite3 *db, Play** out_array, int *out_count) {
 
     sqlite3_finalize(st);
 
-    return PLAY_OK;
+    return PLAY_DAO_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return PLAY_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PLAY_DAO_SQL_ERROR;
 }
 
 PlayReturnStatus update_play_by_pk(sqlite3 *db, Play *upd_play) {
 
     if (db == NULL || upd_play == NULL || upd_play->id_player <= 0 || upd_play->id_round <= 0 || upd_play->result < WIN || upd_play->result > DRAW) {
-        return PLAY_INVALID_INPUT;
+        return PLAY_DAO_INVALID_INPUT;
     }
 
     Play original_play;
     PlayReturnStatus play_status = get_play_by_pk(db, upd_play->id_player, upd_play->id_round, &original_play);
 
-    if (play_status != PLAY_OK) return play_status;
+    if (play_status != PLAY_DAO_OK) return play_status;
 
     const char *res_str = play_result_to_string(upd_play->result);
     const char *original_res_str = play_result_to_string(original_play.result);
 
-    if (!res_str || !original_res_str) return PLAY_INVALID_INPUT;
+    if (!res_str || !original_res_str) return PLAY_DAO_INVALID_INPUT;
 
     int flag = 0;
     int param_index = 1;
@@ -183,7 +185,7 @@ PlayReturnStatus update_play_by_pk(sqlite3 *db, Play *upd_play) {
         flag |= UPDATE_PLAY_PLAYER_NUMBER;
     }
 
-    if (flag == 0) return PLAY_NOT_MODIFIED;
+    if (flag == 0) return PLAY_DAO_NOT_MODIFIED;
 
     if (flag & UPDATE_PLAY_RESULT) {
         if (!first) strcat(query, ", ");
@@ -232,29 +234,29 @@ PlayReturnStatus update_play_by_pk(sqlite3 *db, Play *upd_play) {
 
     sqlite3_finalize(st);
 
-    if (sqlite3_changes(db) == 0) return PLAY_NOT_MODIFIED;
+    if (sqlite3_changes(db) == 0) return PLAY_DAO_NOT_MODIFIED;
     
-    return PLAY_OK;
+    return PLAY_DAO_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return PLAY_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PLAY_DAO_SQL_ERROR;
     
     bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
-        return PLAY_SQL_ERROR;
+        return PLAY_DAO_SQL_ERROR;
 
     step_fail:
-        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
-        return PLAY_SQL_ERROR;
+        return PLAY_DAO_SQL_ERROR;
 }
 
 PlayReturnStatus delete_play_by_pk(sqlite3 *db, int64_t id_player, int64_t id_round) {
 
     if (db == NULL || id_player <= 0 || id_round <= 0) {
-        return PLAY_INVALID_INPUT;
+        return PLAY_DAO_INVALID_INPUT;
     }
 
     const char* query = "DELETE FROM Play WHERE id_player = ?1 AND id_round = ?2";
@@ -275,33 +277,33 @@ PlayReturnStatus delete_play_by_pk(sqlite3 *db, int64_t id_player, int64_t id_ro
 
     sqlite3_finalize(stmt);
 
-    if (sqlite3_changes(db) == 0) return PLAY_NOT_FOUND;
+    if (sqlite3_changes(db) == 0) return PLAY_DAO_NOT_FOUND;
 
-    return PLAY_OK;
+    return PLAY_DAO_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return PLAY_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PLAY_DAO_SQL_ERROR;
     
     bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
-        return PLAY_SQL_ERROR;
+        return PLAY_DAO_SQL_ERROR;
 
     step_fail:
-        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
-        return PLAY_SQL_ERROR;
+        return PLAY_DAO_SQL_ERROR;
 }
 
 PlayReturnStatus insert_play(sqlite3 *db, Play *in_out_play) {
 
     if (db == NULL || in_out_play == NULL) {
-        return PLAY_INVALID_INPUT;
+        return PLAY_DAO_INVALID_INPUT;
     }
 
     if (in_out_play->id_player <= 0 || in_out_play->id_round <= 0 || in_out_play->result < WIN || in_out_play->result > DRAW) {
-        return PLAY_INVALID_INPUT;
+        return PLAY_DAO_INVALID_INPUT;
     }
 
     sqlite3_stmt *stmt = NULL;
@@ -322,7 +324,7 @@ PlayReturnStatus insert_play(sqlite3 *db, Play *in_out_play) {
     const char* p_st = play_result_to_string(in_out_play->result);
     if(!p_st) {
         sqlite3_finalize(stmt);
-        return PLAY_INVALID_INPUT;
+        return PLAY_DAO_INVALID_INPUT;
     }
 
     rc = sqlite3_bind_text(stmt, 3, p_st, -1, SQLITE_TRANSIENT);
@@ -333,7 +335,7 @@ PlayReturnStatus insert_play(sqlite3 *db, Play *in_out_play) {
 
     if (sqlite3_step(stmt) != SQLITE_ROW) goto step_fail;
 
-    if (sqlite3_changes(db) == 0) return PLAY_NOT_MODIFIED;
+    if (sqlite3_changes(db) == 0) return PLAY_DAO_NOT_MODIFIED;
 
     in_out_play->id_player = sqlite3_column_int64(stmt, 0);
     in_out_play->id_round = sqlite3_column_int64(stmt, 1);
@@ -342,27 +344,27 @@ PlayReturnStatus insert_play(sqlite3 *db, Play *in_out_play) {
     in_out_play->player_number = sqlite3_column_int(stmt, 3);
 
     sqlite3_finalize(stmt);
-    return PLAY_OK;
+    return PLAY_DAO_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return PLAY_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PLAY_DAO_SQL_ERROR;
 
     bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
-        return PLAY_SQL_ERROR;
+        return PLAY_DAO_SQL_ERROR;
 
     step_fail:
-        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
-        return PLAY_SQL_ERROR;
+        return PLAY_DAO_SQL_ERROR;
 }
 
 PlayReturnStatus get_all_plays_by_round(sqlite3 *db, Play** out_array, int64_t id_round, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL || id_round <= 0) { 
-        return PLAY_INVALID_INPUT;
+        return PLAY_DAO_INVALID_INPUT;
     }
 
     *out_array = NULL;
@@ -387,7 +389,7 @@ PlayReturnStatus get_all_plays_by_round(sqlite3 *db, Play** out_array, int64_t i
 
     if (!plays_array) {
         sqlite3_finalize(st);
-        return PLAY_MALLOC_ERROR;
+        return PLAY_DAO_MALLOC_ERROR;
     }
 
     int count = 0;
@@ -401,7 +403,7 @@ PlayReturnStatus get_all_plays_by_round(sqlite3 *db, Play** out_array, int64_t i
             if(!tmp) {
                 free(plays_array);
                 sqlite3_finalize(st);
-                return PLAY_MALLOC_ERROR;
+                return PLAY_DAO_MALLOC_ERROR;
             }
 
             plays_array = tmp; 
@@ -425,10 +427,10 @@ PlayReturnStatus get_all_plays_by_round(sqlite3 *db, Play** out_array, int64_t i
     }
 
     if (rc != SQLITE_DONE) {
-        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(plays_array);
         sqlite3_finalize(st);
-        return PLAY_SQL_ERROR;
+        return PLAY_DAO_SQL_ERROR;
     }
 
     *out_array = plays_array; 
@@ -436,22 +438,22 @@ PlayReturnStatus get_all_plays_by_round(sqlite3 *db, Play** out_array, int64_t i
 
     sqlite3_finalize(st);
 
-    return PLAY_OK;
+    return PLAY_DAO_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return PLAY_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PLAY_DAO_SQL_ERROR;
 
     bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
-        return PLAY_SQL_ERROR;
+        return PLAY_DAO_SQL_ERROR;
 }
 
 PlayReturnStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickname** out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
-        return PLAY_INVALID_INPUT;
+        return PLAY_DAO_INVALID_INPUT;
     }
 
     *out_array = NULL;
@@ -472,7 +474,7 @@ PlayReturnStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickn
 
     if (!plays_array) {
         sqlite3_finalize(st);
-        return PLAY_MALLOC_ERROR;
+        return PLAY_DAO_MALLOC_ERROR;
     }
 
     int count = 0;
@@ -486,7 +488,7 @@ PlayReturnStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickn
             if(!tmp) {
                 free(plays_array);
                 sqlite3_finalize(st);
-                return PLAY_MALLOC_ERROR;
+                return PLAY_DAO_MALLOC_ERROR;
             }
 
             plays_array = tmp; 
@@ -512,10 +514,10 @@ PlayReturnStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickn
     }
 
     if (rc != SQLITE_DONE) {
-        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(plays_array);
         sqlite3_finalize(st);
-        return PLAY_SQL_ERROR;
+        return PLAY_DAO_SQL_ERROR;
     }
 
     *out_array = plays_array; 
@@ -523,9 +525,9 @@ PlayReturnStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickn
 
     sqlite3_finalize(st);
 
-    return PLAY_OK;
+    return PLAY_DAO_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return PLAY_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PLAY_DAO_SQL_ERROR;
 }

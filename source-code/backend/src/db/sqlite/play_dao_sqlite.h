@@ -7,12 +7,12 @@
 #include "../../db/sqlite/dto/play_join_player.h"
 
 typedef enum {
-    PLAY_OK = 0,
-    PLAY_NOT_FOUND,
-    PLAY_SQL_ERROR,
-    PLAY_INVALID_INPUT,
-    PLAY_MALLOC_ERROR,
-    PLAY_NOT_MODIFIED
+    PLAY_DAO_OK = 0,
+    PLAY_DAO_NOT_FOUND,
+    PLAY_DAO_SQL_ERROR,
+    PLAY_DAO_INVALID_INPUT,
+    PLAY_DAO_MALLOC_ERROR,
+    PLAY_DAO_NOT_MODIFIED
 } PlayReturnStatus;
 
 typedef enum {

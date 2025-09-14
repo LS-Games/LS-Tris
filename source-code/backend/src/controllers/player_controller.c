@@ -35,11 +35,11 @@ PlayerControllerStatus player_create(Player* playerToCreate) {
     sqlite3* db = db_open();
     PlayerReturnStatus status = insert_player(db, playerToCreate);
     db_close(db);
-    if (status != PLAYER_OK) {
+    if (status != PLAYER_DAO_OK) {
         LOG_WARN("%s\n", return_player_status_to_string(status));
         return PLAYER_CONTROLLER_DATABASE_ERROR;
     }
-    LOG_WARN("%p\n", (void *)playerToCreate);
+
     return PLAYER_CONTROLLER_OK;
 }
 
@@ -48,7 +48,7 @@ PlayerControllerStatus player_find_all(Player** retrievedPlayerArray, int* retri
     sqlite3* db = db_open();
     PlayerReturnStatus status = get_all_players(db, retrievedPlayerArray, retrievedObjectCount);
     db_close(db);
-    if (status != PLAYER_OK) {
+    if (status != PLAYER_DAO_OK) {
         LOG_WARN("%s\n", return_player_status_to_string(status));
         return PLAYER_CONTROLLER_DATABASE_ERROR;
     }
@@ -61,9 +61,9 @@ PlayerControllerStatus player_find_one(int id_player, Player* retrievedPlayer) {
     sqlite3* db = db_open();
     PlayerReturnStatus status = get_player_by_id(db, id_player, retrievedPlayer);
     db_close(db);
-    if (status != PLAYER_OK) {
+    if (status != PLAYER_DAO_OK) {
         LOG_WARN("%s\n", return_player_status_to_string(status));
-        return status == PLAYER_NOT_FOUND ? PLAYER_CONTROLLER_NOT_FOUND : PLAYER_CONTROLLER_DATABASE_ERROR;
+        return status == PLAYER_DAO_NOT_FOUND ? PLAYER_CONTROLLER_NOT_FOUND : PLAYER_CONTROLLER_DATABASE_ERROR;
     }
 
     return PLAYER_CONTROLLER_OK;
@@ -74,7 +74,7 @@ PlayerControllerStatus player_update(Player* updatedPlayer) {
     sqlite3* db = db_open();
     PlayerReturnStatus status = update_player_by_id(db, updatedPlayer);
     db_close(db);
-    if (status != PLAYER_OK) {
+    if (status != PLAYER_DAO_OK) {
         LOG_WARN("%s\n", return_player_status_to_string(status));
         return PLAYER_CONTROLLER_DATABASE_ERROR;
     }
@@ -87,9 +87,9 @@ PlayerControllerStatus player_delete(int id_player) {
     sqlite3* db = db_open();
     PlayerReturnStatus status = delete_player_by_id(db, id_player);
     db_close(db);
-    if (status != PLAYER_OK) {
+    if (status != PLAYER_DAO_OK) {
         LOG_WARN("%s\n", return_player_status_to_string(status));
-        return status == PLAYER_NOT_FOUND ? PLAYER_CONTROLLER_NOT_FOUND : PLAYER_CONTROLLER_DATABASE_ERROR;
+        return status == PLAYER_DAO_NOT_FOUND ? PLAYER_CONTROLLER_NOT_FOUND : PLAYER_CONTROLLER_DATABASE_ERROR;
     }
 
     return PLAYER_CONTROLLER_OK;

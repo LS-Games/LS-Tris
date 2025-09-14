@@ -255,7 +255,7 @@ RoundControllerStatus round_create(Round* roundToCreate) {
     sqlite3* db = db_open();
     RoundReturnStatus status = insert_round(db, roundToCreate);
     db_close(db);
-    if (status != ROUND_OK) {
+    if (status != ROUND_DAO_OK) {
         LOG_WARN("%s\n", return_round_status_to_string(status));
         return ROUND_CONTROLLER_DATABASE_ERROR;
     }
@@ -268,7 +268,7 @@ RoundControllerStatus round_find_all(Round** retrievedRoundArray, int* retrieved
     sqlite3* db = db_open();
     RoundReturnStatus status = get_all_rounds(db, retrievedRoundArray, retrievedObjectCount);
     db_close(db);
-    if (status != ROUND_OK) {
+    if (status != ROUND_DAO_OK) {
         LOG_WARN("%s\n", return_round_status_to_string(status));
         return ROUND_CONTROLLER_DATABASE_ERROR;
     }
@@ -281,9 +281,9 @@ RoundControllerStatus round_find_one(int id_round, Round* retrievedRound) {
     sqlite3* db = db_open();
     RoundReturnStatus status = get_round_by_id(db, id_round, retrievedRound);
     db_close(db);
-    if (status != ROUND_OK) {
+    if (status != ROUND_DAO_OK) {
         LOG_WARN("%s\n", return_round_status_to_string(status));
-        return status == ROUND_NOT_FOUND ? ROUND_CONTROLLER_NOT_FOUND : ROUND_CONTROLLER_DATABASE_ERROR;
+        return status == ROUND_DAO_NOT_FOUND ? ROUND_CONTROLLER_NOT_FOUND : ROUND_CONTROLLER_DATABASE_ERROR;
     }
 
     return ROUND_CONTROLLER_OK;
@@ -294,7 +294,7 @@ RoundControllerStatus round_update(Round* updatedRound) {
     sqlite3* db = db_open();
     RoundReturnStatus status = update_round_by_id(db, updatedRound);
     db_close(db);
-    if (status != ROUND_OK) {
+    if (status != ROUND_DAO_OK) {
         LOG_WARN("%s\n", return_round_status_to_string(status));
         return ROUND_CONTROLLER_DATABASE_ERROR;
     }
@@ -307,9 +307,9 @@ RoundControllerStatus round_delete(int id_round) {
     sqlite3* db = db_open();
     RoundReturnStatus status = delete_round_by_id(db, id_round);
     db_close(db);
-    if (status != ROUND_OK) {
+    if (status != ROUND_DAO_OK) {
         LOG_WARN("%s\n", return_round_status_to_string(status));
-        return status == ROUND_NOT_FOUND ? ROUND_CONTROLLER_NOT_FOUND : ROUND_CONTROLLER_DATABASE_ERROR;
+        return status == ROUND_DAO_NOT_FOUND ? ROUND_CONTROLLER_NOT_FOUND : ROUND_CONTROLLER_DATABASE_ERROR;
     }
 
     return ROUND_CONTROLLER_OK;

@@ -3,22 +3,24 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include "../../../include/debug_log.h"
+
 #include "round_dao_sqlite.h"
 
 const char* return_round_status_to_string(RoundReturnStatus status) {
     switch (status) {
-        case ROUND_OK:             return "ROUND_OK";
-        case ROUND_INVALID_INPUT:  return "ROUND_INVALID_INPUT";
-        case ROUND_SQL_ERROR:      return "ROUND_SQL_ERROR";
-        case ROUND_NOT_FOUND:      return "ROUND_NOT_FOUND";
-        default:                   return "ROUND_UNKNOWN";
+        case ROUND_DAO_OK:              return "ROUND_DAO_OK";
+        case ROUND_DAO_INVALID_INPUT:   return "ROUND_DAO_INVALID_INPUT";
+        case ROUND_DAO_SQL_ERROR:       return "ROUND_DAO_SQL_ERROR";
+        case ROUND_DAO_NOT_FOUND:       return "ROUND_DAO_NOT_FOUND";
+        default:                        return "ROUND_DAO_UNKNOWN";
     }
 }
 
 RoundReturnStatus get_round_by_id(sqlite3 *db, int64_t id_round, Round *out) {
 
     if(db == NULL || id_round <= 0 || out == NULL) {
-        return ROUND_INVALID_INPUT;
+        return ROUND_DAO_INVALID_INPUT;
     }
 
     const char *sql = 
@@ -56,34 +58,34 @@ RoundReturnStatus get_round_by_id(sqlite3 *db, int64_t id_round, Round *out) {
         }
 
         sqlite3_finalize(st); 
-        return ROUND_OK;
+        return ROUND_DAO_OK;
 
     } else if (rc == SQLITE_DONE) { 
 
         sqlite3_finalize(st);
-        return ROUND_NOT_FOUND;
+        return ROUND_DAO_NOT_FOUND;
 
     } else goto step_fail;
     
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return ROUND_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return ROUND_DAO_SQL_ERROR;
 
     bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
-        return ROUND_SQL_ERROR;
+        return ROUND_DAO_SQL_ERROR;
 
     step_fail:
-        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
-        return ROUND_SQL_ERROR;
+        return ROUND_DAO_SQL_ERROR;
 }
 
 RoundReturnStatus get_all_rounds(sqlite3 *db, Round** out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
-        return ROUND_INVALID_INPUT;
+        return ROUND_DAO_INVALID_INPUT;
     }
 
     *out_array = NULL;
@@ -102,7 +104,7 @@ RoundReturnStatus get_all_rounds(sqlite3 *db, Round** out_array, int *out_count)
 
     if (!rounds_array) {
         sqlite3_finalize(st);
-        return ROUND_MALLOC_ERROR;
+        return ROUND_DAO_MALLOC_ERROR;
     }
 
     int count = 0;
@@ -116,7 +118,7 @@ RoundReturnStatus get_all_rounds(sqlite3 *db, Round** out_array, int *out_count)
             if(!tmp) {
                 free(rounds_array);
                 sqlite3_finalize(st);
-                return ROUND_MALLOC_ERROR;
+                return ROUND_DAO_MALLOC_ERROR;
             }
 
             rounds_array = tmp; 
@@ -147,10 +149,10 @@ RoundReturnStatus get_all_rounds(sqlite3 *db, Round** out_array, int *out_count)
     }
 
     if (rc != SQLITE_DONE) {
-        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(rounds_array);
         sqlite3_finalize(st);
-        return ROUND_SQL_ERROR;
+        return ROUND_DAO_SQL_ERROR;
     }
 
     *out_array = rounds_array; 
@@ -158,24 +160,24 @@ RoundReturnStatus get_all_rounds(sqlite3 *db, Round** out_array, int *out_count)
 
     sqlite3_finalize(st);
 
-    return ROUND_OK;
+    return ROUND_DAO_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return ROUND_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return ROUND_DAO_SQL_ERROR;
 
 }
 
 RoundReturnStatus update_round_by_id(sqlite3 *db, const Round *upd_round) {
 
     if (db == NULL || upd_round == NULL || upd_round->id_round <= 0) {
-        return ROUND_INVALID_INPUT;
+        return ROUND_DAO_INVALID_INPUT;
     }
 
     Round original_round;
     RoundReturnStatus round_status = get_round_by_id(db, upd_round->id_round, &original_round);
 
-    if (round_status != ROUND_OK) {
+    if (round_status != ROUND_DAO_OK) {
         return round_status;
     }
 
@@ -198,7 +200,7 @@ RoundReturnStatus update_round_by_id(sqlite3 *db, const Round *upd_round) {
     }
 
     if (flags == 0) {
-        return ROUND_NOT_MODIFIED;
+        return ROUND_DAO_NOT_MODIFIED;
     }
 
     char query[512] = "UPDATE Round SET ";
@@ -266,29 +268,29 @@ RoundReturnStatus update_round_by_id(sqlite3 *db, const Round *upd_round) {
 
     sqlite3_finalize(st);
 
-    if (sqlite3_changes(db) == 0) return ROUND_NOT_MODIFIED;
+    if (sqlite3_changes(db) == 0) return ROUND_DAO_NOT_MODIFIED;
     
-    return ROUND_OK;
+    return ROUND_DAO_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return ROUND_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return ROUND_DAO_SQL_ERROR;
     
     bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
-        return ROUND_SQL_ERROR;
+        return ROUND_DAO_SQL_ERROR;
 
     step_fail:
-        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
-        return ROUND_SQL_ERROR;
+        return ROUND_DAO_SQL_ERROR;
 }
 
 RoundReturnStatus delete_round_by_id(sqlite3 *db, int64_t id_round) {
 
     if (db == NULL || id_round <= 0) {
-        return ROUND_INVALID_INPUT;
+        return ROUND_DAO_INVALID_INPUT;
     }
 
     const char* query = "DELETE FROM Round WHERE id_round = ?1";
@@ -306,37 +308,37 @@ RoundReturnStatus delete_round_by_id(sqlite3 *db, int64_t id_round) {
 
     sqlite3_finalize(stmt);
 
-    if (sqlite3_changes(db) == 0) return ROUND_NOT_FOUND;
+    if (sqlite3_changes(db) == 0) return ROUND_DAO_NOT_FOUND;
 
-    return ROUND_OK;
+    return ROUND_DAO_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return ROUND_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return ROUND_DAO_SQL_ERROR;
     
     bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
-        return ROUND_SQL_ERROR;
+        return ROUND_DAO_SQL_ERROR;
 
     step_fail:
-        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
-        return ROUND_SQL_ERROR;
+        return ROUND_DAO_SQL_ERROR;
 }
 
 RoundReturnStatus insert_round(sqlite3 *db, Round *in_out_round) {
 
     if (db == NULL || in_out_round == NULL) {
-        return ROUND_INVALID_INPUT;
+        return ROUND_DAO_INVALID_INPUT;
     }
 
     if (in_out_round->id_game <= 0 || in_out_round->duration < 0) {
-        return ROUND_INVALID_INPUT;
+        return ROUND_DAO_INVALID_INPUT;
     }
 
     if (in_out_round->state < ACTIVE_ROUND || in_out_round->state > FINISHED_ROUND) {
-        return ROUND_INVALID_INPUT;
+        return ROUND_DAO_INVALID_INPUT;
     }
 
     sqlite3_stmt *stmt = NULL;
@@ -356,7 +358,7 @@ RoundReturnStatus insert_round(sqlite3 *db, Round *in_out_round) {
     const char* r_st = round_status_to_string(in_out_round->state);
     if(!r_st) {
         sqlite3_finalize(stmt);
-        return ROUND_INVALID_INPUT;
+        return ROUND_DAO_INVALID_INPUT;
     }
 
     rc = sqlite3_bind_text(stmt, param_index++, r_st, -1, SQLITE_TRANSIENT);
@@ -370,24 +372,24 @@ RoundReturnStatus insert_round(sqlite3 *db, Round *in_out_round) {
 
     if (sqlite3_step(stmt) != SQLITE_ROW) goto step_fail;
 
-    if (sqlite3_changes(db) == 0) return ROUND_NOT_MODIFIED;
+    if (sqlite3_changes(db) == 0) return ROUND_DAO_NOT_MODIFIED;
 
     in_out_round->id_round = sqlite3_column_int64(stmt, 0);;
 
     sqlite3_finalize(stmt);
-    return ROUND_OK;
+    return ROUND_DAO_OK;
 
     prepare_fail:
-        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return ROUND_SQL_ERROR;
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return ROUND_DAO_SQL_ERROR;
 
     bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
-        return ROUND_SQL_ERROR;
+        return ROUND_DAO_SQL_ERROR;
 
     step_fail:
-        fprintf(stderr, "DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
-        return ROUND_SQL_ERROR;
+        return ROUND_DAO_SQL_ERROR;
 }
