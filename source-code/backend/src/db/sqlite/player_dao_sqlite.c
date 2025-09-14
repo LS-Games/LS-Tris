@@ -5,7 +5,7 @@
 
 #include "player_dao_sqlite.h"
 
-const char* player_status_to_string(PlayerReturnStatus status) {
+const char* return_player_status_to_string(PlayerReturnStatus status) {
     switch (status) {
         case PLAYER_OK:             return "PLAYER_OK";
         case PLAYER_INVALID_INPUT:  return "PLAYER_INVALID_INPUT";

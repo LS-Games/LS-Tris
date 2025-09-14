@@ -4,6 +4,10 @@
 
 #include "db_connection_sqlite.h"
 
+/**
+ * Function that opens database 
+ * @return A `sqlite3*` pointer that is ready to use. `NULL` if something goes wrong.
+ */
 sqlite3* db_open() {
 
     sqlite3* db = NULL;
@@ -19,9 +23,9 @@ sqlite3* db_open() {
             LOG_ERROR("Error occured during foreign_keys contraints activation: \"%s\"\n", sqlite3_errmsg(db));
             sqlite3_close(db);
             db = NULL;
+        } else {
+            LOG_DEBUG("The database has been opened successfully: \"%s\"\n", DB_PATH);
         }
-    
-        LOG_DEBUG("The database has been opened successfully: \"%s\"\n", DB_PATH);
     }
 
     return db;

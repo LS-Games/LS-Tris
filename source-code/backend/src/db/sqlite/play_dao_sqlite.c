@@ -152,7 +152,6 @@ PlayReturnStatus get_all_plays(sqlite3 *db, Play** out_array, int *out_count) {
     prepare_fail:
         fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
         return PLAY_SQL_ERROR;
-
 }
 
 PlayReturnStatus update_play_by_pk(sqlite3 *db, Play *upd_play) {
@@ -360,7 +359,7 @@ PlayReturnStatus insert_play(sqlite3 *db, Play *in_out_play) {
         return PLAY_SQL_ERROR;
 }
 
-PlayReturnStatus get_all_plays_by_round(sqlite3 *db, PlayWithPlayerNickname** out_array, int64_t id_round, int *out_count) {
+PlayReturnStatus get_all_plays_by_round(sqlite3 *db, Play** out_array, int64_t id_round, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL || id_round <= 0) { 
         return PLAY_INVALID_INPUT;
@@ -369,10 +368,10 @@ PlayReturnStatus get_all_plays_by_round(sqlite3 *db, PlayWithPlayerNickname** ou
     *out_array = NULL;
     *out_count = 0; 
 
-    const char *sql = "SELECT y.id_player, y.id_round, y.result, y.player_number, p.nickname AS player_nickname "
-                      "FROM Play y JOIN Player p ON y.id_player = p.id_player "
+    const char *sql = "SELECT id_player, id_round, result, player_number "
+                      "FROM Play "
                       "WHERE y.id_round = ?1 "
-                      "ORDER BY y.player_number ASC;"; 
+                      "ORDER BY y.id_round ASC;"; 
 
     sqlite3_stmt *st = NULL;
 
@@ -382,8 +381,92 @@ PlayReturnStatus get_all_plays_by_round(sqlite3 *db, PlayWithPlayerNickname** ou
     rc = sqlite3_bind_int64(st, 1, id_round);
     if (rc != SQLITE_OK) goto bind_fail;
 
-
     int cap = 2; 
+
+    Play *plays_array = malloc(sizeof(Play) * cap);
+
+    if (!plays_array) {
+        sqlite3_finalize(st);
+        return PLAY_MALLOC_ERROR;
+    }
+
+    int count = 0;
+
+    while((rc = sqlite3_step(st)) == SQLITE_ROW) {
+
+        if (count == cap) {
+            int new_cap = cap * 2;
+            Play *tmp = realloc(plays_array, sizeof(Play)* new_cap); 
+
+            if(!tmp) {
+                free(plays_array);
+                sqlite3_finalize(st);
+                return PLAY_MALLOC_ERROR;
+            }
+
+            plays_array = tmp; 
+            cap = new_cap;
+        }
+
+        Play play;
+
+        play.id_player = sqlite3_column_int64(st,0);
+        play.id_round = sqlite3_column_int64(st, 1);
+        const unsigned char *result = sqlite3_column_text(st, 2);
+        play.player_number = sqlite3_column_int(st , 3);
+
+        if (result) {
+            play.result = string_to_play_result((const char*) result);
+        } else {
+            play.result = PLAY_RESULT_INVALID;
+        }
+
+        plays_array[count++] = play;
+    }
+
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        free(plays_array);
+        sqlite3_finalize(st);
+        return PLAY_SQL_ERROR;
+    }
+
+    *out_array = plays_array; 
+    *out_count = count;
+
+    sqlite3_finalize(st);
+
+    return PLAY_OK;
+
+    prepare_fail:
+        fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PLAY_SQL_ERROR;
+
+    bind_fail:
+        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(st);
+        return PLAY_SQL_ERROR;
+}
+
+PlayReturnStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickname** out_array, int *out_count) {
+
+    if(db == NULL || out_array == NULL || out_count == NULL) { 
+        return PLAY_INVALID_INPUT;
+    }
+
+    *out_array = NULL;
+    *out_count = 0; 
+
+    const char *sql = "SELECT y.id_player, y.id_round, y.result, y.player_number, p.nickname AS player_nickname "
+                      "FROM Play y JOIN Player p ON y.id_player = p.id_player "
+                      "ORDER BY y.id_round ASC;"; 
+
+    sqlite3_stmt *st = NULL;
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
+    if (rc != SQLITE_OK) goto prepare_fail;
+
+    int cap = 16; 
 
     PlayWithPlayerNickname *plays_array = malloc(sizeof(PlayWithPlayerNickname) * cap);
 
@@ -444,10 +527,5 @@ PlayReturnStatus get_all_plays_by_round(sqlite3 *db, PlayWithPlayerNickname** ou
 
     prepare_fail:
         fprintf(stderr, "DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return PLAY_SQL_ERROR;
-
-    bind_fail:
-        fprintf(stderr, "DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
-        sqlite3_finalize(st);
         return PLAY_SQL_ERROR;
 }

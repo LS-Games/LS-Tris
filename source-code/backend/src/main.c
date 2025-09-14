@@ -8,18 +8,19 @@
 #include "./json-parser/test_json-parser.h"
 
 #include "./controllers/round_controller.h"
+#include "./entities/participation_request_entity.h"
 
 int main(void) {
 
-    // Open database
-    sqlite3 *db = db_open();
-    if (!db) {
-        LOG_ERROR("%s","Failed to open the database.\n");
-        return 1;
-    }
+    ParticipationRequest p = {
+        .id_game = 1,
+        .id_player = 1,
+        .id_request = 1,
+        .state = PENDING,
+        .created_at = time(NULL)
+    };
 
-    // Close database
-    db_close(db);
+    print_participation_request(&p);
 
     // Parse json
     // json_c();

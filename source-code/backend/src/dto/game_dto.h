@@ -1,14 +1,16 @@
 #ifndef GAME_DTO_H
 #define GAME_DTO_H
 
-#include "../entities/game_entity.h"
+#include <stdint.h>
+
+#define DATE_STR_MAX 100
 
 typedef struct GameDTO {
-    int  id_game;
-    char creator_nickname[64];  // Retrieved through id_creator
-    char owner_nickname[64];    // Retrieved through id_owner
+    int64_t id_game;
+    char creator_nickname[64];
+    char owner_nickname[64];
     char state_str[16];
-    char created_at[DATE_MAX];
+    char created_at_str[DATE_STR_MAX];
 } GameDTO;
 
 #endif

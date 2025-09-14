@@ -11,12 +11,18 @@ void print_game(const Game *g) {
         return;
     }
 
+    // Compute time in UCT
+    struct tm tm_utc;
+    char buffer[26];
+    gmtime_r(&g->created_at, &tm_utc);
+    asctime_r(&tm_utc, buffer);
+
     printf("Game {\n");
     printf("  id_game: %" PRId64 "\n", g->id_game);
     printf("  id_creator: %" PRId64 "\n", g->id_creator);
     printf("  id_owner: %" PRId64 "\n", g->id_owner);
     printf("  state: \"%s\"\n", game_status_to_string(g->state));
-    printf("  created_at: \"%s\"\n", g->created_at);
+    printf("  created_at: \"%s\"\n", buffer);
     printf("}\n");
 }
 
@@ -35,12 +41,19 @@ void print_game_inline(const Game *g) {
         printf("Game(NULL)\n");
         return;
     }
+
+    // Compute time in UCT
+    struct tm tm_utc;
+    char buffer[26];
+    gmtime_r(&g->created_at, &tm_utc);
+    asctime_r(&tm_utc, buffer);
+
     printf("Game[id=%" PRId64 ", creator=%" PRId64 ", owner=%" PRId64 ", state=%s, created_at=%s]\n",
             g->id_game,
             g->id_creator,
             g->id_owner,
             game_status_to_string(g->state),
-            g->created_at);
+            buffer);
 }
 
 

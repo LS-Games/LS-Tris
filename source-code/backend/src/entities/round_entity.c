@@ -53,6 +53,22 @@ RoundStatus string_to_round_status(const char *state_str) {
     return ROUND_STATUS_INVALID;
 }
 
+char player_number_to_symbol(int player_number) {
+    switch (player_number) {
+        case 1:     return P1_SYMBOL;
+        case 2:     return P2_SYMBOL;
+        default:    return NO_SYMBOL;
+    }
+}
+
+int player_symbol_to_number(const char player_symbol) {
+    switch (player_symbol) {
+        case P1_SYMBOL:     return 1;
+        case P2_SYMBOL:     return 2;
+        default:            return -1;
+    }
+}
+
 void set_round_board_cell(char board[BOARD_MAX], int row, int col, char symbol) {
     if (0 <= row && row < BOARD_ROWS) {
         if (0 <= col && col < BOARD_COLS) {

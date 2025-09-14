@@ -389,7 +389,7 @@ GameReturnStatus insert_game(sqlite3 *db, Game *in_out_game) {
 
 GameReturnStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickname** out_array, int *out_count) {
 
-    if( db == NULL || out_array == NULL || out_count == NULL) {
+    if(db == NULL || out_array == NULL || out_count == NULL) {
         return GAME_INVALID_INPUT;
     }
 

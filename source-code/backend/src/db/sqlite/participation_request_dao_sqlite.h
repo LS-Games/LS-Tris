@@ -30,8 +30,9 @@ ParticipationRequestReturnStatus update_participation_request_by_id(sqlite3 *db,
 ParticipationRequestReturnStatus delete_participation_request_by_id(sqlite3 *db, int64_t id_request);
 ParticipationRequestReturnStatus insert_participation_request(sqlite3 *db, ParticipationRequest *in_out_request);
 
+ParticipationRequestReturnStatus get_all_participation_requests_with_player_info(sqlite3 *db, ParticipationRequestWithPlayerNickname **out_array, int *out_count);
+
 // Funzione di utilità per messaggi di errore
 const char* return_participation_request_status_to_string(ParticipationRequestReturnStatus status);
 
-ParticipationRequestReturnStatus get_all_participation_requests_with_player_info(sqlite3 *db, ParticipationRequestWithPlayerNickname **out_array, int *out_count);
 #endif

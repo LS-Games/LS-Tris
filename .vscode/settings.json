@@ -2,8 +2,6 @@
     "files.associations": {
         "**/backend/**/*.h": "c",
         "cstring": "c",
-        "typeinfo": "c",
-        "play_join_player.h": "c",
-        "game_join_player.h": "c"
+        "typeinfo": "c"
     }
 }

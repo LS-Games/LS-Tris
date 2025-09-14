@@ -1,13 +1,16 @@
 #ifndef PLAY_DTO_H
 #define PLAY_DTO_H
 
-#include "../entities/play_entity.h"
+#include <stdint.h>
+
+#define RESULT_STR_MAX 8
 
 typedef struct PlayDTO {
-    int  id_player;
-    char player_nickname[64];   // Retrieved through id_player
-    int  id_round;            
-    char result_str[8];       
+    int64_t id_player;
+    int64_t id_round;
+    int     player_number;
+    char    player_nickname[64];
+    char    result_str[RESULT_STR_MAX];
 } PlayDTO;
 
 #endif

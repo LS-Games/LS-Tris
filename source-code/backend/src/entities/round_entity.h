@@ -35,6 +35,9 @@ void print_round_inline(const Round *r);
 const char* round_status_to_string(RoundStatus state);
 RoundStatus string_to_round_status(const char *state_str);
 
+char player_number_to_symbol(int player_number);
+int player_symbol_to_number(const char player_symbol);
+
 void set_round_board_cell(char board[BOARD_MAX], int row, int col, char symbol);
 char get_round_board_cell(char board[BOARD_MAX], int row, int col);
 

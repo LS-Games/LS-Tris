@@ -1,12 +1,14 @@
 #include <string.h>
 
 #include "play_dto.h"
+#include "../entities/play_entity.h"
 
 void map_play_to_dto(const Play *play, const char *player_nick, PlayDTO *out_dto) {
     if (!play || !out_dto) return;
 
-    out_dto->id_player = play->id_player;
-    out_dto->id_round  = play->id_round;
+    out_dto->id_player     = play->id_player;
+    out_dto->id_round      = play->id_round;
+    out_dto->player_number = play->player_number;
 
     // nickname
     strncpy(out_dto->player_nickname, player_nick ? player_nick : "", sizeof(out_dto->player_nickname));
