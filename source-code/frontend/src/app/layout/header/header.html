@@ -10,7 +10,7 @@
       <button (click)="logout()">Logout</button>
     } @else {
       <a routerLink="/auth/login" routerLinkActive="active">Login</a>
-      <a routerLink="/auth/register" routerLinkActive="active">Sign In</a>
+      <a class="register-link" (click)="openModal()">Sign In</a>
     }
   </nav>
 </header>

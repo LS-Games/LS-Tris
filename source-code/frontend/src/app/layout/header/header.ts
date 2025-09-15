@@ -2,6 +2,8 @@ import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth/auth.service';
+import { Dialog } from '@angular/cdk/dialog';
+import { SigninForm } from '../../pages/signin-form/signin-form';
 
 
 @Component({
@@ -17,5 +19,10 @@ export class Header {
 
   logout() {
     this.auth.logout()
+  }
+
+  private dialog = inject(Dialog);
+  protected openModal() {
+    this.dialog.open(SigninForm);
   }
 }
