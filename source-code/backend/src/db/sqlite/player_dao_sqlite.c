@@ -447,8 +447,6 @@ PlayerReturnStatus insert_player(sqlite3* db, Player *in_out_player) {
 
     if (sqlite3_step(stmt) != SQLITE_ROW) goto step_fail;
 
-    if (sqlite3_changes(db) == 0) return PLAYER_DAO_NOT_MODIFIED;
-
     in_out_player->id_player = sqlite3_column_int64(stmt, 0);
     strcpy(in_out_player->nickname, (const char*) sqlite3_column_text(stmt, 1));
     strcpy(in_out_player->email, (const char*) sqlite3_column_text(stmt, 2));

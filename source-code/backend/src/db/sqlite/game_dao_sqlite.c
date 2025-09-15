@@ -361,8 +361,6 @@ GameReturnStatus insert_game(sqlite3 *db, Game *in_out_game) {
 
     if (sqlite3_step(stmt) != SQLITE_ROW) goto step_fail;
 
-    if (sqlite3_changes(db) == 0) return GAME_DAO_NOT_MODIFIED;
-
     in_out_game->id_game = sqlite3_column_int64(stmt, 0);
     in_out_game->id_creator = sqlite3_column_int64(stmt, 1);
     in_out_game->id_owner = sqlite3_column_int64(stmt, 2);
@@ -371,7 +369,6 @@ GameReturnStatus insert_game(sqlite3 *db, Game *in_out_game) {
     in_out_game->created_at = (time_t) sqlite3_column_int64(stmt,4);
 
     sqlite3_finalize(stmt);
-
     return GAME_DAO_OK;
 
     prepare_fail:

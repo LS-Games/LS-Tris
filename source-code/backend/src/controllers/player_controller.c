@@ -20,6 +20,7 @@ PlayerControllerStatus player_signup(char* nickname, char* email, char* password
         .max_streak = 0,
         .registration_date = time(NULL)
     };
+    
     strcpy(player.nickname, nickname);
     strcpy(player.email, email);
     strcpy(player.password, password);
@@ -32,6 +33,7 @@ PlayerControllerStatus player_signup(char* nickname, char* email, char* password
 
 // Create
 PlayerControllerStatus player_create(Player* playerToCreate) {
+
     sqlite3* db = db_open();
     PlayerReturnStatus status = insert_player(db, playerToCreate);
     db_close(db);

@@ -335,8 +335,6 @@ PlayReturnStatus insert_play(sqlite3 *db, Play *in_out_play) {
 
     if (sqlite3_step(stmt) != SQLITE_ROW) goto step_fail;
 
-    if (sqlite3_changes(db) == 0) return PLAY_DAO_NOT_MODIFIED;
-
     in_out_play->id_player = sqlite3_column_int64(stmt, 0);
     in_out_play->id_round = sqlite3_column_int64(stmt, 1);
     unsigned const char* result = sqlite3_column_text(stmt,2);

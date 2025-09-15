@@ -372,8 +372,6 @@ RoundReturnStatus insert_round(sqlite3 *db, Round *in_out_round) {
 
     if (sqlite3_step(stmt) != SQLITE_ROW) goto step_fail;
 
-    if (sqlite3_changes(db) == 0) return ROUND_DAO_NOT_MODIFIED;
-
     in_out_round->id_round = sqlite3_column_int64(stmt, 0);;
 
     sqlite3_finalize(stmt);
