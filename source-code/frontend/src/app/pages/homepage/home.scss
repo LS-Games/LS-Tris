@@ -1,68 +1,119 @@
 @import url('https://fonts.googleapis.com/css2?family=Bowlby+One+SC&display=swap');
 
-.homepage {
-    background-color: white;
-}
+html, body { margin: 0; overflow-x: hidden; }
+* { box-sizing: border-box; }
 
-p {
-    flex-direction: column;
-    font-weight: bold;
-    color: white;
-    text-align: center;
-}
+.homepage { background: #fff; }
 
 .two-section {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;         
+  gap: 24px;
+  padding: 24px 16px;
 }
 
-.two-section .first-section,
-.two-section .second-section {
-    flex: 1
-}
+.first-section, .second-section { flex: 1 1 0; min-width: 0; }
 
-.first-section {
-    display: flex;
-    flex-direction: column;
+#logo-little-man {
+  max-width: 480px;            
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  transition: transform .2s ease;
 }
 
 .second-section {
-    background-color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+  background: #2A2438;
+  color: #fff;
+  border-radius: 36px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 8px solid #543F60; 
+}
+
+.third-section {
+  display: flex;
+  flex-direction: row;
+}
+
+.third-section img {
+  flex: 1 1 0;
+  max-width: 120px;
+  height: auto;
+  margin: 0 16px;
+}
+
+.third-section p {
+  flex: 1 1 0;
+  font-size: clamp(14px, 4vw, 22px);
+  font-family: sans-serif;
+  text-align: center;
+  margin-top: 16px;
 }
 
 #homepage-title {
-    color: #2A2438;
-    font-family: 'Bowlby One SC', sans-serif;
-    text-align: center;
+  font-family: 'Bowlby One SC', sans-serif;
+  text-align: center;
+  line-height: 1.1;
+  font-size: clamp(28px, 6vw, 56px);
+  margin: 0 0 16px 0;
+}
+
+#homepage-title:hover {
+  transform: scale(1.03);
+  color: #ECA937;
 }
 
 #homepage-button {
-    flex: 0;
-    display: inline-block;
-    width: auto;
-
-    color: white;
-    background-color: green;
-    border: 1px;
-    border-radius: 8px;
-    border-color: gray;
-    font-family: 'Bowlby One SC', sans-serif;
-    padding: 10px 10px;
-    cursor: pointer; 
+  display: inline-block;
+  font-family: 'Bowlby One SC', sans-serif;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 10px;
+  background: #118a0a;
+  color: #fff;
+  cursor: pointer;
 }
 
-#homepage-button:hover {
-    transform: scale(1.1);
-}
+#homepage-button:hover { transform: scale(1.05); }
 
-#logo-little-man {
-  max-width: 400px;
-  height: auto;
-  display: block;
-  transition: transform 0.2s ease;
+@media (max-width: 768px) {
+  .two-section {
+    flex-direction: column;     
+    align-items: center;
+    gap: 20px;
+    padding: 20px 12px;
+  }
+
+  .first-section { width: 100%; }
+
+  #logo-little-man {
+    max-width: 70vw;            
+    margin: 0 auto;
+    transform: none !important; 
+  }
+
+  .second-section {
+    width: min(92vw, 560px);    
+    padding: 24px 16px;         
+    border-radius: 24px;
+  }
+
+  #homepage-title {
+    font-size: clamp(22px, 7vw, 34px);
+    margin-bottom: 12px;
+  }
+
+  #homepage-button {
+    width: 100%;
+    max-width: 320px;           
+  }
+
+  #homepage-title:hover, #homepage-button:hover { transform: none; }
 }

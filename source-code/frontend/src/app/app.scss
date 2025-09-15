@@ -1,6 +1,10 @@
 /* Vertical app layout that fills the viewport */
-.main {
-    background-color: white;
+html, body { 
+    margin: 0; overflow-x: hidden; 
+}
+
+img { 
+    max-width: 100%; height: auto; box-sizing: border-box; 
 }
 
 .app-layout {
@@ -27,7 +31,9 @@
   background-color: white;
 }
 
-
+main.app-main {
+      background-color: white; /* Or #ffffff */
+}
 
 @media (min-width: 768px) {
   .app-main .container {
