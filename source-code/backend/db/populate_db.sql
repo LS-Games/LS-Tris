@@ -13,20 +13,20 @@ INSERT INTO Game (id_creator, id_owner, state, created_at) VALUES
 (4, 1, 'finished', '2025-08-04 20:15:00');
 
 INSERT INTO Round (id_game, state, duration, board) VALUES
-(1, 'pending', 60, 'X__-XOO-X__'),
-(2, 'active', 120, 'XOO-XOO-X__'),
-(2, 'finished', 90, 'XOO-XOO-XXX'),
-(4, 'finished', 75, '___-___-___');
+(1, 'pending', 60, 'X@@XOOX@@'),
+(2, 'active', 120, 'XOOXOOX@@'),
+(2, 'finished', 90, 'XOOXOOXXX'),
+(4, 'finished', 75, '@@@@@@@@@');
 
-INSERT INTO Play (id_player, id_round, result) VALUES
-(1, 1, 'win'),
-(2, 1, 'lose'),
-(2, 2, 'win'),
-(3, 2, 'lose'),
-(2, 3, 'draw'),
-(3, 3, 'draw'),
-(4, 4, 'win'),
-(1, 4, 'lose');
+INSERT INTO Play (id_player, id_round, result, player_number) VALUES
+(1, 1, 'win', 1),
+(2, 1, 'lose', 2),
+(2, 2, 'win', 1),
+(3, 2, 'lose', 2),
+(2, 3, 'draw', 2),
+(3, 3, 'draw', 2),
+(4, 4, 'win', 1),
+(1, 4, 'lose', 2);
 
 INSERT INTO Participation_request (id_player, id_game, created_at, state) VALUES
 (1, 2, '2025-08-01 11:00:00', 'pending'),

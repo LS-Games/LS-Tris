@@ -4,19 +4,20 @@
 
 ### Creazione dello schema da terminale
 
-Nella directory [backend/src/db/](./src/db/), creiamo un file `scheme.sql`, contenente lo schema del database in linguaggio SQL. Spostiamoci nella working directory [backend](.). Creeremo le tabelle con il comando:
+Nella directory [backend/db/](./db/), creiamo un file `scheme.sql`, contenente lo schema del database in linguaggio SQL. Spostiamoci nella working directory [backend](.). Creeremo le tabelle con il comando:
 
 ```bash
-sqlite3 ./data/database.sqlite < ./src/db/scheme.sql
+mkdir -p ./db/data
+sqlite3 ./db/data/database.sqlite < ./db/scheme.sql
 ```
 
 ### Visualizzazione del database da terminale
 
-Possiamo visualizzare il database da terminale. Per farlo, spostiamoci nella directory [backend](.) ed eseguiamo i seguenti comandi:
+Possiamo visualizzare il database da terminale. Per farlo, spostiamoci nella working directory [backend](.) ed eseguiamo i seguenti comandi:
 
 ```bash
 sqlite3
-.read db/scheme.sql
+.read ./db/scheme.sql
 .tables # Ci appaiono tutte le tabelle
 .schema Player # Ci da' nel dettaglio la tabella "Player"
 ```
@@ -25,8 +26,8 @@ Tuttavia, tramite l'estensione [SQLite](https://marketplace.visualstudio.com/ite
 
 ### Popolazione del database da terminale
 
-Nella directory [backend/src/db/](./src/db/), creiamo un file `populate_db.sql`, contenente le istruzioni SQL per popolare il database. Popoleremo il database con il comando:
+Nella directory [backend/db/](./db/), creiamo un file `populate_db.sql`, contenente le istruzioni SQL per popolare il database. Spostiamoci nella working directory [backend](.). Popoleremo il database con il comando:
 
 ```bash
-sqlite3 backend/data/database.sqlite < backend/src/db/populate_db.sql
+sqlite3 ./db/data/database.sqlite < ./db/populate_db.sql
 ```

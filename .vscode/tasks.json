@@ -50,7 +50,7 @@
             }
         },
         {
-            "label": "stop: npm start:docker",
+            "label": "stop: npm start",
             "type": "shell",
             "command": "pkill -f 'ng serve'",
             "presentation": {

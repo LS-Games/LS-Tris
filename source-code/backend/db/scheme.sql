@@ -35,6 +35,7 @@ CREATE TABLE Play (
     id_player           INTEGER NOT NULL, 
     id_round            INTEGER NOT NULL, 
     result              TEXT NOT NULL CHECK (result IN ('win', 'lose', 'draw')), 
+    player_number       INTEGER NOT NULL,
     PRIMARY KEY (id_player, id_round),
     FOREIGN KEY (id_round) REFERENCES Round(id_round) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (id_player) REFERENCES Player(id_player) ON DELETE CASCADE ON UPDATE CASCADE

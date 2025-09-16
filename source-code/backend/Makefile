@@ -14,7 +14,7 @@ DEBUG       := -g
 RELEASE     := -O3 -DNDEBUG
 
 # CFLAGS: all compiler flags
-CFLAGS      := $(CSTD) $(WARN) $(DEPFLAGS)
+CFLAGS      := $(CSTD) $(WARN) $(DEPFLAGS) -D_POSIX_C_SOURCE
 # LDFLAGS: specifies how to link libraries
 LDFLAGS     :=
 # LDLIBS: specifies which libraries to import

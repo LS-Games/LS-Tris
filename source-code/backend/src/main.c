@@ -2,26 +2,30 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "./db/db_connection.h"
+#include "../include/debug_log.h"
+
+#include "./db/sqlite/db_connection_sqlite.h"
 #include "./json-parser/test_json-parser.h"
+
+#include "./controllers/player_controller.h"
 
 int main(void) {
 
-    // Declare .sqlite file path
-    const char *db_path = "data/database.sqlite";
+    Player* players;
+    int n;
+    player_find_all(&players, &n);
+    for (int i=0; i<n; i++)
+        LOG_STRUCT_DEBUG(print_player_inline, &(players[i]));
 
-    // Open database
-    sqlite3 *db = db_open(db_path);
-    if (!db) {
-        fprintf(stderr, "Failed to open the database.\n");
-        return 1;
-    }
 
-    // Close database
-    db_close(db);
+    player_signup("pippo", "pippo@gmail.com", "fratm");
+
+    player_find_all(&players, &n);
+    for (int i=0; i<n; i++)
+        LOG_STRUCT_DEBUG(print_player_inline, &(players[i]));
 
     // Parse json
-    json_c();
-
+    // json_c();
+    
     return 0;
 }
