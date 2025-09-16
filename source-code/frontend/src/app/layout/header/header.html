@@ -9,8 +9,8 @@
       <a routerLink="/invitations" routerLinkActive="active">Requests<span class="badge">{{ auth.invites() }}</span></a>
       <button (click)="logout()">Logout</button>
     } @else {
-      <a routerLink="/auth/login" routerLinkActive="active">Login</a>
-      <a class="register-link" (click)="openModal()">Sign In</a>
+      <a routerLink="/auth/login" routerLinkActive="active" (click)="openLogin()">Login</a>
+      <a class="register-link" (click)="openSignIn()">Sign In</a>
     }
   </nav>
 </header>

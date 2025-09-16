@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth/auth.service';
 import { Dialog } from '@angular/cdk/dialog';
 import { SigninForm } from '../../pages/signin-form/signin-form';
+import { LoginForm } from '../../pages/login-form/login-form';
 
 
 @Component({
@@ -21,8 +22,17 @@ export class Header {
     this.auth.logout()
   }
 
-  private dialog = inject(Dialog);
-  protected openModal() {
-    this.dialog.open(SigninForm);
+  private readonly dialog = inject(Dialog);
+
+  protected openSignIn() {
+    this.dialog.open(SigninForm, {
+      disableClose: true // Prevent closing the dialog by clicking outside or pressing ESC
+    });
+  }
+  
+  protected openLogin() {
+    this.dialog.open(LoginForm, {
+      disableClose: true
+    });
   }
 }

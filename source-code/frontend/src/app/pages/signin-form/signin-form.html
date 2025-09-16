@@ -1,10 +1,15 @@
 <div class="signin-form">
-    <div class="signin-form-container">
+    <span class="close-btn" (click)="close()">&times;</span>
+    <div class="signin-form-logo-container">
         <img src="/ls-games-logo.png" alt="Site Logo" class="logo-image"> 
     </div>
     <p>You'll be one of us soon!</p>
     <input type="text" placeholder="Nickname">
     <input type="email" placeholder="Email">
     <input type="password" placeholder="Password">
+    <div class="policy-container">
+        <input type="checkbox" id="signin-policy" name="policy">
+        <label for="signin-policy">I agree to the <a routerLink="/privacy-policy" target="_blank">Privacy Policy</a></label>
+    </div>
     <button>SIGN IN</button>
 </div>

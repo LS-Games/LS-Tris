@@ -15,11 +15,8 @@ import { Injectable, signal, computed, effect } from '@angular/core';
 @Injectable({ providedIn: 'root' }) // This means that there is only one global instance of this service available throughout the entire app 
 export class AuthService {
 
-  private _isLoggedIn = signal<boolean>(false); // It creates a private boolean signal that is false by default (the _ before the word remind us that it's private)
+  private readonly _isLoggedIn = signal<boolean>(false); // It creates a private boolean signal that is false by default (the _ before the word remind us that it's private)
   readonly isLoggedIn = computed(() => this._isLoggedIn());  //We want the computed function to update itself when _isLoggedIn change, we use readonly because to change the state we use login() and logout() function
-
-  private _invites = signal<number>(0); //We use the same isLoggedIn logic here
-  readonly invites = computed(() => this._invites());
 
   constructor() {
     // The constructor begins when the app creates the service
@@ -35,11 +32,9 @@ export class AuthService {
 
   login() {
     this._isLoggedIn.set(true); //This will trigger the effect and the token will be written in LocalStorage
-    this._invites.set(3); 
   }
 
   logout() {
     this._isLoggedIn.set(false);
-    this._invites.set(0);
   }
 }

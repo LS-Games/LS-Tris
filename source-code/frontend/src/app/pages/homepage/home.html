@@ -9,7 +9,11 @@
         </div>
         <div class="second-section">
             <h1 id="homepage-title">WIN OR LOSE,<br>NO MATTER. HAVE FUN!</h1>
-            <button id="homepage-button">GET STARTED</button>
+            @if (auth.isLoggedIn()) {
+              <a routerLink="/profile"><button id="homepage-button">GO TO PROFILE</button></a>
+            } @else {
+              <a (click)="openLogin()"><button id="homepage-button">GET STARTED</button></a>
+            }
         </div>
     </div>
 
