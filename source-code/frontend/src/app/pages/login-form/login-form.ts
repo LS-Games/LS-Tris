@@ -18,6 +18,8 @@ export class LoginForm {
   
   gotoSignIn() {
     this._dialogRef.close(); 
-    this._dialog.open(SigninForm);
+    this._dialog.open(SigninForm, { 
+      disableClose: true 
+    });
   } 
 }

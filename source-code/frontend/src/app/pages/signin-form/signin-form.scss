@@ -42,7 +42,7 @@
 }
 
 .logo-image {
-  max-width: clamp(60px, 10vw, 140px);
+  max-width: clamp(100px, 10vw, 140px);
   height: auto;
   display: block;
   transition: transform 0.2s ease;
@@ -79,7 +79,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: clamp(10px, 2.5vw, 16px);
+    font-size: clamp(15px, 2.5vw, 20px);
     color: white;
 }
 

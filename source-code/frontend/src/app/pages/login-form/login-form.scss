@@ -42,7 +42,7 @@
 }
 
 .logo-image {
-  max-width: clamp(60px, 10vw, 140px);
+  max-width: clamp(100px, 10vw, 140px);
   height: auto;
   display: block;
   transition: transform 0.2s ease;
@@ -80,7 +80,7 @@
     text-align: center;
     cursor: pointer;
     font-family: 'Bowlby One', sans-serif;
-    font-size: 16px;
+    font-size: clamp(15px, 2.5vw, 20px);
 }
  #register-here-text:hover {
     text-decoration: underline;
