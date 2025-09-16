@@ -1,15 +1,16 @@
 <header class="site-header">
   <div class="logo">
-    <img src="/ls-games-logo.png" alt="Site Logo" class="logo-image"> 
+    <a routerLink="/" class="logo-link">
+      <img src="/ls-games-logo.png" alt="Site Logo" class="logo-image">
+    </a> 
   </div>
 
   <nav class="nav-links-header">
     @if (auth.isLoggedIn()) {
       <a routerLink="/profile" routerLinkActive="active">Profile</a>
-      <a routerLink="/invitations" routerLinkActive="active">Requests<span class="badge">{{ auth.invites() }}</span></a>
       <button (click)="logout()">Logout</button>
     } @else {
-      <a routerLink="/auth/login" routerLinkActive="active" (click)="openLogin()">Login</a>
+      <a class="login-link" (click)="openLogin()">Login</a>
       <a class="register-link" (click)="openSignIn()">Sign In</a>
     }
   </nav>
