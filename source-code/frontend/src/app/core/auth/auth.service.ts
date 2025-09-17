@@ -11,6 +11,8 @@
 */ 
 
 import { Injectable, signal, computed, effect } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { of, Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' }) // This means that there is only one global instance of this service available throughout the entire app 
 export class AuthService {
@@ -18,7 +20,7 @@ export class AuthService {
   private readonly _isLoggedIn = signal<boolean>(false); // It creates a private boolean signal that is false by default (the _ before the word remind us that it's private)
   readonly isLoggedIn = computed(() => this._isLoggedIn());  //We want the computed function to update itself when _isLoggedIn change, we use readonly because to change the state we use login() and logout() function
 
-  constructor() {
+  constructor(private readonly _http: HttpClient) { 
     // The constructor begins when the app creates the service
     const token = localStorage.getItem('token'); //We retrive the token which is located in the LocalStore of the Browser
     this._isLoggedIn.set(!!token); //We use !! (double NOT) to convert it in boolean type, because token alone would be a string value 
@@ -26,12 +28,13 @@ export class AuthService {
     // The effect executes the functions instantly and each time that an inner signal changes (in this case when this.isLoggedIn() changes)
     effect(() => {
       if (this.isLoggedIn()) localStorage.setItem('token', 'demo'); //If the user is logged in save "demo" in the "token" key (WE WILL SET THE REAL TOKEN LOGIC HERE)
-      else localStorage.removeItem('token');  //Else remove it
+      else localStorage.removeItem('token'); //Else remove it
     });
   }
 
-  login() {
-    this._isLoggedIn.set(true); //This will trigger the effect and the token will be written in LocalStorage
+  login(email: string, password: string): Observable<string> {
+    //we're sending a POST request to the backend API with the user's email and password
+    return this._http.post<{ token: string }>('https://api.example.com/login', { email, password })    
   }
 
   logout() {

@@ -3,10 +3,26 @@
     <div class="login-form-logo-container">
         <img src="/ls-games-logo.png" alt="Site Logo" class="logo-image"> 
     </div>
-    <p>We were waiting you</p>
-    <input type="email" placeholder="Email">
-    <input type="password" placeholder="Password">
-    <button>LOG IN</button>
+    <!-- Reactive form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+        <input type="email" formControlName="email" placeholder="Email"/>
+
+        <!-- Error handling for email input -->
+        <div *ngIf="loginForm.get('email')?.invalid && (loginForm.get('email')?.touched || loginForm.get('email')?.dirty)" class="error-message">
+            <div *ngIf="loginForm.get('email')?.errors?.['required']">Email is required.</div>
+            <div *ngIf="loginForm.get('email')?.errors?.['email']">Please enter a valid email address.</div>
+        </div>
+        <input type="password" formControlName="password" placeholder="Password"/>
+
+        <!-- Error handling for password input -->
+        <div *ngIf="loginForm.get('password')?.invalid && (loginForm.get('password')?.touched || loginForm.get('password')?.dirty)" class="error-message">
+            <div *ngIf="loginForm.get('password')?.errors?.['required']">Password is required.</div>
+            <div *ngIf="loginForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters long.</div>
+        </div>
+        <button type="submit" [disabled]="loginForm.invalid">LOG IN</button>
+    </form>
+
     <p>Not registered yet? <span id="register-here-text" (click)="gotoSignIn()">Register here</span></p>
 </div>
 
