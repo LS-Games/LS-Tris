@@ -472,3 +472,75 @@ PlayerReturnStatus insert_player(sqlite3* db, Player *in_out_player) {
         sqlite3_finalize(stmt);
         return PLAYER_DAO_SQL_ERROR;
 }
+
+PlayerReturnStatus get_player_by_username(sqlite3 *db, const char* username, Player *out) {
+
+    if (db == NULL || username == NULL || out == NULL) {
+        return PLAYER_DAO_INVALID_INPUT;
+    }
+
+    const char *sql= "SELECT id_player, nickname, email, password, current_streak, max_streak, unixepoch(registration_date) "
+                     "FROM Player WHERE nickname = ?1";
+
+    sqlite3_stmt *st = NULL;
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
+
+    if (st == NULL) {
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PLAYER_DAO_SQL_ERROR;
+    }
+
+    rc = sqlite3_bind_text(st, 1, username, -1, SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) goto bind_fail;
+
+    rc = sqlite3_step(st);
+
+    if (rc == SQLITE_ROW) {
+
+        out->id_player = sqlite3_column_int64(st, 0);
+        const unsigned char *nickname = sqlite3_column_text(st, 1);
+        const unsigned char *email = sqlite3_column_text(st, 2);
+        const unsigned char *password = sqlite3_column_text(st, 3);
+        out->current_streak = sqlite3_column_int(st, 4);
+        out->max_streak = sqlite3_column_int(st, 5);
+        out->registration_date = (time_t) sqlite3_column_int64(st, 6);
+
+        if (nickname) {
+            strcpy(out->nickname, (const char*) nickname);
+        } else {
+            out->nickname[0] = '\0';
+        }
+
+        if (email) {
+            strcpy(out->email, (const char*) email);
+        } else {
+            out->email[0] = '\0';
+        }
+
+        if (password) {
+            strcpy(out->password, (const char*) password);
+        } else {
+            out->password[0] = '\0';
+        }
+
+        sqlite3_finalize(st);
+        return PLAYER_DAO_OK;
+
+    } else if (rc == SQLITE_DONE) {
+
+        sqlite3_finalize(st);
+        return PLAYER_DAO_NOT_FOUND;
+
+    } else goto step_fail;
+
+    bind_fail:
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(st);
+        return PLAYER_DAO_SQL_ERROR;
+
+    step_fail:
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(st);
+        return PLAYER_DAO_SQL_ERROR;
+}
