@@ -21,3 +21,6 @@ GameControllerStatus game_find_all(Game** retrievedGameArray, int* retrievedObje
 GameControllerStatus game_find_one(int id_game, Game* retrievedGame);
 GameControllerStatus game_update(Game* updatedGame);
 GameControllerStatus game_delete(int id_game);
+
+// Funzione di utilità per messaggi di errore
+const char* return_game_controller_status_to_string(GameControllerStatus status);

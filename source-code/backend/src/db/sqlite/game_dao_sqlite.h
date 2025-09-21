@@ -33,6 +33,6 @@ GameReturnStatus insert_game(sqlite3 *db, Game *in_out_game);
 GameReturnStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickname** out_array, int *out_count);
 
 // Funzione di utilità per messaggi di errore
-const char* return_game_status_to_string(GameReturnStatus status);
+const char* return_game_dao_status_to_string(GameReturnStatus status);
 
 #endif

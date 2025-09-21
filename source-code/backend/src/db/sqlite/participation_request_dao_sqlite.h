@@ -33,6 +33,6 @@ ParticipationRequestReturnStatus insert_participation_request(sqlite3 *db, Parti
 ParticipationRequestReturnStatus get_all_participation_requests_with_player_info(sqlite3 *db, ParticipationRequestWithPlayerNickname **out_array, int *out_count);
 
 // Funzione di utilità per messaggi di errore
-const char* return_participation_request_status_to_string(ParticipationRequestReturnStatus status);
+const char* return_participation_request_dao_status_to_string(ParticipationRequestReturnStatus status);
 
 #endif

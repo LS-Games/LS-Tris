@@ -30,6 +30,6 @@ RoundReturnStatus delete_round_by_id(sqlite3 *db, int64_t id_round);
 RoundReturnStatus insert_round(sqlite3 *db, Round *in_out_round);
 
 // Funzione di utilità per messaggi di errore
-const char* return_round_status_to_string(RoundReturnStatus status);
+const char* return_round_dao_status_to_string(RoundReturnStatus status);
 
 #endif

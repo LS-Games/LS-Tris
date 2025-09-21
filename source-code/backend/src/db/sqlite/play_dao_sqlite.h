@@ -32,6 +32,6 @@ PlayReturnStatus get_all_plays_by_round(sqlite3 *db, Play** out_array, int64_t i
 PlayReturnStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickname** out_array, int *out_count);
 
 // Funzione di utilità per messaggi di errore
-const char* return_play_status_to_string(PlayReturnStatus status);
+const char* return_play_dao_status_to_string(PlayReturnStatus status);
 
 #endif

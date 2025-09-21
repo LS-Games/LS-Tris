@@ -7,7 +7,7 @@
 
 #include "game_dao_sqlite.h"
 
-const char* return_game_status_to_string(GameReturnStatus status) {
+const char* return_game_dao_status_to_string(GameReturnStatus status) {
     switch (status) {
         case GAME_DAO_OK:               return "GAME_DAO_OK";
         case GAME_DAO_INVALID_INPUT:    return "GAME_DAO_INVALID_INPUT";

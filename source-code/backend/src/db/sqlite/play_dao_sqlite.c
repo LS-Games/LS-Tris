@@ -7,7 +7,7 @@
 
 #include "play_dao_sqlite.h"
 
-const char* return_play_status_to_string(PlayReturnStatus status) {
+const char* return_play_dao_status_to_string(PlayReturnStatus status) {
     switch (status) {
         case PLAY_DAO_OK:               return "PLAY_DAO_OK";
         case PLAY_DAO_INVALID_INPUT:    return "PLAY_DAO_INVALID_INPUT";

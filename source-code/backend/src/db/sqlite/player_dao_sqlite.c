@@ -7,7 +7,7 @@
 
 #include "player_dao_sqlite.h"
 
-const char* return_player_status_to_string(PlayerReturnStatus status) {
+const char* return_player_dao_status_to_string(PlayerReturnStatus status) {
     switch (status) {
         case PLAYER_DAO_OK:                 return "PLAYER_DAO_OK";
         case PLAYER_DAO_INVALID_INPUT:      return "PLAYER_DAO_INVALID_INPUT";
@@ -473,9 +473,9 @@ PlayerReturnStatus insert_player(sqlite3* db, Player *in_out_player) {
         return PLAYER_DAO_SQL_ERROR;
 }
 
-PlayerReturnStatus get_player_by_username(sqlite3 *db, const char* username, Player *out) {
+PlayerReturnStatus get_player_by_nickname(sqlite3 *db, const char* nickname, Player *out) {
 
-    if (db == NULL || username == NULL || out == NULL) {
+    if (db == NULL || nickname == NULL || out == NULL) {
         return PLAYER_DAO_INVALID_INPUT;
     }
 
@@ -491,7 +491,7 @@ PlayerReturnStatus get_player_by_username(sqlite3 *db, const char* username, Pla
         return PLAYER_DAO_SQL_ERROR;
     }
 
-    rc = sqlite3_bind_text(st, 1, username, -1, SQLITE_TRANSIENT);
+    rc = sqlite3_bind_text(st, 1, nickname, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail;
 
     rc = sqlite3_step(st);

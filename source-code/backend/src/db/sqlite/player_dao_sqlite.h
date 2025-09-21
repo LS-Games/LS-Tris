@@ -31,9 +31,9 @@ PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player);
 PlayerReturnStatus delete_player_by_id(sqlite3 *db, int64_t id_player);
 PlayerReturnStatus insert_player(sqlite3 *db, Player *in_out_player);
 
-PlayerReturnStatus get_player_by_username(sqlite3 *db, const char* username, Player *out);
+PlayerReturnStatus get_player_by_nickname(sqlite3 *db, const char* nickname, Player *out);
 
 // Funzione di utilità per messaggi di errore
-const char* return_player_status_to_string(PlayerReturnStatus status);
+const char* return_player_dao_status_to_string(PlayerReturnStatus status);
 
 #endif

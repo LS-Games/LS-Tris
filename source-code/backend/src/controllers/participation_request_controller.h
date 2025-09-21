@@ -21,3 +21,6 @@ ParticipationRequestControllerStatus participation_request_find_all(Participatio
 ParticipationRequestControllerStatus participation_request_find_one(int id_participation_request, ParticipationRequest* retrievedParticipationRequest);
 ParticipationRequestControllerStatus participation_request_update(ParticipationRequest* updatedParticipationRequest);
 ParticipationRequestControllerStatus participation_request_delete(int id_participation_request);
+
+// Funzione di utilità per messaggi di errore
+const char* return_participation_request_controller_status_to_string(ParticipationRequestControllerStatus status);

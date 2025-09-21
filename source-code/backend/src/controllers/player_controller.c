@@ -15,21 +15,42 @@ PlayerControllerStatus player_signup(char* nickname, char* email, char* password
         strlen(password) >= PASSWORD_MAX)
         return PLAYER_CONTROLLER_INVALID_INPUT;
 
-    Player player = {
+    // Check if there's already a player with this nickname
+    Player retrievedPlayer;
+    if (player_find_one_by_nickname(nickname, &retrievedPlayer) != PLAYER_CONTROLLER_NOT_FOUND) {
+        return PLAYER_CONTROLLER_STATE_VIOLATION;
+    }
+
+    // Build player to signup
+    Player playerToSignup = {
         .current_streak = 0,
         .max_streak = 0,
         .registration_date = time(NULL)
     };
-    
-    strcpy(player.nickname, nickname);
-    strcpy(player.email, email);
-    strcpy(player.password, password);
+    strcpy(playerToSignup.nickname, nickname);
+    strcpy(playerToSignup.email, email);
+    strcpy(playerToSignup.password, password);
 
-    return player_create(&player);
+    // Create player
+    return player_create(&playerToSignup);
 }
 
 
 // ===================== CRUD Operations =====================
+
+const char* return_player_controller_status_to_string(PlayerControllerStatus status) {
+    switch (status) {
+        case PLAYER_CONTROLLER_OK:               return "PLAYER_CONTROLLER_OK";
+        case PLAYER_CONTROLLER_INVALID_INPUT:    return "PLAYER_CONTROLLER_INVALID_INPUT";
+        case PLAYER_CONTROLLER_NOT_FOUND:        return "PLAYER_CONTROLLER_NOT_FOUND";
+        case PLAYER_CONTROLLER_STATE_VIOLATION:  return "PLAYER_CONTROLLER_STATE_VIOLATION";
+        case PLAYER_CONTROLLER_DATABASE_ERROR:   return "PLAYER_CONTROLLER_DATABASE_ERROR";
+        case PLAYER_CONTROLLER_CONFLICT:         return "PLAYER_CONTROLLER_CONFLICT";
+        // case PLAYER_CONTROLLER_FORBIDDEN:        return "PLAYER_CONTROLLER_FORBIDDEN";
+        // case PLAYER_CONTROLLER_INTERNAL_ERROR:   return "PLAYER_CONTROLLER_INTERNAL_ERROR";
+        default:                                return "PLAYER_CONTROLLER_UNKNOWN";
+    }
+}
 
 // Create
 PlayerControllerStatus player_create(Player* playerToCreate) {
@@ -38,7 +59,7 @@ PlayerControllerStatus player_create(Player* playerToCreate) {
     PlayerReturnStatus status = insert_player(db, playerToCreate);
     db_close(db);
     if (status != PLAYER_DAO_OK) {
-        LOG_WARN("%s\n", return_player_status_to_string(status));
+        LOG_WARN("%s\n", return_player_dao_status_to_string(status));
         return PLAYER_CONTROLLER_DATABASE_ERROR;
     }
 
@@ -51,7 +72,7 @@ PlayerControllerStatus player_find_all(Player** retrievedPlayerArray, int* retri
     PlayerReturnStatus status = get_all_players(db, retrievedPlayerArray, retrievedObjectCount);
     db_close(db);
     if (status != PLAYER_DAO_OK) {
-        LOG_WARN("%s\n", return_player_status_to_string(status));
+        LOG_WARN("%s\n", return_player_dao_status_to_string(status));
         return PLAYER_CONTROLLER_DATABASE_ERROR;
     }
 
@@ -64,7 +85,7 @@ PlayerControllerStatus player_find_one(int id_player, Player* retrievedPlayer) {
     PlayerReturnStatus status = get_player_by_id(db, id_player, retrievedPlayer);
     db_close(db);
     if (status != PLAYER_DAO_OK) {
-        LOG_WARN("%s\n", return_player_status_to_string(status));
+        LOG_WARN("%s\n", return_player_dao_status_to_string(status));
         return status == PLAYER_DAO_NOT_FOUND ? PLAYER_CONTROLLER_NOT_FOUND : PLAYER_CONTROLLER_DATABASE_ERROR;
     }
 
@@ -77,7 +98,7 @@ PlayerControllerStatus player_update(Player* updatedPlayer) {
     PlayerReturnStatus status = update_player_by_id(db, updatedPlayer);
     db_close(db);
     if (status != PLAYER_DAO_OK) {
-        LOG_WARN("%s\n", return_player_status_to_string(status));
+        LOG_WARN("%s\n", return_player_dao_status_to_string(status));
         return PLAYER_CONTROLLER_DATABASE_ERROR;
     }
 
@@ -90,7 +111,20 @@ PlayerControllerStatus player_delete(int id_player) {
     PlayerReturnStatus status = delete_player_by_id(db, id_player);
     db_close(db);
     if (status != PLAYER_DAO_OK) {
-        LOG_WARN("%s\n", return_player_status_to_string(status));
+        LOG_WARN("%s\n", return_player_dao_status_to_string(status));
+        return status == PLAYER_DAO_NOT_FOUND ? PLAYER_CONTROLLER_NOT_FOUND : PLAYER_CONTROLLER_DATABASE_ERROR;
+    }
+
+    return PLAYER_CONTROLLER_OK;
+}
+
+// Read one (by nickname)
+PlayerControllerStatus player_find_one_by_nickname(const char *nickname, Player* retrievedPlayer) {
+    sqlite3* db = db_open();
+    PlayerReturnStatus status = get_player_by_nickname(db, nickname, retrievedPlayer);
+    db_close(db);
+    if (status != PLAYER_DAO_OK) {
+        LOG_WARN("%s\n", return_player_dao_status_to_string(status));
         return status == PLAYER_DAO_NOT_FOUND ? PLAYER_CONTROLLER_NOT_FOUND : PLAYER_CONTROLLER_DATABASE_ERROR;
     }
 

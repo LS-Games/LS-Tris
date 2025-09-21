@@ -125,6 +125,7 @@ static int get_current_turn(char* board) {
 
 RoundControllerStatus round_start(int id_game, int64_t duration) {
 
+    // Build round to start
     Round round = {
         .id_game = id_game,
         .duration = duration,
@@ -134,6 +135,7 @@ RoundControllerStatus round_start(int id_game, int64_t duration) {
     
     LOG_STRUCT_DEBUG(print_round_inline, &round);
     
+    // Create round
     RoundControllerStatus status = round_create(&round);
     if (status != ROUND_CONTROLLER_OK)
         return status;
@@ -240,6 +242,7 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, PlayResult resu
 
 RoundControllerStatus round_end(int id_round) {
     
+    // Retrieve round to end
     Round retrievedRound;
     RoundControllerStatus status = round_find_one(id_round, &retrievedRound);
     if (status != ROUND_CONTROLLER_OK)
@@ -250,13 +253,27 @@ RoundControllerStatus round_end(int id_round) {
 
 // ===================== CRUD Operations =====================
 
+const char* return_round_controller_status_to_string(RoundControllerStatus status) {
+    switch (status) {
+        case ROUND_CONTROLLER_OK:               return "ROUND_CONTROLLER_OK";
+        case ROUND_CONTROLLER_INVALID_INPUT:    return "ROUND_CONTROLLER_INVALID_INPUT";
+        case ROUND_CONTROLLER_NOT_FOUND:        return "ROUND_CONTROLLER_NOT_FOUND";
+        case ROUND_CONTROLLER_STATE_VIOLATION:  return "ROUND_CONTROLLER_STATE_VIOLATION";
+        case ROUND_CONTROLLER_DATABASE_ERROR:   return "ROUND_CONTROLLER_DATABASE_ERROR";
+        // case ROUND_CONTROLLER_CONFLICT:         return "ROUND_CONTROLLER_CONFLICT";
+        case ROUND_CONTROLLER_FORBIDDEN:        return "ROUND_CONTROLLER_FORBIDDEN";
+        case ROUND_CONTROLLER_INTERNAL_ERROR:   return "ROUND_CONTROLLER_INTERNAL_ERROR";
+        default:                                return "ROUND_CONTROLLER_UNKNOWN";
+    }
+}
+
 // Create
 RoundControllerStatus round_create(Round* roundToCreate) {
     sqlite3* db = db_open();
     RoundReturnStatus status = insert_round(db, roundToCreate);
     db_close(db);
     if (status != ROUND_DAO_OK) {
-        LOG_WARN("%s\n", return_round_status_to_string(status));
+        LOG_WARN("%s\n", return_round_dao_status_to_string(status));
         return ROUND_CONTROLLER_DATABASE_ERROR;
     }
 
@@ -269,7 +286,7 @@ RoundControllerStatus round_find_all(Round** retrievedRoundArray, int* retrieved
     RoundReturnStatus status = get_all_rounds(db, retrievedRoundArray, retrievedObjectCount);
     db_close(db);
     if (status != ROUND_DAO_OK) {
-        LOG_WARN("%s\n", return_round_status_to_string(status));
+        LOG_WARN("%s\n", return_round_dao_status_to_string(status));
         return ROUND_CONTROLLER_DATABASE_ERROR;
     }
 
@@ -282,7 +299,7 @@ RoundControllerStatus round_find_one(int id_round, Round* retrievedRound) {
     RoundReturnStatus status = get_round_by_id(db, id_round, retrievedRound);
     db_close(db);
     if (status != ROUND_DAO_OK) {
-        LOG_WARN("%s\n", return_round_status_to_string(status));
+        LOG_WARN("%s\n", return_round_dao_status_to_string(status));
         return status == ROUND_DAO_NOT_FOUND ? ROUND_CONTROLLER_NOT_FOUND : ROUND_CONTROLLER_DATABASE_ERROR;
     }
 
@@ -295,7 +312,7 @@ RoundControllerStatus round_update(Round* updatedRound) {
     RoundReturnStatus status = update_round_by_id(db, updatedRound);
     db_close(db);
     if (status != ROUND_DAO_OK) {
-        LOG_WARN("%s\n", return_round_status_to_string(status));
+        LOG_WARN("%s\n", return_round_dao_status_to_string(status));
         return ROUND_CONTROLLER_DATABASE_ERROR;
     }
 
@@ -308,7 +325,7 @@ RoundControllerStatus round_delete(int id_round) {
     RoundReturnStatus status = delete_round_by_id(db, id_round);
     db_close(db);
     if (status != ROUND_DAO_OK) {
-        LOG_WARN("%s\n", return_round_status_to_string(status));
+        LOG_WARN("%s\n", return_round_dao_status_to_string(status));
         return status == ROUND_DAO_NOT_FOUND ? ROUND_CONTROLLER_NOT_FOUND : ROUND_CONTROLLER_DATABASE_ERROR;
     }
 

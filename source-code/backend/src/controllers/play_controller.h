@@ -23,3 +23,6 @@ PlayControllerStatus play_update(Play* updatedPlay);
 PlayControllerStatus play_delete(int id_play, int id_round);
 
 PlayControllerStatus play_find_all_by_round(Play** retrievedPlayArray, int64_t id_round, int* retrievedObjectCount);
+
+// Funzione di utilità per messaggi di errore
+const char* return_play_controller_status_to_string(PlayControllerStatus status);

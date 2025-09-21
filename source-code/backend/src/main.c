@@ -18,7 +18,8 @@ int main(void) {
         LOG_STRUCT_DEBUG(print_player_inline, &(players[i]));
 
 
-    player_signup("pippo", "pippo@gmail.com", "fratm");
+    PlayerControllerStatus status = player_signup("pippo", "pippo@gmail.com", "fratm");
+    LOG_DEBUG("%s\n", return_player_controller_status_to_string(status));
 
     player_find_all(&players, &n);
     for (int i=0; i<n; i++)

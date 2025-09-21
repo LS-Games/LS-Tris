@@ -7,7 +7,7 @@
 
 #include "participation_request_dao_sqlite.h"
 
-const char* return_participation_request_status_to_string(ParticipationRequestReturnStatus status) {
+const char* return_participation_request_dao_status_to_string(ParticipationRequestReturnStatus status) {
     switch (status) {
         case PARTICIPATION_DAO_REQUEST_OK:              return "PARTICIPATION_DAO_REQUEST_OK";
         case PARTICIPATION_DAO_REQUEST_INVALID_INPUT:   return "PARTICIPATION_DAO_REQUEST_INVALID_INPUT";

@@ -25,3 +25,6 @@ RoundControllerStatus round_find_all(Round** retrievedRoundArray, int* retrieved
 RoundControllerStatus round_find_one(int id_round, Round* retrievedRound);
 RoundControllerStatus round_update(Round* updatedRound);
 RoundControllerStatus round_delete(int id_round);
+
+// Funzione di utilità per messaggi di errore
+const char* return_round_controller_status_to_string(RoundControllerStatus status);

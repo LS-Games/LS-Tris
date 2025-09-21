@@ -7,7 +7,7 @@
 
 #include "round_dao_sqlite.h"
 
-const char* return_round_status_to_string(RoundReturnStatus status) {
+const char* return_round_dao_status_to_string(RoundReturnStatus status) {
     switch (status) {
         case ROUND_DAO_OK:              return "ROUND_DAO_OK";
         case ROUND_DAO_INVALID_INPUT:   return "ROUND_DAO_INVALID_INPUT";
