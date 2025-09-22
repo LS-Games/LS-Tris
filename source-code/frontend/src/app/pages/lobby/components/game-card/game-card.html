@@ -1,0 +1,17 @@
+<div class="game-card-container">
+    <div class="info-game-card">
+        <p id="id-game">Game ID: {{ id }}</p>
+        <p id="game-creator">Creator: {{ creator }} </p>
+        <p id="game-data-creation"> {{ data }} </p>
+    </div>
+    <div class="body-game-card">
+        <p id="owner"> Owner: {{ owner }}</p>
+        <p id="player-current-streak"> Current streak: {{ current_streak }}</p>
+    </div>
+    <div class="footer-game-card">
+        <p id="game-status" [attr.data-state]="state"> {{ state }}</p>
+        @if (state == 'new' || state == 'waiting') {
+            <button id="game-card-button">INVIA</button>
+        }
+    </div>
+</div>

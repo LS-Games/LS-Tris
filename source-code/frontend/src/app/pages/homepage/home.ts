@@ -1,7 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { AuthService } from '../../core/auth/auth.service';
-import { LoginForm } from '../login-form/login-form';
 import { Dialog } from '@angular/cdk/dialog';
+import { LoginForm } from '../login-form/login-form';
+import { Lobby} from '../lobby/lobby'
 
 @Component({
   selector: 'app-home',
@@ -20,6 +21,13 @@ export class Home {
     this._dialog.open(LoginForm, {
       disableClose: true
     });
+  }
+
+  protected openLobby() {
+    this._dialog.open(Lobby, {
+      disableClose: true
+    });
+
   }
 
   

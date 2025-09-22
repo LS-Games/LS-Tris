@@ -8,7 +8,7 @@
   <nav class="nav-links-header">
     @if (auth.isLoggedIn()) {
       <a routerLink="/profile" routerLinkActive="active">Profile</a>
-      <button (click)="logout()">Logout</button>
+      <button id="logout-btn" (click)="logout()">Logout</button>
     } @else {
       <a class="login-link" (click)="openLogin()">Login</a>
       <a class="register-link" (click)="openSignIn()">Sign In</a>

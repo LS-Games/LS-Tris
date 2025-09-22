@@ -1,28 +1,32 @@
 <div class="login-form">
-    <span class="close-btn" (click)="close()">&times;</span>
-    <div class="login-form-logo-container">
-        <img src="/ls-games-logo.png" alt="Site Logo" class="logo-image"> 
+  <span class="close-btn" (click)="close()">&times;</span>
+  <div class="login-form-logo-container">
+    <img src="/ls-games-logo.png" alt="Site Logo" class="logo-image" />
+  </div>
+
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+    <input type="email" formControlName="email" placeholder="Email" />
+    <input type="password" formControlName="password" placeholder="Password" />
+
+    <button type="submit">LOG IN</button>
+  </form>
+
+  @if (buttonClicked) {
+    <div class="form-error-message">
+
+      @if(loginForm.get('email')?.invalid) {
+        <p>Please enter a valid email.</p>
+      }
+
+      @if(loginForm.get('password')?.invalid) {
+        <p>Please enter a valid password.</p>
+      }
+      
     </div>
-    <!-- Reactive form -->
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-
-        <input type="email" formControlName="email" placeholder="Email"/>
-
-        <!-- Error handling for email input -->
-        <div *ngIf="loginForm.get('email')?.invalid && (loginForm.get('email')?.touched || loginForm.get('email')?.dirty)" class="error-message">
-            <div *ngIf="loginForm.get('email')?.errors?.['required']">Email is required.</div>
-            <div *ngIf="loginForm.get('email')?.errors?.['email']">Please enter a valid email address.</div>
-        </div>
-        <input type="password" formControlName="password" placeholder="Password"/>
-
-        <!-- Error handling for password input -->
-        <div *ngIf="loginForm.get('password')?.invalid && (loginForm.get('password')?.touched || loginForm.get('password')?.dirty)" class="error-message">
-            <div *ngIf="loginForm.get('password')?.errors?.['required']">Password is required.</div>
-            <div *ngIf="loginForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters long.</div>
-        </div>
-        <button type="submit" [disabled]="loginForm.invalid">LOG IN</button>
-    </form>
-
-    <p>Not registered yet? <span id="register-here-text" (click)="gotoSignIn()">Register here</span></p>
+  }
+  <p>
+    Not registered yet?
+    <span id="register-here-text" (click)="gotoSignIn()">Register here</span>
+  </p>
 </div>
-

@@ -14,5 +14,10 @@ export const routes: Routes = [
         path: '', //Default route is homepage
         loadComponent: () => 
             import('./pages/homepage/home').then(m => m.Home),
+    },
+    {
+        path: 'round', 
+        loadComponent: () =>
+            import('./pages/round-page/round-page').then(m => m.RoundPage),
     }
 ];

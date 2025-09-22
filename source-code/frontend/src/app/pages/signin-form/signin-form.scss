@@ -9,6 +9,12 @@
     padding: clamp(16px, 4vw, 32px);
 }
 
+.signin-form form {
+    display: flex;
+    flex-direction: column; 
+    gap: 12px;              
+}
+
 .signin-form input {
     padding: 8px;
     border-radius: 4px;
@@ -92,4 +98,12 @@
 #signin-policy {
     accent-color: #F7B725;
     
+}
+
+.form-error-message p{
+    margin-top: 10px;
+    padding: 2px;
+    color: red;
+    font-size: clamp(13px, 3vw, 18px);
+    border-radius: 8px;
 }

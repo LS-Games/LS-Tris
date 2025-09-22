@@ -55,6 +55,21 @@
   transition: transform 0.2s ease;
 }
 
+#logout-btn {
+  color: white;
+  background: red;
+  font-family: 'Bowlby One SC', sans-serif;
+  font-size: clamp(18px, 4vw, 22px);
+  border-color: red;
+  border-radius: 8px 8px 8px 8px;
+  padding: 8px;
+  text-decoration: none;
+  display: inline-block;
+  transition: color 0.25s ease, transform 0.25s ease;
+  transform-origin: center;
+  cursor: pointer;
+}
+
 .logo img:hover { transform: scale(1.15); }
 
 @media (min-width: 480px) {

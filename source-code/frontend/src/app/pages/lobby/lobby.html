@@ -1,0 +1,15 @@
+<div class="lobby-container">
+    <span class="close-btn" (click)="close()">&times;</span>
+    <div class="game-card-container">
+        @for (match of matches; track match.id) {
+            <app-game-card
+                [id]="match.id"
+                [creator]="match.creator"
+                [data]="match.data"
+                [owner]="match.owner"
+                [state]="match.state"
+                [current_streak]="match.current_streak">
+            </app-game-card>
+        }   
+    </div>
+</div>
