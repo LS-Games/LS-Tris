@@ -11,13 +11,13 @@ typedef enum {
     PLAYER_CONTROLLER_DATABASE_ERROR,
     PLAYER_CONTROLLER_CONFLICT,
     //PLAYER_CONTROLLER_FORBIDDEN,
-    //PLAYER_CONTROLLER_INTERNAL_ERROR
+    PLAYER_CONTROLLER_INTERNAL_ERROR
 } PlayerControllerStatus;
 
 
 PlayerControllerStatus player_signup(char* nickname, char* email, char* password);
 PlayerControllerStatus player_signin(char* nickname, char* password, bool *signedIn);
-PlayerControllerStatus player_get_public_profile(char* nickname, PlayerDTO *out_dto);
+PlayerControllerStatus player_get_public_profile(char* nickname, PlayerDTO **out_dto);
 
 // ===================== CRUD Operations =====================
 

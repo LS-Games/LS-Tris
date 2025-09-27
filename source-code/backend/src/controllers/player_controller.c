@@ -1,5 +1,6 @@
 #include <string.h>
 #include <time.h>
+#include <stdlib.h>
 
 #include "../../include/debug_log.h"
 
@@ -51,7 +52,7 @@ PlayerControllerStatus player_signin(char* nickname, char* password, bool *signe
     return PLAYER_CONTROLLER_OK;
 }
 
-PlayerControllerStatus player_get_public_profile(char* nickname, PlayerDTO *out_dto) {
+PlayerControllerStatus player_get_public_profile(char* nickname, PlayerDTO **out_dto) {
 
     // Check if there's a player with this nickname
     Player retrievedPlayer;
@@ -59,7 +60,16 @@ PlayerControllerStatus player_get_public_profile(char* nickname, PlayerDTO *out_
         return PLAYER_CONTROLLER_INVALID_INPUT;
     }
 
-    map_player_to_dto(&retrievedPlayer, out_dto);
+    PlayerDTO *dynamicDTO = malloc(sizeof(PlayerDTO));
+
+    if (dynamicDTO == NULL) {
+        LOG_WARN("%s\n", "Memory not allocated");
+        return PLAYER_CONTROLLER_INTERNAL_ERROR;
+    }
+
+    map_player_to_dto(&retrievedPlayer, dynamicDTO);
+    
+    *out_dto = dynamicDTO;
     
     return PLAYER_CONTROLLER_OK;
 }

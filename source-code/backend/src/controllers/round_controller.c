@@ -130,23 +130,17 @@ RoundControllerStatus round_start(int id_game, int64_t duration) {
     fill_empty_board(emptyBoard);
 
     // Build round to start
-    Round round = {
+    Round roundToStart = {
         .id_game = id_game,
         .duration = duration,
         .state = PENDING_ROUND,
     };
-    strcpy(round.board, emptyBoard);
+    strcpy(roundToStart.board, emptyBoard);
     
-    LOG_STRUCT_DEBUG(print_round_inline, &round);
+    LOG_STRUCT_DEBUG(print_round_inline, &roundToStart);
     
     // Create round
-    RoundControllerStatus status = round_create(&round);
-    if (status != ROUND_CONTROLLER_OK)
-        return status;
-
-    LOG_STRUCT_DEBUG(print_round_inline, &round);
-
-    return ROUND_CONTROLLER_OK;
+    return round_create(&roundToStart);
 }
 
 RoundControllerStatus round_make_move(int id_round, int id_player, int row, int col) {
@@ -170,7 +164,7 @@ RoundControllerStatus round_make_move(int id_round, int id_player, int row, int 
 
     // Retrieve player_number
     int player_number = -1;
-    for (int i=0; i<retrievedPlayCount; i++) {
+    for (int i=0; i < retrievedPlayCount; i++) {
         if (retrievedPlayArray[i].id_player == id_player)
             player_number = retrievedPlayArray[i].player_number;
     }
@@ -249,11 +243,7 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, PlayResult resu
     }
 
     // Update round
-    RoundControllerStatus status = round_update(roundToEnd);
-    if (status != ROUND_CONTROLLER_OK)
-        return status;
-
-    return ROUND_CONTROLLER_OK;
+    return round_update(roundToEnd);
 }
 
 RoundControllerStatus round_end(int id_round) {
