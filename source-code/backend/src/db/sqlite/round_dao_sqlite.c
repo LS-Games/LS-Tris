@@ -7,7 +7,7 @@
 
 #include "round_dao_sqlite.h"
 
-const char* return_round_dao_status_to_string(RoundReturnStatus status) {
+const char* return_round_dao_status_to_string(RoundDaoStatus status) {
     switch (status) {
         case ROUND_DAO_OK:              return "ROUND_DAO_OK";
         case ROUND_DAO_INVALID_INPUT:   return "ROUND_DAO_INVALID_INPUT";
@@ -17,7 +17,7 @@ const char* return_round_dao_status_to_string(RoundReturnStatus status) {
     }
 }
 
-RoundReturnStatus get_round_by_id(sqlite3 *db, int64_t id_round, Round *out) {
+RoundDaoStatus get_round_by_id(sqlite3 *db, int64_t id_round, Round *out) {
 
     if(db == NULL || id_round <= 0 || out == NULL) {
         return ROUND_DAO_INVALID_INPUT;
@@ -82,7 +82,7 @@ RoundReturnStatus get_round_by_id(sqlite3 *db, int64_t id_round, Round *out) {
         return ROUND_DAO_SQL_ERROR;
 }
 
-RoundReturnStatus get_all_rounds(sqlite3 *db, Round** out_array, int *out_count) {
+RoundDaoStatus get_all_rounds(sqlite3 *db, Round** out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
         return ROUND_DAO_INVALID_INPUT;
@@ -168,14 +168,14 @@ RoundReturnStatus get_all_rounds(sqlite3 *db, Round** out_array, int *out_count)
 
 }
 
-RoundReturnStatus update_round_by_id(sqlite3 *db, const Round *upd_round) {
+RoundDaoStatus update_round_by_id(sqlite3 *db, const Round *upd_round) {
 
     if (db == NULL || upd_round == NULL || upd_round->id_round <= 0) {
         return ROUND_DAO_INVALID_INPUT;
     }
 
     Round original_round;
-    RoundReturnStatus round_status = get_round_by_id(db, upd_round->id_round, &original_round);
+    RoundDaoStatus round_status = get_round_by_id(db, upd_round->id_round, &original_round);
 
     if (round_status != ROUND_DAO_OK) {
         return round_status;
@@ -287,7 +287,7 @@ RoundReturnStatus update_round_by_id(sqlite3 *db, const Round *upd_round) {
         return ROUND_DAO_SQL_ERROR;
 }
 
-RoundReturnStatus delete_round_by_id(sqlite3 *db, int64_t id_round) {
+RoundDaoStatus delete_round_by_id(sqlite3 *db, int64_t id_round) {
 
     if (db == NULL || id_round <= 0) {
         return ROUND_DAO_INVALID_INPUT;
@@ -327,7 +327,7 @@ RoundReturnStatus delete_round_by_id(sqlite3 *db, int64_t id_round) {
         return ROUND_DAO_SQL_ERROR;
 }
 
-RoundReturnStatus insert_round(sqlite3 *db, Round *in_out_round) {
+RoundDaoStatus insert_round(sqlite3 *db, Round *in_out_round) {
 
     if (db == NULL || in_out_round == NULL) {
         return ROUND_DAO_INVALID_INPUT;

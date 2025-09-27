@@ -23,7 +23,7 @@ const char* return_play_controller_status_to_string(PlayControllerStatus status)
 // Create
 PlayControllerStatus play_create(Play* playToCreate) {
     sqlite3* db = db_open();
-    PlayReturnStatus status = insert_play(db, playToCreate);
+    PlayDaoStatus status = insert_play(db, playToCreate);
     db_close(db);
     if (status != PLAY_DAO_OK) {
         LOG_WARN("%s\n", return_play_dao_status_to_string(status));
@@ -36,7 +36,7 @@ PlayControllerStatus play_create(Play* playToCreate) {
 // Read all
 PlayControllerStatus play_find_all(Play** retrievedPlayArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
-    PlayReturnStatus status = get_all_plays(db, retrievedPlayArray, retrievedObjectCount);
+    PlayDaoStatus status = get_all_plays(db, retrievedPlayArray, retrievedObjectCount);
     db_close(db);
     if (status != PLAY_DAO_OK) {
         LOG_WARN("%s\n", return_play_dao_status_to_string(status));
@@ -49,7 +49,7 @@ PlayControllerStatus play_find_all(Play** retrievedPlayArray, int* retrievedObje
 // Read one
 PlayControllerStatus play_find_one(int id_play, int id_round, Play* retrievedPlay) {
     sqlite3* db = db_open();
-    PlayReturnStatus status = get_play_by_pk(db, id_play, id_round, retrievedPlay);
+    PlayDaoStatus status = get_play_by_pk(db, id_play, id_round, retrievedPlay);
     db_close(db);
     if (status != PLAY_DAO_OK) {
         LOG_WARN("%s\n", return_play_dao_status_to_string(status));
@@ -62,7 +62,7 @@ PlayControllerStatus play_find_one(int id_play, int id_round, Play* retrievedPla
 // Update
 PlayControllerStatus play_update(Play* updatedPlay) {
     sqlite3* db = db_open();
-    PlayReturnStatus status = update_play_by_pk(db, updatedPlay);
+    PlayDaoStatus status = update_play_by_pk(db, updatedPlay);
     db_close(db);
     if (status != PLAY_DAO_OK) {
         LOG_WARN("%s\n", return_play_dao_status_to_string(status));
@@ -75,7 +75,7 @@ PlayControllerStatus play_update(Play* updatedPlay) {
 // Delete
 PlayControllerStatus play_delete(int id_play, int id_round) {
     sqlite3* db = db_open();
-    PlayReturnStatus status = delete_play_by_pk(db, id_play, id_round);
+    PlayDaoStatus status = delete_play_by_pk(db, id_play, id_round);
     db_close(db);
     if (status != PLAY_DAO_OK) {
         LOG_WARN("%s\n", return_play_dao_status_to_string(status));
@@ -88,7 +88,7 @@ PlayControllerStatus play_delete(int id_play, int id_round) {
 // Read all (by_round)
 PlayControllerStatus play_find_all_by_round(Play** retrievedPlayArray, int64_t id_round, int* retrievedObjectCount) {
     sqlite3* db = db_open();
-    PlayReturnStatus status = get_all_plays_by_round(db, retrievedPlayArray, id_round, retrievedObjectCount);
+    PlayDaoStatus status = get_all_plays_by_round(db, retrievedPlayArray, id_round, retrievedObjectCount);
     db_close(db);
     if (status != PLAY_DAO_OK) {
         LOG_WARN("%s\n", return_play_dao_status_to_string(status));

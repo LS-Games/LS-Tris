@@ -7,7 +7,7 @@
 
 #include "player_dao_sqlite.h"
 
-const char* return_player_dao_status_to_string(PlayerReturnStatus status) {
+const char* return_player_dao_status_to_string(PlayerDaoStatus status) {
     switch (status) {
         case PLAYER_DAO_OK:                 return "PLAYER_DAO_OK";
         case PLAYER_DAO_INVALID_INPUT:      return "PLAYER_DAO_INVALID_INPUT";
@@ -17,7 +17,7 @@ const char* return_player_dao_status_to_string(PlayerReturnStatus status) {
     }
 }
 
-PlayerReturnStatus get_player_by_id(sqlite3 *db, int64_t id, Player *out) {
+PlayerDaoStatus get_player_by_id(sqlite3 *db, int64_t id, Player *out) {
 
     if(db == NULL || id <= 0 || out == NULL) {
         return PLAYER_DAO_INVALID_INPUT;
@@ -109,7 +109,7 @@ PlayerReturnStatus get_player_by_id(sqlite3 *db, int64_t id, Player *out) {
         return PLAYER_DAO_SQL_ERROR;
 }
 
-PlayerReturnStatus get_all_players(sqlite3 *db, Player **out_array, int *out_count) {
+PlayerDaoStatus get_all_players(sqlite3 *db, Player **out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { //We only check if pointers are null
         return PLAYER_DAO_INVALID_INPUT;
@@ -202,7 +202,7 @@ PlayerReturnStatus get_all_players(sqlite3 *db, Player **out_array, int *out_cou
         return PLAYER_DAO_SQL_ERROR;
 }
 
-PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player) {
+PlayerDaoStatus update_player_by_id(sqlite3 *db, const Player *upd_player) {
 
     if (db == NULL || upd_player == NULL) {
         return PLAYER_DAO_INVALID_INPUT;
@@ -211,7 +211,7 @@ PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player) {
     //We retrieve the player saved in DB and compare it with the new one
 
     Player original_player;
-    PlayerReturnStatus player_status = get_player_by_id(db, upd_player->id_player, &original_player);
+    PlayerDaoStatus player_status = get_player_by_id(db, upd_player->id_player, &original_player);
 
     if (player_status != PLAYER_DAO_OK) {
         return player_status;
@@ -362,7 +362,7 @@ PlayerReturnStatus update_player_by_id(sqlite3 *db, const Player *upd_player) {
         return PLAYER_DAO_SQL_ERROR;
 } 
 
-PlayerReturnStatus delete_player_by_id(sqlite3 *db, int64_t id) {
+PlayerDaoStatus delete_player_by_id(sqlite3 *db, int64_t id) {
 
     if (db == NULL || id <= 0) {
         return PLAYER_DAO_INVALID_INPUT;
@@ -403,7 +403,7 @@ PlayerReturnStatus delete_player_by_id(sqlite3 *db, int64_t id) {
         return PLAYER_DAO_SQL_ERROR;
 }
 
-PlayerReturnStatus insert_player(sqlite3* db, Player *in_out_player) {
+PlayerDaoStatus insert_player(sqlite3* db, Player *in_out_player) {
 
     if (db == NULL || in_out_player == NULL) {
         return PLAYER_DAO_INVALID_INPUT;
@@ -473,7 +473,7 @@ PlayerReturnStatus insert_player(sqlite3* db, Player *in_out_player) {
         return PLAYER_DAO_SQL_ERROR;
 }
 
-PlayerReturnStatus get_player_by_nickname(sqlite3 *db, const char* nickname, Player *out) {
+PlayerDaoStatus get_player_by_nickname(sqlite3 *db, const char* nickname, Player *out) {
 
     if (db == NULL || nickname == NULL || out == NULL) {
         return PLAYER_DAO_INVALID_INPUT;

@@ -13,7 +13,7 @@ typedef enum {
     PLAY_DAO_INVALID_INPUT,
     PLAY_DAO_MALLOC_ERROR,
     PLAY_DAO_NOT_MODIFIED
-} PlayReturnStatus;
+} PlayDaoStatus;
 
 typedef enum {
     UPDATE_PLAY_RESULT           = 1 << 0,
@@ -22,16 +22,16 @@ typedef enum {
 
 
 // Funzioni CRUD concrete
-PlayReturnStatus get_play_by_pk(sqlite3 *db, int64_t id_player, int64_t id_round, Play *out); 
-PlayReturnStatus get_all_plays(sqlite3 *db, Play** out_array, int *out_count);
-PlayReturnStatus update_play_by_pk(sqlite3 *db, Play *upd_play);
-PlayReturnStatus delete_play_by_pk(sqlite3 *db, int64_t id_play, int64_t id_round);
-PlayReturnStatus insert_play(sqlite3 *db, Play *in_out_play);
+PlayDaoStatus get_play_by_pk(sqlite3 *db, int64_t id_player, int64_t id_round, Play *out); 
+PlayDaoStatus get_all_plays(sqlite3 *db, Play** out_array, int *out_count);
+PlayDaoStatus update_play_by_pk(sqlite3 *db, Play *upd_play);
+PlayDaoStatus delete_play_by_pk(sqlite3 *db, int64_t id_play, int64_t id_round);
+PlayDaoStatus insert_play(sqlite3 *db, Play *in_out_play);
 
-PlayReturnStatus get_all_plays_by_round(sqlite3 *db, Play** out_array, int64_t id_round, int *out_count);
-PlayReturnStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickname** out_array, int *out_count);
+PlayDaoStatus get_all_plays_by_round(sqlite3 *db, Play** out_array, int64_t id_round, int *out_count);
+PlayDaoStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickname** out_array, int *out_count);
 
 // Funzione di utilità per messaggi di errore
-const char* return_play_dao_status_to_string(PlayReturnStatus status);
+const char* return_play_dao_status_to_string(PlayDaoStatus status);
 
 #endif

@@ -23,7 +23,7 @@ const char* return_game_controller_status_to_string(GameControllerStatus status)
 // Create
 GameControllerStatus game_create(Game* gameToCreate) {
     sqlite3* db = db_open();
-    GameReturnStatus status = insert_game(db, gameToCreate);
+    GameDaoStatus status = insert_game(db, gameToCreate);
     db_close(db);
     if (status != GAME_DAO_OK) {
         LOG_WARN("%s\n", return_game_dao_status_to_string(status));
@@ -36,7 +36,7 @@ GameControllerStatus game_create(Game* gameToCreate) {
 // Read all
 GameControllerStatus game_find_all(Game** retrievedGameArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
-    GameReturnStatus status = get_all_games(db, retrievedGameArray, retrievedObjectCount);
+    GameDaoStatus status = get_all_games(db, retrievedGameArray, retrievedObjectCount);
     db_close(db);
     if (status != GAME_DAO_OK) {
         LOG_WARN("%s\n", return_game_dao_status_to_string(status));
@@ -49,7 +49,7 @@ GameControllerStatus game_find_all(Game** retrievedGameArray, int* retrievedObje
 // Read one
 GameControllerStatus game_find_one(int id_game, Game* retrievedGame) {
     sqlite3* db = db_open();
-    GameReturnStatus status = get_game_by_id(db, id_game, retrievedGame);
+    GameDaoStatus status = get_game_by_id(db, id_game, retrievedGame);
     db_close(db);
     if (status != GAME_DAO_OK) {
         LOG_WARN("%s\n", return_game_dao_status_to_string(status));
@@ -62,7 +62,7 @@ GameControllerStatus game_find_one(int id_game, Game* retrievedGame) {
 // Update
 GameControllerStatus game_update(Game* updatedGame) {
     sqlite3* db = db_open();
-    GameReturnStatus status = update_game_by_id(db, updatedGame);
+    GameDaoStatus status = update_game_by_id(db, updatedGame);
     db_close(db);
     if (status != GAME_DAO_OK) {
         LOG_WARN("%s\n", return_game_dao_status_to_string(status));
@@ -75,7 +75,7 @@ GameControllerStatus game_update(Game* updatedGame) {
 // Delete
 GameControllerStatus game_delete(int id_game) {
     sqlite3* db = db_open();
-    GameReturnStatus status = delete_game_by_id(db, id_game);
+    GameDaoStatus status = delete_game_by_id(db, id_game);
     db_close(db);
     if (status != GAME_DAO_OK) {
         LOG_WARN("%s\n", return_game_dao_status_to_string(status));

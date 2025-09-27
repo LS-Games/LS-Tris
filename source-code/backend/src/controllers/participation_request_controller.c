@@ -23,7 +23,7 @@ const char* return_participation_request_controller_status_to_string(Participati
 // Create
 ParticipationRequestControllerStatus participation_request_create(ParticipationRequest* participationRequestToCreate) {
     sqlite3* db = db_open();
-    ParticipationRequestReturnStatus status = insert_participation_request(db, participationRequestToCreate);
+    ParticipationRequestDaoStatus status = insert_participation_request(db, participationRequestToCreate);
     db_close(db);
     if (status != PARTICIPATION_DAO_REQUEST_OK) {
         LOG_WARN("%s\n", return_participation_request_dao_status_to_string(status));
@@ -36,7 +36,7 @@ ParticipationRequestControllerStatus participation_request_create(ParticipationR
 // Read all
 ParticipationRequestControllerStatus participation_request_find_all(ParticipationRequest** retrievedParticipationRequestArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
-    ParticipationRequestReturnStatus status = get_all_participation_requests(db, retrievedParticipationRequestArray, retrievedObjectCount);
+    ParticipationRequestDaoStatus status = get_all_participation_requests(db, retrievedParticipationRequestArray, retrievedObjectCount);
     db_close(db);
     if (status != PARTICIPATION_DAO_REQUEST_OK) {
         LOG_WARN("%s\n", return_participation_request_dao_status_to_string(status));
@@ -49,7 +49,7 @@ ParticipationRequestControllerStatus participation_request_find_all(Participatio
 // Read one
 ParticipationRequestControllerStatus participation_request_find_one(int id_participation_request, ParticipationRequest* retrievedParticipationRequest) {
     sqlite3* db = db_open();
-    ParticipationRequestReturnStatus status = get_participation_request_by_id(db, id_participation_request, retrievedParticipationRequest);
+    ParticipationRequestDaoStatus status = get_participation_request_by_id(db, id_participation_request, retrievedParticipationRequest);
     db_close(db);
     if (status != PARTICIPATION_DAO_REQUEST_OK) {
         LOG_WARN("%s\n", return_participation_request_dao_status_to_string(status));
@@ -62,7 +62,7 @@ ParticipationRequestControllerStatus participation_request_find_one(int id_parti
 // Update
 ParticipationRequestControllerStatus participation_request_update(ParticipationRequest* updatedParticipationRequest) {
     sqlite3* db = db_open();
-    ParticipationRequestReturnStatus status = update_participation_request_by_id(db, updatedParticipationRequest);
+    ParticipationRequestDaoStatus status = update_participation_request_by_id(db, updatedParticipationRequest);
     db_close(db);
     if (status != PARTICIPATION_DAO_REQUEST_OK) {
         LOG_WARN("%s\n", return_participation_request_dao_status_to_string(status));
@@ -75,7 +75,7 @@ ParticipationRequestControllerStatus participation_request_update(ParticipationR
 // Delete
 ParticipationRequestControllerStatus participation_request_delete(int id_participation_request) {
     sqlite3* db = db_open();
-    ParticipationRequestReturnStatus status = delete_participation_request_by_id(db, id_participation_request);
+    ParticipationRequestDaoStatus status = delete_participation_request_by_id(db, id_participation_request);
     db_close(db);
     if (status != PARTICIPATION_DAO_REQUEST_OK) {
         LOG_WARN("%s\n", return_participation_request_dao_status_to_string(status));

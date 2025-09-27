@@ -7,7 +7,7 @@
 
 #include "participation_request_dao_sqlite.h"
 
-const char* return_participation_request_dao_status_to_string(ParticipationRequestReturnStatus status) {
+const char* return_participation_request_dao_status_to_string(ParticipationRequestDaoStatus status) {
     switch (status) {
         case PARTICIPATION_DAO_REQUEST_OK:              return "PARTICIPATION_DAO_REQUEST_OK";
         case PARTICIPATION_DAO_REQUEST_INVALID_INPUT:   return "PARTICIPATION_DAO_REQUEST_INVALID_INPUT";
@@ -18,7 +18,7 @@ const char* return_participation_request_dao_status_to_string(ParticipationReque
     }
 }
 
-ParticipationRequestReturnStatus get_participation_request_by_id(sqlite3 *db, int64_t id_request, ParticipationRequest *out) {
+ParticipationRequestDaoStatus get_participation_request_by_id(sqlite3 *db, int64_t id_request, ParticipationRequest *out) {
 
     if(db == NULL || id_request <= 0 || out == NULL) {
         return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;
@@ -77,7 +77,7 @@ ParticipationRequestReturnStatus get_participation_request_by_id(sqlite3 *db, in
         return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 }
 
-ParticipationRequestReturnStatus get_all_participation_requests(sqlite3 *db, ParticipationRequest **out_array, int *out_count) {
+ParticipationRequestDaoStatus get_all_participation_requests(sqlite3 *db, ParticipationRequest **out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
         return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;
@@ -156,14 +156,14 @@ ParticipationRequestReturnStatus get_all_participation_requests(sqlite3 *db, Par
         return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 }
 
-ParticipationRequestReturnStatus update_participation_request_by_id(sqlite3 *db, const ParticipationRequest *upd_participation_request) {
+ParticipationRequestDaoStatus update_participation_request_by_id(sqlite3 *db, const ParticipationRequest *upd_participation_request) {
 
     if (db == NULL || upd_participation_request == NULL || upd_participation_request->id_request <= 0) {
         return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;
     }
 
     ParticipationRequest original_p_request;
-    ParticipationRequestReturnStatus p_request_status = get_participation_request_by_id(db, upd_participation_request->id_request, &original_p_request);
+    ParticipationRequestDaoStatus p_request_status = get_participation_request_by_id(db, upd_participation_request->id_request, &original_p_request);
 
     if (p_request_status != PARTICIPATION_DAO_REQUEST_OK) {
         return p_request_status;
@@ -278,7 +278,7 @@ ParticipationRequestReturnStatus update_participation_request_by_id(sqlite3 *db,
         return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 }
 
-ParticipationRequestReturnStatus delete_participation_request_by_id(sqlite3 *db, int64_t id_request) {
+ParticipationRequestDaoStatus delete_participation_request_by_id(sqlite3 *db, int64_t id_request) {
 
     if (db == NULL || id_request <= 0) {
         return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;
@@ -318,7 +318,7 @@ ParticipationRequestReturnStatus delete_participation_request_by_id(sqlite3 *db,
         return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 }
 
-ParticipationRequestReturnStatus insert_participation_request(sqlite3 *db, ParticipationRequest *in_out_request) {
+ParticipationRequestDaoStatus insert_participation_request(sqlite3 *db, ParticipationRequest *in_out_request) {
 
     if (db == NULL || in_out_request == NULL) {
         return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;
@@ -388,7 +388,7 @@ ParticipationRequestReturnStatus insert_participation_request(sqlite3 *db, Parti
         return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 }
 
-ParticipationRequestReturnStatus get_all_participation_requests_with_player_info(sqlite3 *db, ParticipationRequestWithPlayerNickname **out_array, int *out_count) {
+ParticipationRequestDaoStatus get_all_participation_requests_with_player_info(sqlite3 *db, ParticipationRequestWithPlayerNickname **out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
         return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;

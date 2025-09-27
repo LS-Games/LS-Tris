@@ -13,7 +13,7 @@ typedef enum {
     PARTICIPATION_DAO_REQUEST_INVALID_INPUT,
     PARTICIPATION_DAO_REQUEST_MALLOC_ERROR,
     PARTICIPATION_DAO_REQUEST_NOT_MODIFIED
-} ParticipationRequestReturnStatus;
+} ParticipationRequestDaoStatus;
 
 typedef enum {
     UPDATE_REQUEST_ID_PLAYER        = 1 << 0,  
@@ -24,15 +24,15 @@ typedef enum {
 
 
 // Funzioni CRUD concrete
-ParticipationRequestReturnStatus get_participation_request_by_id(sqlite3 *db, int64_t id_request, ParticipationRequest *out);  
-ParticipationRequestReturnStatus get_all_participation_requests(sqlite3 *db, ParticipationRequest** out_array, int *out_count);
-ParticipationRequestReturnStatus update_participation_request_by_id(sqlite3 *db, const ParticipationRequest *upd_participation_request);
-ParticipationRequestReturnStatus delete_participation_request_by_id(sqlite3 *db, int64_t id_request);
-ParticipationRequestReturnStatus insert_participation_request(sqlite3 *db, ParticipationRequest *in_out_request);
+ParticipationRequestDaoStatus get_participation_request_by_id(sqlite3 *db, int64_t id_request, ParticipationRequest *out);  
+ParticipationRequestDaoStatus get_all_participation_requests(sqlite3 *db, ParticipationRequest** out_array, int *out_count);
+ParticipationRequestDaoStatus update_participation_request_by_id(sqlite3 *db, const ParticipationRequest *upd_participation_request);
+ParticipationRequestDaoStatus delete_participation_request_by_id(sqlite3 *db, int64_t id_request);
+ParticipationRequestDaoStatus insert_participation_request(sqlite3 *db, ParticipationRequest *in_out_request);
 
-ParticipationRequestReturnStatus get_all_participation_requests_with_player_info(sqlite3 *db, ParticipationRequestWithPlayerNickname **out_array, int *out_count);
+ParticipationRequestDaoStatus get_all_participation_requests_with_player_info(sqlite3 *db, ParticipationRequestWithPlayerNickname **out_array, int *out_count);
 
 // Funzione di utilità per messaggi di errore
-const char* return_participation_request_dao_status_to_string(ParticipationRequestReturnStatus status);
+const char* return_participation_request_dao_status_to_string(ParticipationRequestDaoStatus status);
 
 #endif

@@ -270,7 +270,7 @@ const char* return_round_controller_status_to_string(RoundControllerStatus statu
 // Create
 RoundControllerStatus round_create(Round* roundToCreate) {
     sqlite3* db = db_open();
-    RoundReturnStatus status = insert_round(db, roundToCreate);
+    RoundDaoStatus status = insert_round(db, roundToCreate);
     db_close(db);
     if (status != ROUND_DAO_OK) {
         LOG_WARN("%s\n", return_round_dao_status_to_string(status));
@@ -283,7 +283,7 @@ RoundControllerStatus round_create(Round* roundToCreate) {
 // Read all
 RoundControllerStatus round_find_all(Round** retrievedRoundArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
-    RoundReturnStatus status = get_all_rounds(db, retrievedRoundArray, retrievedObjectCount);
+    RoundDaoStatus status = get_all_rounds(db, retrievedRoundArray, retrievedObjectCount);
     db_close(db);
     if (status != ROUND_DAO_OK) {
         LOG_WARN("%s\n", return_round_dao_status_to_string(status));
@@ -296,7 +296,7 @@ RoundControllerStatus round_find_all(Round** retrievedRoundArray, int* retrieved
 // Read one
 RoundControllerStatus round_find_one(int id_round, Round* retrievedRound) {
     sqlite3* db = db_open();
-    RoundReturnStatus status = get_round_by_id(db, id_round, retrievedRound);
+    RoundDaoStatus status = get_round_by_id(db, id_round, retrievedRound);
     db_close(db);
     if (status != ROUND_DAO_OK) {
         LOG_WARN("%s\n", return_round_dao_status_to_string(status));
@@ -309,7 +309,7 @@ RoundControllerStatus round_find_one(int id_round, Round* retrievedRound) {
 // Update
 RoundControllerStatus round_update(Round* updatedRound) {
     sqlite3* db = db_open();
-    RoundReturnStatus status = update_round_by_id(db, updatedRound);
+    RoundDaoStatus status = update_round_by_id(db, updatedRound);
     db_close(db);
     if (status != ROUND_DAO_OK) {
         LOG_WARN("%s\n", return_round_dao_status_to_string(status));
@@ -322,7 +322,7 @@ RoundControllerStatus round_update(Round* updatedRound) {
 // Delete
 RoundControllerStatus round_delete(int id_round) {
     sqlite3* db = db_open();
-    RoundReturnStatus status = delete_round_by_id(db, id_round);
+    RoundDaoStatus status = delete_round_by_id(db, id_round);
     db_close(db);
     if (status != ROUND_DAO_OK) {
         LOG_WARN("%s\n", return_round_dao_status_to_string(status));

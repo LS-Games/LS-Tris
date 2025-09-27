@@ -7,7 +7,7 @@
 
 #include "game_dao_sqlite.h"
 
-const char* return_game_dao_status_to_string(GameReturnStatus status) {
+const char* return_game_dao_status_to_string(GameDaoStatus status) {
     switch (status) {
         case GAME_DAO_OK:               return "GAME_DAO_OK";
         case GAME_DAO_INVALID_INPUT:    return "GAME_DAO_INVALID_INPUT";
@@ -17,7 +17,7 @@ const char* return_game_dao_status_to_string(GameReturnStatus status) {
     }
 }
 
-GameReturnStatus get_game_by_id(sqlite3 *db, int64_t id_game, Game *out) {
+GameDaoStatus get_game_by_id(sqlite3 *db, int64_t id_game, Game *out) {
 
     if(db == NULL || id_game <= 0 || out == NULL) {
         return GAME_DAO_INVALID_INPUT;
@@ -76,7 +76,7 @@ GameReturnStatus get_game_by_id(sqlite3 *db, int64_t id_game, Game *out) {
         return GAME_DAO_SQL_ERROR;
 }
 
-GameReturnStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count) {
+GameDaoStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
         return GAME_DAO_INVALID_INPUT;
@@ -156,14 +156,14 @@ GameReturnStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count) {
 
 }
 
-GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
+GameDaoStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
 
     if (db == NULL || upd_game == NULL || upd_game->id_game <= 0) {
         return GAME_DAO_INVALID_INPUT;
     }
 
     Game original_game;
-    GameReturnStatus game_status = get_game_by_id(db, upd_game->id_game, &original_game);
+    GameDaoStatus game_status = get_game_by_id(db, upd_game->id_game, &original_game);
 
     if (game_status != GAME_DAO_OK) {
         return game_status;
@@ -276,7 +276,7 @@ GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
         return GAME_DAO_SQL_ERROR;
 }
 
-GameReturnStatus delete_game_by_id(sqlite3 *db, int64_t id_game) {
+GameDaoStatus delete_game_by_id(sqlite3 *db, int64_t id_game) {
 
     if (db == NULL || id_game <= 0) {
         return GAME_DAO_INVALID_INPUT;
@@ -316,7 +316,7 @@ GameReturnStatus delete_game_by_id(sqlite3 *db, int64_t id_game) {
         return GAME_DAO_SQL_ERROR;
 }
 
-GameReturnStatus insert_game(sqlite3 *db, Game *in_out_game) {
+GameDaoStatus insert_game(sqlite3 *db, Game *in_out_game) {
 
     if (db == NULL || in_out_game == NULL) {
         return GAME_DAO_INVALID_INPUT;
@@ -386,7 +386,7 @@ GameReturnStatus insert_game(sqlite3 *db, Game *in_out_game) {
         return GAME_DAO_SQL_ERROR;
 }
 
-GameReturnStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickname** out_array, int *out_count) {
+GameDaoStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickname** out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) {
         return GAME_DAO_INVALID_INPUT;

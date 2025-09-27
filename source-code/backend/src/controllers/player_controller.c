@@ -56,7 +56,7 @@ const char* return_player_controller_status_to_string(PlayerControllerStatus sta
 PlayerControllerStatus player_create(Player* playerToCreate) {
 
     sqlite3* db = db_open();
-    PlayerReturnStatus status = insert_player(db, playerToCreate);
+    PlayerDaoStatus status = insert_player(db, playerToCreate);
     db_close(db);
     if (status != PLAYER_DAO_OK) {
         LOG_WARN("%s\n", return_player_dao_status_to_string(status));
@@ -69,7 +69,7 @@ PlayerControllerStatus player_create(Player* playerToCreate) {
 // Read all
 PlayerControllerStatus player_find_all(Player** retrievedPlayerArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
-    PlayerReturnStatus status = get_all_players(db, retrievedPlayerArray, retrievedObjectCount);
+    PlayerDaoStatus status = get_all_players(db, retrievedPlayerArray, retrievedObjectCount);
     db_close(db);
     if (status != PLAYER_DAO_OK) {
         LOG_WARN("%s\n", return_player_dao_status_to_string(status));
@@ -82,7 +82,7 @@ PlayerControllerStatus player_find_all(Player** retrievedPlayerArray, int* retri
 // Read one
 PlayerControllerStatus player_find_one(int id_player, Player* retrievedPlayer) {
     sqlite3* db = db_open();
-    PlayerReturnStatus status = get_player_by_id(db, id_player, retrievedPlayer);
+    PlayerDaoStatus status = get_player_by_id(db, id_player, retrievedPlayer);
     db_close(db);
     if (status != PLAYER_DAO_OK) {
         LOG_WARN("%s\n", return_player_dao_status_to_string(status));
@@ -95,7 +95,7 @@ PlayerControllerStatus player_find_one(int id_player, Player* retrievedPlayer) {
 // Update
 PlayerControllerStatus player_update(Player* updatedPlayer) {
     sqlite3* db = db_open();
-    PlayerReturnStatus status = update_player_by_id(db, updatedPlayer);
+    PlayerDaoStatus status = update_player_by_id(db, updatedPlayer);
     db_close(db);
     if (status != PLAYER_DAO_OK) {
         LOG_WARN("%s\n", return_player_dao_status_to_string(status));
@@ -108,7 +108,7 @@ PlayerControllerStatus player_update(Player* updatedPlayer) {
 // Delete
 PlayerControllerStatus player_delete(int id_player) {
     sqlite3* db = db_open();
-    PlayerReturnStatus status = delete_player_by_id(db, id_player);
+    PlayerDaoStatus status = delete_player_by_id(db, id_player);
     db_close(db);
     if (status != PLAYER_DAO_OK) {
         LOG_WARN("%s\n", return_player_dao_status_to_string(status));
@@ -121,7 +121,7 @@ PlayerControllerStatus player_delete(int id_player) {
 // Read one (by nickname)
 PlayerControllerStatus player_find_one_by_nickname(const char *nickname, Player* retrievedPlayer) {
     sqlite3* db = db_open();
-    PlayerReturnStatus status = get_player_by_nickname(db, nickname, retrievedPlayer);
+    PlayerDaoStatus status = get_player_by_nickname(db, nickname, retrievedPlayer);
     db_close(db);
     if (status != PLAYER_DAO_OK) {
         LOG_WARN("%s\n", return_player_dao_status_to_string(status));

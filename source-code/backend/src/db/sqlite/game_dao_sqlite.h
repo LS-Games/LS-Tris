@@ -13,7 +13,7 @@ typedef enum {
     GAME_DAO_INVALID_INPUT,
     GAME_DAO_MALLOC_ERROR,
     GAME_DAO_NOT_MODIFIED
-} GameReturnStatus;
+} GameDaoStatus;
 
 typedef enum {
     UPDATE_GAME_ID_CREATOR     = 1 << 0,  
@@ -24,15 +24,15 @@ typedef enum {
 
 
 // Funzioni CRUD concrete
-GameReturnStatus get_game_by_id(sqlite3 *db, int64_t id_game, Game *out); 
-GameReturnStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count);
-GameReturnStatus update_game_by_id(sqlite3 *db, const Game *upd_game);
-GameReturnStatus delete_game_by_id(sqlite3 *db, int64_t id_game);
-GameReturnStatus insert_game(sqlite3 *db, Game *in_out_game);
+GameDaoStatus get_game_by_id(sqlite3 *db, int64_t id_game, Game *out); 
+GameDaoStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count);
+GameDaoStatus update_game_by_id(sqlite3 *db, const Game *upd_game);
+GameDaoStatus delete_game_by_id(sqlite3 *db, int64_t id_game);
+GameDaoStatus insert_game(sqlite3 *db, Game *in_out_game);
 
-GameReturnStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickname** out_array, int *out_count);
+GameDaoStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickname** out_array, int *out_count);
 
 // Funzione di utilità per messaggi di errore
-const char* return_game_dao_status_to_string(GameReturnStatus status);
+const char* return_game_dao_status_to_string(GameDaoStatus status);
 
 #endif
