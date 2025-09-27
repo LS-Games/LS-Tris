@@ -201,6 +201,11 @@ RoundControllerStatus round_make_move(int id_round, int id_player, int row, int 
         result = WIN;
     }
 
+    // Update round
+    RoundControllerStatus status = round_update(&retrievedRound);
+    if (status != ROUND_CONTROLLER_OK)
+        return status;
+
     // If match is over
     if (result != PLAY_RESULT_INVALID) {
         return round_end_helper(&retrievedRound, result);
@@ -221,19 +226,26 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, PlayResult resu
     if (playStatus != PLAY_CONTROLLER_OK || retrievedPlayCount <= 0)
         return ROUND_CONTROLLER_INTERNAL_ERROR;
 
+    // If match is not a draw, check who won
+    char winner = NO_SYMBOL;
+    if (result != DRAW)
+        winner = find_winner(roundToEnd->board);
+
     // Set play status
-    if (result == DRAW) {
-        for (int i=0; i<retrievedPlayCount; i++) {
+    for (int i=0; i<retrievedPlayCount; i++) {
+        if (result == DRAW) {
             retrievedPlayArray[i].result = DRAW;
-        }
-    } else {
-        int winner = player_symbol_to_number(find_winner(roundToEnd->board));
-        for (int i=0; i<retrievedPlayCount; i++) {
-            if (retrievedPlayArray[i].player_number == winner)
+        } else {
+            if (retrievedPlayArray[i].player_number == player_symbol_to_number(winner))
                 retrievedPlayArray[i].result = WIN;
             else
                 retrievedPlayArray[i].result = LOSE;
         }
+
+        // Update round
+        PlayControllerStatus status = play_update(&retrievedPlayArray[i]);
+        if (status != PLAY_CONTROLLER_OK)
+            return ROUND_CONTROLLER_INTERNAL_ERROR;
     }
 
     // Update round
