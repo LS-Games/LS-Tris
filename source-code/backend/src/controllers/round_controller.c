@@ -125,13 +125,17 @@ static int get_current_turn(char* board) {
 
 RoundControllerStatus round_start(int id_game, int64_t duration) {
 
+    // Build empty board
+    char emptyBoard[BOARD_MAX];
+    fill_empty_board(emptyBoard);
+
     // Build round to start
     Round round = {
         .id_game = id_game,
         .duration = duration,
         .state = PENDING_ROUND,
-        .board = EMPTY_BOARD
     };
+    strcpy(round.board, emptyBoard);
     
     LOG_STRUCT_DEBUG(print_round_inline, &round);
     

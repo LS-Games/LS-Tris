@@ -38,10 +38,11 @@ void print_player_inline(const Player *p) {
     gmtime_r(&p->registration_date, &tm_utc);
     asctime_r(&tm_utc, buffer);
 
-    printf("Player[id=%" PRId64 ", nick=%s, email=%s, streak=%d/%d, reg=%s]\n",
+    printf("Player[id=%" PRId64 ", nick=%s, email=%s, pass=%s, streak=%d/%d, reg=%s]\n",
             p->id_player,
             p->nickname,
             p->email,
+            p->password,
             p->current_streak,
             p->max_streak,
             buffer);

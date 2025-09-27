@@ -1,6 +1,8 @@
 #ifndef PLAYER_DTO_H
 #define PLAYER_DTO_H
 
+#include "../entities/player_entity.h"
+
 #include <stdint.h>
 
 #define NICKNAME_MAX 100
@@ -13,5 +15,7 @@ typedef struct PlayerDTO {
     int max_streak;
     char registration_date_str[DATE_STR_MAX];
 } PlayerDTO;
+
+void map_player_to_dto(const Player *player, PlayerDTO *out_dto);
 
 #endif

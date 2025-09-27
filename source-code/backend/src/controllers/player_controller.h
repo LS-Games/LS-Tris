@@ -1,6 +1,7 @@
 #include <stdbool.h>
 
 #include "../entities/player_entity.h"
+#include "../dto/player_dto.h"
 
 typedef enum {
     PLAYER_CONTROLLER_OK = 0,
@@ -15,6 +16,8 @@ typedef enum {
 
 
 PlayerControllerStatus player_signup(char* nickname, char* email, char* password);
+PlayerControllerStatus player_signin(char* nickname, char* password, bool *signedIn);
+PlayerControllerStatus player_get_public_profile(char* nickname, PlayerDTO *out_dto);
 
 // ===================== CRUD Operations =====================
 

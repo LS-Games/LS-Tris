@@ -35,6 +35,34 @@ PlayerControllerStatus player_signup(char* nickname, char* email, char* password
     return player_create(&playerToSignup);
 }
 
+PlayerControllerStatus player_signin(char* nickname, char* password, bool *signedIn) {
+
+    *signedIn = false;
+
+    // Check if there's a player with this nickname
+    Player retrievedPlayer;
+    if (player_find_one_by_nickname(nickname, &retrievedPlayer) == PLAYER_CONTROLLER_NOT_FOUND) {
+        return PLAYER_CONTROLLER_INVALID_INPUT;
+    }
+
+    if (strcmp(retrievedPlayer.password, password) == 0)
+        *signedIn = true;
+
+    return PLAYER_CONTROLLER_OK;
+}
+
+PlayerControllerStatus player_get_public_profile(char* nickname, PlayerDTO *out_dto) {
+
+    // Check if there's a player with this nickname
+    Player retrievedPlayer;
+    if (player_find_one_by_nickname(nickname, &retrievedPlayer) == PLAYER_CONTROLLER_NOT_FOUND) {
+        return PLAYER_CONTROLLER_INVALID_INPUT;
+    }
+
+    map_player_to_dto(&retrievedPlayer, out_dto);
+    
+    return PLAYER_CONTROLLER_OK;
+}
 
 // ===================== CRUD Operations =====================
 

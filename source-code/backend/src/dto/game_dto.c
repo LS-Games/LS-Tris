@@ -2,7 +2,6 @@
 #include <time.h>
 
 #include "game_dto.h"
-#include "../entities/game_entity.h"
 
 void map_game_to_dto(const Game *game, const char *creator_nick, const char *owner_nick, GameDTO *out_dto) {
     if (!game || !out_dto) return;
