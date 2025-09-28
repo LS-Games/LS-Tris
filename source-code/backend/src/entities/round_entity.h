@@ -23,7 +23,7 @@ typedef struct {
     int64_t id_round;
     int64_t id_game;
     RoundStatus state;
-    int64_t duration;
+    int64_t duration;   // Duration in seconds
     char board[BOARD_MAX];
 } Round;
 

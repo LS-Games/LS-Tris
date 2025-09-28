@@ -6,6 +6,36 @@
 #include "../db/sqlite/db_connection_sqlite.h"
 #include "../db/sqlite/game_dao_sqlite.h"
 
+GameControllerStatus games_get_public_info(GameDTO **out_dtos) {
+
+    GameWithPlayerNickname* retrievedGames;
+    int retrievedObjectCount;
+    if (game_find_all_with_player_info(&retrievedGames, &retrievedObjectCount) == GAME_CONTROLLER_NOT_FOUND) {
+        return GAME_CONTROLLER_INVALID_INPUT;
+    }
+
+    GameDTO *dynamicDTOs = malloc(sizeof(GameDTO) * retrievedObjectCount);
+
+    if (dynamicDTOs == NULL) {
+        LOG_WARN("%s\n", "Memory not allocated");
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    }
+
+    for (int i = 0; i < retrievedObjectCount; i++) {
+        Game game = {
+            .id_game = retrievedGames[i].id_game,
+            .state = retrievedGames[i].state,
+            .created_at = retrievedGames[i].created_at
+        };
+
+        map_game_to_dto(&game, retrievedGames[i].creator, retrievedGames[i].owner, &(dynamicDTOs[i]));
+    }
+
+    *out_dtos = dynamicDTOs;
+    
+    return GAME_CONTROLLER_OK;
+}
+
 GameControllerStatus game_start(int64_t id_creator) {
 
     // Build game to start
@@ -20,34 +50,29 @@ GameControllerStatus game_start(int64_t id_creator) {
     return game_create(&gameToStart);
 }
 
-GameControllerStatus games_get_public_info(GameDTO **out_dtos) {
+GameControllerStatus game_end(int64_t id_game) {
 
-    GameWithPlayerNickname* retrievedGames;
-    int retrievedObjectCount;
-    if (game_find_all_with_player_info(&retrievedGames, &retrievedObjectCount) == GAME_CONTROLLER_NOT_FOUND) {
-        return GAME_CONTROLLER_INVALID_INPUT;
-    }
+    // Retrieve game to end
+    Game retrievedGame;
+    GameControllerStatus status = game_find_one(id_game, &retrievedGame);
+    if (status != GAME_CONTROLLER_OK)
+        return status;
 
-    GameDTO *dynamicDtos = malloc(sizeof(GameDTO) * retrievedObjectCount);
+    retrievedGame.state = FINISHED_GAME;
 
-    if (dynamicDtos == NULL) {
-        LOG_WARN("%s\n", "Memory not allocated");
-        return GAME_CONTROLLER_INTERNAL_ERROR;
-    }
+    return game_update(&retrievedGame);
+}
 
-    for (int i = 0; i < retrievedObjectCount; i++) {
-        Game game = {
-            .id_game = retrievedGames[i].id_game,
-            .state = retrievedGames[i].state,
-            .created_at = retrievedGames[i].created_at
-        };
+GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner) {
 
-        map_game_to_dto(&game, retrievedGames[i].creator, retrievedGames[i].owner, &(dynamicDtos[i]));
-    }
+    Game retrievedGame;
+    GameControllerStatus status = game_find_one(id_game, &retrievedGame);
+    if (status != GAME_CONTROLLER_OK)
+        return status;
 
-    *out_dtos = dynamicDtos;
-    
-    return GAME_CONTROLLER_OK;
+    retrievedGame.id_owner = id_newOwner;
+
+    return game_update(&retrievedGame);
 }
 
 // ===================== CRUD Operations =====================
@@ -93,7 +118,7 @@ GameControllerStatus game_find_all(Game** retrievedGameArray, int* retrievedObje
 }
 
 // Read one
-GameControllerStatus game_find_one(int id_game, Game* retrievedGame) {
+GameControllerStatus game_find_one(int64_t id_game, Game* retrievedGame) {
     sqlite3* db = db_open();
     GameDaoStatus status = get_game_by_id(db, id_game, retrievedGame);
     db_close(db);
@@ -119,7 +144,7 @@ GameControllerStatus game_update(Game* updatedGame) {
 }
 
 // Delete
-GameControllerStatus game_delete(int id_game) {
+GameControllerStatus game_delete(int64_t id_game) {
     sqlite3* db = db_open();
     GameDaoStatus status = delete_game_by_id(db, id_game);
     db_close(db);

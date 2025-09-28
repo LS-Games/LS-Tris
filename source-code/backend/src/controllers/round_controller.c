@@ -1,9 +1,11 @@
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "../../include/debug_log.h"
 
 #include "round_controller.h"
+#include "game_controller.h"
 #include "play_controller.h"
 #include "../db/sqlite/db_connection_sqlite.h"
 #include "../db/sqlite/round_dao_sqlite.h"
@@ -123,7 +125,29 @@ static int get_current_turn(char* board) {
     return p1SymbolCounter <= p2SymbolCounter ? 1 : 2;
 }
 
-RoundControllerStatus round_start(int id_game, int64_t duration) {
+RoundControllerStatus round_get_public_info(int64_t id_round, RoundDTO **out_dto) {
+
+    // Check if there's a roundwith this id_round
+    Round retrievedRound;
+    if (round_find_one(id_round, &retrievedRound) == ROUND_CONTROLLER_NOT_FOUND) {
+        return ROUND_CONTROLLER_INVALID_INPUT;
+    }
+
+    RoundDTO *dynamicDTO = malloc(sizeof(RoundDTO));
+
+    if (dynamicDTO == NULL) {
+        LOG_WARN("%s\n", "Memory not allocated");
+        return ROUND_CONTROLLER_INTERNAL_ERROR;
+    }
+
+    map_round_to_dto(&retrievedRound, &(*dynamicDTO));
+    
+    *out_dto = dynamicDTO;
+    
+    return ROUND_CONTROLLER_OK;
+}
+
+RoundControllerStatus round_new(int64_t id_game, int64_t duration) {
 
     // Build empty board
     char emptyBoard[BOARD_MAX];
@@ -143,7 +167,30 @@ RoundControllerStatus round_start(int id_game, int64_t duration) {
     return round_create(&roundToStart);
 }
 
-RoundControllerStatus round_make_move(int id_round, int id_player, int row, int col) {
+RoundControllerStatus round_start(int64_t id_round, int64_t id_playerOpponent) {
+
+    // Retrieve round to start
+    Round retrievedRound;
+    RoundControllerStatus roundStatus = round_find_one(id_round, &retrievedRound);
+    if (roundStatus != ROUND_CONTROLLER_OK)
+        return roundStatus;
+
+    // Retrieve game owner
+    Game retrievedGame;
+    GameControllerStatus gameStatus = game_find_one(retrievedRound.id_game, &retrievedGame);
+    if (gameStatus != GAME_CONTROLLER_OK)
+        return ROUND_CONTROLLER_INTERNAL_ERROR;
+    
+    // Add plays to round
+    PlayControllerStatus playStatus = play_add_round_plays(id_round, retrievedGame.id_owner, id_playerOpponent);
+    if (playStatus != PLAY_CONTROLLER_OK)
+        return ROUND_CONTROLLER_INTERNAL_ERROR;
+
+    // Update round
+    return round_update(&retrievedRound);
+}
+
+RoundControllerStatus round_make_move(int64_t id_round, int64_t id_playerMoving, int row, int col) {
     
     // Retrieve round
     Round retrievedRound;
@@ -155,21 +202,13 @@ RoundControllerStatus round_make_move(int id_round, int id_player, int row, int 
     if (retrievedRound.state != ACTIVE_ROUND)
         return ROUND_CONTROLLER_STATE_VIOLATION;
 
-    // Retrieve plays of this round
-    Play* retrievedPlayArray;
-    int retrievedPlayCount;
-    PlayControllerStatus playStatus = play_find_all_by_round(&retrievedPlayArray, id_round, &retrievedPlayCount);
-    if (playStatus != PLAY_CONTROLLER_OK)
+    // Retrieve current player_number
+    int player_number;
+    PlayControllerStatus playStatus = play_retrieve_current_player_number_of_round(id_round, id_playerMoving, &player_number);
+    if (playStatus != PLAY_CONTROLLER_OK) {
+        LOG_WARN("%s\n", return_play_controller_status_to_string(playStatus));
         return ROUND_CONTROLLER_INTERNAL_ERROR;
-
-    // Retrieve player_number
-    int player_number = -1;
-    for (int i=0; i < retrievedPlayCount; i++) {
-        if (retrievedPlayArray[i].id_player == id_player)
-            player_number = retrievedPlayArray[i].player_number;
     }
-    if (player_number == -1)
-        return ROUND_CONTROLLER_INTERNAL_ERROR;
         
     // Check if it's the right turn
     if (player_number != get_current_turn(retrievedRound.board))
@@ -213,40 +252,23 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, PlayResult resu
     // Set round status
     roundToEnd->state = FINISHED_ROUND;
 
-    // Retrieve plays of this round
-    Play* retrievedPlayArray;
-    int retrievedPlayCount;
-    PlayControllerStatus playStatus = play_find_all_by_round(&retrievedPlayArray, roundToEnd->id_round, &retrievedPlayCount);
-    if (playStatus != PLAY_CONTROLLER_OK || retrievedPlayCount <= 0)
-        return ROUND_CONTROLLER_INTERNAL_ERROR;
-
     // If match is not a draw, check who won
     char winner = NO_SYMBOL;
     if (result != DRAW)
         winner = find_winner(roundToEnd->board);
 
-    // Set play status
-    for (int i=0; i<retrievedPlayCount; i++) {
-        if (result == DRAW) {
-            retrievedPlayArray[i].result = DRAW;
-        } else {
-            if (retrievedPlayArray[i].player_number == player_symbol_to_number(winner))
-                retrievedPlayArray[i].result = WIN;
-            else
-                retrievedPlayArray[i].result = LOSE;
-        }
-
-        // Update round
-        PlayControllerStatus status = play_update(&retrievedPlayArray[i]);
-        if (status != PLAY_CONTROLLER_OK)
-            return ROUND_CONTROLLER_INTERNAL_ERROR;
+    // Update play results
+    PlayControllerStatus status = play_set_round_plays(roundToEnd->id_round, result, player_symbol_to_number(winner));
+    if (status != PLAY_CONTROLLER_OK) {
+        LOG_WARN("%s\n", return_play_controller_status_to_string(status));
+        return ROUND_CONTROLLER_INTERNAL_ERROR;
     }
 
     // Update round
     return round_update(roundToEnd);
 }
 
-RoundControllerStatus round_end(int id_round) {
+RoundControllerStatus round_end(int64_t id_round) {
     
     // Retrieve round to end
     Round retrievedRound;
@@ -300,7 +322,7 @@ RoundControllerStatus round_find_all(Round** retrievedRoundArray, int* retrieved
 }
 
 // Read one
-RoundControllerStatus round_find_one(int id_round, Round* retrievedRound) {
+RoundControllerStatus round_find_one(int64_t id_round, Round* retrievedRound) {
     sqlite3* db = db_open();
     RoundDaoStatus status = get_round_by_id(db, id_round, retrievedRound);
     db_close(db);
@@ -326,7 +348,7 @@ RoundControllerStatus round_update(Round* updatedRound) {
 }
 
 // Delete
-RoundControllerStatus round_delete(int id_round) {
+RoundControllerStatus round_delete(int64_t id_round) {
     sqlite3* db = db_open();
     RoundDaoStatus status = delete_round_by_id(db, id_round);
     db_close(db);

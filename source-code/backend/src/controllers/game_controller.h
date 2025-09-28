@@ -16,16 +16,18 @@ typedef enum {
 } GameControllerStatus;
 
 
-GameControllerStatus game_start(int64_t id_creator);
 GameControllerStatus games_get_public_info(GameDTO **out_dtos);
+GameControllerStatus game_start(int64_t id_creator);
+GameControllerStatus game_end(int64_t id_game);
+GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner);
 
 // ===================== CRUD Operations =====================
 
 GameControllerStatus game_create(Game* gameToCreate);
 GameControllerStatus game_find_all(Game** retrievedGameArray, int* retrievedObjectCount);
-GameControllerStatus game_find_one(int id_game, Game* retrievedGame);
+GameControllerStatus game_find_one(int64_t id_game, Game* retrievedGame);
 GameControllerStatus game_update(Game* updatedGame);
-GameControllerStatus game_delete(int id_game);
+GameControllerStatus game_delete(int64_t id_game);
 
 GameControllerStatus game_find_all_with_player_info(GameWithPlayerNickname** retrievedGameArray, int* retrievedObjectCount);
 

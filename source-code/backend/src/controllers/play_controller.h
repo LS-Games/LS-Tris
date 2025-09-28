@@ -1,28 +1,37 @@
 #include <stdbool.h>
 
 #include "../entities/play_entity.h"
+#include "../dto/play_dto.h"
+#include "../db/sqlite/dto/play_join_player.h"
 
 typedef enum {
     PLAY_CONTROLLER_OK = 0,
-    //PLAY_CONTROLLER_INVALID_INPUT,
+    PLAY_CONTROLLER_INVALID_INPUT,
     PLAY_CONTROLLER_NOT_FOUND,
     //PLAY_CONTROLLER_STATE_VIOLATION,
     PLAY_CONTROLLER_DATABASE_ERROR,
     //PLAY_CONTROLLER_CONFLICT,
     //PLAY_CONTROLLER_FORBIDDEN,
-    //PLAY_CONTROLLER_INTERNAL_ERROR
+    PLAY_CONTROLLER_INTERNAL_ERROR
 } PlayControllerStatus;
 
+
+PlayControllerStatus plays_get_public_info(PlayDTO **out_dtos);
+PlayControllerStatus play_add_round_plays(int64_t id_round, int64_t id_player_1, int64_t id_player_2);
+PlayControllerStatus play_set_round_plays(int64_t id_round, PlayResult result, int winner);
+PlayControllerStatus play_change_result(int64_t id_play, int64_t id_round, PlayResult newResult);
+PlayControllerStatus play_retrieve_current_player_number_of_round(int64_t id_round, int64_t id_currentPlayer, int* out_player_number);
 
 // ===================== CRUD Operations =====================
 
 PlayControllerStatus play_create(Play* playToCreate);
 PlayControllerStatus play_find_all(Play** retrievedPlayArray, int* retrievedObjectCount);
-PlayControllerStatus play_find_one(int id_play, int id_round, Play* retrievedPlay);
+PlayControllerStatus play_find_one(int64_t id_player, int64_t id_round, Play* retrievedPlay);
 PlayControllerStatus play_update(Play* updatedPlay);
-PlayControllerStatus play_delete(int id_play, int id_round);
+PlayControllerStatus play_delete(int64_t id_player, int64_t id_round);
 
 PlayControllerStatus play_find_all_by_round(Play** retrievedPlayArray, int64_t id_round, int* retrievedObjectCount);
+PlayControllerStatus play_find_all_with_player_info(PlayWithPlayerNickname** retrievedPlayArray, int* retrievedObjectCount);
 
 // Funzione di utilità per messaggi di errore
 const char* return_play_controller_status_to_string(PlayControllerStatus status);
