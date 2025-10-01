@@ -4,10 +4,11 @@
 
 #include "participation_request_controller.h"
 #include "round_controller.h"
+#include "game_controller.h"
 #include "../db/sqlite/db_connection_sqlite.h"
 #include "../db/sqlite/participation_request_dao_sqlite.h"
 
-static ParticipationRequestControllerStatus participation_request_accept_helper(int64_t id_roundToStart, int64_t id_playerAccepted);
+static ParticipationRequestControllerStatus participation_request_accept_helper(int64_t id_gameToPlay, int64_t id_playerAccepted);
 
 ParticipationRequestControllerStatus participation_requests_get_public_info(ParticipationRequestDTO **out_dtos) {
 
@@ -64,21 +65,38 @@ ParticipationRequestControllerStatus participation_request_change_state(int64_t 
 
     retrievedParticipationRequest.state = newStatus;
 
-    // If the request is accepted, we should start a new round
+    // If the request is accepted, we should start a new round and reject all other requests
     if (retrievedParticipationRequest.state == ACCEPTED) {
-        return participation_request_accept_helper(retrievedParticipationRequest.id_game, retrievedParticipationRequest.id_player);
+        status = participation_request_accept_helper(retrievedParticipationRequest.id_game, retrievedParticipationRequest.id_player);
+        if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
+            return status;
+        
+        // TODO: Reject all other participation requests
     }
 
     return participation_request_update(&retrievedParticipationRequest);
 }
 
-// TODO: Controlla che participation request non debba essere associato a round
-static ParticipationRequestControllerStatus participation_request_accept_helper(int64_t id_roundToStart, int64_t id_playerAccepted) {
-    RoundControllerStatus status = round_start(id_roundToStart, id_playerAccepted);
-    if (status != ROUND_CONTROLLER_OK) {
-        LOG_WARN("%s\n", return_round_controller_status_to_string(status));
+static ParticipationRequestControllerStatus participation_request_accept_helper(int64_t id_gameToPlay, int64_t id_playerAccepted) {
+
+    // Retrieve the participation request's game
+    Game retrievedGame;
+    GameControllerStatus gameStatus = game_find_one(id_gameToPlay, &retrievedGame);
+    if (gameStatus != GAME_CONTROLLER_OK)
+        return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
+
+    // Start the round
+    RoundControllerStatus roundStatus = round_start(retrievedGame.id_game, retrievedGame.id_owner, id_playerAccepted, 500);
+    if (roundStatus != ROUND_CONTROLLER_OK) {
+        LOG_WARN("%s\n", return_round_controller_status_to_string(roundStatus));
         return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
     }
+
+    // Update the game status
+    retrievedGame.state = ACTIVE_GAME;
+    gameStatus = game_update(&retrievedGame);
+    if (gameStatus != GAME_CONTROLLER_OK)
+        return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
 
     return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }

@@ -18,6 +18,7 @@ static char find_winner(char board[BOARD_MAX]);
 static bool is_draw(char board[BOARD_MAX]);
 static bool is_valid_move(char board[BOARD_MAX], int row, int col);
 static int get_current_turn(char* board);
+static RoundControllerStatus round_start_helper(int64_t id_game, int64_t duration, Round* out_newRound);
 static RoundControllerStatus round_end_helper(Round* roundToEnd, PlayResult result);
 
 static char find_horizontal_winner(char board[BOARD_MAX]) {
@@ -147,47 +148,45 @@ RoundControllerStatus round_get_public_info(int64_t id_round, RoundDTO **out_dto
     return ROUND_CONTROLLER_OK;
 }
 
-RoundControllerStatus round_new(int64_t id_game, int64_t duration) {
+static RoundControllerStatus round_start_helper(int64_t id_game, int64_t duration, Round* out_newRound) {
 
     // Build empty board
     char emptyBoard[BOARD_MAX];
     fill_empty_board(emptyBoard);
 
-    // Build round to start
+    // Build new round
     Round roundToStart = {
         .id_game = id_game,
         .duration = duration,
-        .state = PENDING_ROUND,
+        .state = ACTIVE_ROUND,
     };
     strcpy(roundToStart.board, emptyBoard);
-    
+
     LOG_STRUCT_DEBUG(print_round_inline, &roundToStart);
-    
-    // Create round
-    return round_create(&roundToStart);
+
+    RoundControllerStatus status = round_create(&roundToStart);
+    if (status != ROUND_CONTROLLER_OK)
+        return status;
+
+    *out_newRound = roundToStart;
+
+    return ROUND_CONTROLLER_OK;
 }
 
-RoundControllerStatus round_start(int64_t id_round, int64_t id_playerOpponent) {
+RoundControllerStatus round_start(int64_t id_game, int64_t id_player1, int64_t id_player2, int64_t duration) {
 
-    // Retrieve round to start
-    Round retrievedRound;
-    RoundControllerStatus roundStatus = round_find_one(id_round, &retrievedRound);
+    // Build the new round
+    Round out_newRound;
+    RoundControllerStatus roundStatus = round_start_helper(id_game, duration, &out_newRound);
     if (roundStatus != ROUND_CONTROLLER_OK)
         return roundStatus;
 
-    // Retrieve game owner
-    Game retrievedGame;
-    GameControllerStatus gameStatus = game_find_one(retrievedRound.id_game, &retrievedGame);
-    if (gameStatus != GAME_CONTROLLER_OK)
-        return ROUND_CONTROLLER_INTERNAL_ERROR;
-    
     // Add plays to round
-    PlayControllerStatus playStatus = play_add_round_plays(id_round, retrievedGame.id_owner, id_playerOpponent);
+    PlayControllerStatus playStatus = play_add_round_plays(out_newRound.id_round, id_player1, id_player2);
     if (playStatus != PLAY_CONTROLLER_OK)
         return ROUND_CONTROLLER_INTERNAL_ERROR;
 
-    // Update round
-    return round_update(&retrievedRound);
+    return ROUND_CONTROLLER_OK;
 }
 
 RoundControllerStatus round_make_move(int64_t id_round, int64_t id_playerMoving, int row, int col) {
