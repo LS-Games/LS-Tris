@@ -18,6 +18,7 @@ export class Lobby {
     { id: 1, creator: 'Luca', data: new Date().toLocaleDateString('it-IT'), owner: 'Luca', state: 'waiting' as const, current_streak: 3 },
     { id: 2, creator: 'Marco', data: new Date().toLocaleDateString('it-IT'), owner: 'Paolo', state: 'active' as const, current_streak: 5 },
     { id: 3, creator: 'Giulia', data: new Date().toLocaleDateString('it-IT'), owner: 'Maria', state: 'new' as const, current_streak: 0 },
+    { id: 4, creator: 'Franco', data: new Date().toLocaleDateString('it-IT'), owner: 'Peppe', state: 'finished' as const, current_streak: 0 },
   ];
 
   close() {
