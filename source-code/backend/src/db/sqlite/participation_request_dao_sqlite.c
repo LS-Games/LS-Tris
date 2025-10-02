@@ -472,3 +472,92 @@ ParticipationRequestDaoStatus get_all_participation_requests_with_player_info(sq
         LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
         return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 }
+
+ParticipationRequestDaoStatus get_all_pending_participation_request_by_gameid(sqlite3 *db, int64_t id_game, ParticipationRequest** out_array, int* out_count) {
+    
+    if(!db || id_game <= 0 || !out_array || !out_count ) {
+        return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;
+    } 
+
+    *out_count = 0;
+    *out_array = NULL;
+
+    const char* sql = "SELECT id_request, id_player, id_game, unixepoch(created_at), state "
+                      "FROM Participation_request "
+                      "WHERE id_game = ?1 AND state = 'pending' "
+                      "ORDER BY created_at DESC"; 
+
+    sqlite3_stmt *st = NULL;
+    
+    int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
+    if(rc != SQLITE_OK) goto prepare_fail;
+
+    int cap = 16;
+
+    ParticipationRequest *p_request_array = malloc(sizeof(ParticipationRequest) * cap);
+
+    if(!p_request_array) {
+        sqlite3_finalize(st);
+        return PARTICIPATION_DAO_REQUEST_MALLOC_ERROR;
+    }
+
+    int count = 0;
+
+    rc = sqlite3_bind_int64(st, 1, id_game);
+    if(rc != SQLITE_OK) goto bind_fail;
+
+    while((rc = sqlite3_step(st)) == SQLITE_ROW) {
+
+        if (count == cap) {
+            int new_cap = cap*2;
+            ParticipationRequest *tmp = realloc(p_request_array, sizeof(ParticipationRequest) * new_cap);
+
+            if (!tmp) {
+                free(p_request_array);
+                sqlite3_finalize(st);
+                return PARTICIPATION_DAO_REQUEST_MALLOC_ERROR;
+            }
+            
+            p_request_array = tmp;
+            cap = new_cap;
+        }
+
+        ParticipationRequest p_rqst = {0};
+        p_rqst.id_request = sqlite3_column_int64(st,0);
+        p_rqst.id_player = sqlite3_column_int64(st,1);
+        p_rqst.id_game = sqlite3_column_int64(st,2);
+        p_rqst.created_at = (time_t) sqlite3_column_int64(st, 3);
+        const unsigned char *state = sqlite3_column_text(st, 4);
+
+        if (state) {
+            p_rqst.state = string_to_request_participation_status((const char*) state);
+        } else {
+            p_rqst.state = REQUEST_STATUS_INVALID;
+        }
+
+        p_request_array[count++] = p_rqst;
+    }
+
+    if (rc != SQLITE_DONE) {
+        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        free(p_request_array);
+        sqlite3_finalize(st);
+        return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
+    }
+
+    *out_array = p_request_array;  
+    *out_count = count;
+
+    sqlite3_finalize(st);
+
+    return PARTICIPATION_DAO_REQUEST_OK;
+
+    prepare_fail:
+    LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+    return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
+
+    bind_fail:
+    LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+    sqlite3_finalize(st);
+    return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
+}

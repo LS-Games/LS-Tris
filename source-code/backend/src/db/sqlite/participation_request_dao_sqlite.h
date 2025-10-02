@@ -31,6 +31,7 @@ ParticipationRequestDaoStatus delete_participation_request_by_id(sqlite3 *db, in
 ParticipationRequestDaoStatus insert_participation_request(sqlite3 *db, ParticipationRequest *in_out_request);
 
 ParticipationRequestDaoStatus get_all_participation_requests_with_player_info(sqlite3 *db, ParticipationRequestWithPlayerNickname **out_array, int *out_count);
+ParticipationRequestDaoStatus get_all_pending_participation_request_by_gameid(sqlite3 *db, int64_t id_game, ParticipationRequest **out_array, int *out_count);
 
 // Funzione di utilità per messaggi di errore
 const char* return_participation_request_dao_status_to_string(ParticipationRequestDaoStatus status);

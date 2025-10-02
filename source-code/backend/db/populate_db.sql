@@ -13,7 +13,6 @@ INSERT INTO Game (id_creator, id_owner, state, created_at) VALUES
 (4, 1, 'finished', '2025-08-04 20:15:00');
 
 INSERT INTO Round (id_game, state, duration, board) VALUES
-(1, 'pending', 60, 'X@@XOOX@@'),
 (2, 'active', 120, 'XOOXOOX@@'),
 (2, 'finished', 90, 'XOOXOOXXX'),
 (4, 'finished', 75, '@@@@@@@@@');
