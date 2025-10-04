@@ -128,7 +128,7 @@ static int get_current_turn(char* board) {
 
 RoundControllerStatus round_get_public_info(int64_t id_round, RoundDTO **out_dto) {
 
-    // Check if there's a roundwith this id_round
+    // Check if there's a round with this id_round
     Round retrievedRound;
     if (round_find_one(id_round, &retrievedRound) == ROUND_CONTROLLER_NOT_FOUND) {
         return ROUND_CONTROLLER_INVALID_INPUT;

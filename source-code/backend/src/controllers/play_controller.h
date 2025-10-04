@@ -16,7 +16,7 @@ typedef enum {
 } PlayControllerStatus;
 
 
-PlayControllerStatus plays_get_public_info(PlayDTO **out_dtos);
+PlayControllerStatus plays_get_public_info(PlayDTO **out_dtos, int64_t id_player, int64_t id_round);
 PlayControllerStatus play_add_round_plays(int64_t id_round, int64_t id_player_1, int64_t id_player_2);
 PlayControllerStatus play_set_round_plays(int64_t id_round, PlayResult result, int winner);
 PlayControllerStatus play_change_result(int64_t id_play, int64_t id_round, PlayResult newResult);
@@ -30,7 +30,7 @@ PlayControllerStatus play_find_one(int64_t id_player, int64_t id_round, Play* re
 PlayControllerStatus play_update(Play* updatedPlay);
 PlayControllerStatus play_delete(int64_t id_player, int64_t id_round);
 
-PlayControllerStatus play_find_all_by_round(Play** retrievedPlayArray, int64_t id_round, int* retrievedObjectCount);
+PlayControllerStatus play_find_all_by_id_round(Play** retrievedPlayArray, int64_t id_round, int* retrievedObjectCount);
 PlayControllerStatus play_find_all_with_player_info(PlayWithPlayerNickname** retrievedPlayArray, int* retrievedObjectCount);
 
 // Funzione di utilità per messaggi di errore

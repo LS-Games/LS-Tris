@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "../../include/debug_log.h"
 
@@ -6,7 +7,15 @@
 #include "../db/sqlite/db_connection_sqlite.h"
 #include "../db/sqlite/game_dao_sqlite.h"
 
-GameControllerStatus games_get_public_info(GameDTO **out_dtos) {
+// This function provides a query by `status`. 
+// - Possible values for `status` are `new`, `active`, `waiting`, `finished` and `all` (no filter)
+GameControllerStatus games_get_public_info(GameDTO **out_dtos, char *status) {
+
+    GameStatus queryStatus = GAME_STATUS_INVALID;
+    if (strcmp(status, "all") != 0)
+        queryStatus = string_to_game_status(status);
+    if (queryStatus == GAME_STATUS_INVALID)
+        return GAME_CONTROLLER_INVALID_INPUT;
 
     GameWithPlayerNickname* retrievedGames;
     int retrievedObjectCount;
@@ -21,14 +30,20 @@ GameControllerStatus games_get_public_info(GameDTO **out_dtos) {
         return GAME_CONTROLLER_INTERNAL_ERROR;
     }
 
-    for (int i = 0; i < retrievedObjectCount; i++) {
-        Game game = {
-            .id_game = retrievedGames[i].id_game,
-            .state = retrievedGames[i].state,
-            .created_at = retrievedGames[i].created_at
-        };
+    int i = 0;
+    while (i < retrievedObjectCount) {
+        if (strcmp(status, "all") == 0 || retrievedGames[i].state == queryStatus) {
 
-        map_game_to_dto(&game, retrievedGames[i].creator, retrievedGames[i].owner, &(dynamicDTOs[i]));
+            Game game = {
+                .id_game = retrievedGames[i].id_game,
+                .state = retrievedGames[i].state,
+                .created_at = retrievedGames[i].created_at
+            };
+        
+            map_game_to_dto(&game, retrievedGames[i].creator, retrievedGames[i].owner, &(dynamicDTOs[i]));
+
+            i = i+1;
+        } 
     }
 
     *out_dtos = dynamicDTOs;

@@ -16,7 +16,7 @@ typedef enum {
 } GameControllerStatus;
 
 
-GameControllerStatus games_get_public_info(GameDTO **out_dtos);
+GameControllerStatus games_get_public_info(GameDTO **out_dtos, char *status);
 GameControllerStatus game_start(int64_t id_creator);
 GameControllerStatus game_end(int64_t id_game);
 GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner);
