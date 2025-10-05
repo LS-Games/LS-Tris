@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "../../include/debug_log.h"
 
@@ -9,8 +10,18 @@
 #include "../db/sqlite/participation_request_dao_sqlite.h"
 
 static ParticipationRequestControllerStatus participation_request_accept_helper(int64_t id_gameToPlay, int64_t id_playerAccepted);
+static ParticipationRequestControllerStatus participation_request_reject_all(ParticipationRequest* pendingRequestsToReject, int retrievedObjectCount);
 
-ParticipationRequestControllerStatus participation_requests_get_public_info(ParticipationRequestDTO **out_dtos) {
+// This function provides a query by `state` and `id_game`. 
+// @param state Possible values are `pending`, `accepted`, `rejected` and `all` (no filter)
+// @param id_game Possible values are all integer positive number and -1 (no filter)
+ParticipationRequestControllerStatus participation_requests_get_public_info_by_state(ParticipationRequestDTO **out_dtos, char *state, int64_t id_game) {
+
+    RequestStatus queryState = REQUEST_STATUS_INVALID;
+    if (strcmp(state, "all") != 0)
+        queryState = string_to_request_participation_status(state);
+    if (queryState == REQUEST_STATUS_INVALID)
+        return PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT;
 
     ParticipationRequestWithPlayerNickname* retrievedParticipationRequests;
     int retrievedObjectCount;
@@ -18,22 +29,29 @@ ParticipationRequestControllerStatus participation_requests_get_public_info(Part
         return PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT;
     }
 
-    ParticipationRequestDTO *dynamicDTOs = malloc(sizeof(ParticipationRequestDTO) * retrievedObjectCount);
-
-    if (dynamicDTOs == NULL) {
-        LOG_WARN("%s\n", "Memory not allocated");
-        return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
-    }
-
+    ParticipationRequestDTO *dynamicDTOs = NULL;
+    int filteredObjectCount = 0;
     for (int i = 0; i < retrievedObjectCount; i++) {
-        ParticipationRequest participationRequest = {
-            .id_request = retrievedParticipationRequests[i].id_request,
-            .id_game = retrievedParticipationRequests[i].id_game,
-            .created_at = retrievedParticipationRequests[i].created_at,
-            .state = retrievedParticipationRequests[i].state
-        };
+        if ((strcmp(state, "all") == 0 || retrievedParticipationRequests[i].state == queryState) &&
+            (id_game == -1 || retrievedParticipationRequests[i].id_game == id_game)) {
 
-        map_participation_request_to_dto(&participationRequest, retrievedParticipationRequests[i].player_nickname, &(dynamicDTOs[i]));
+            ParticipationRequest participationRequest = {
+                .id_request = retrievedParticipationRequests[i].id_request,
+                .id_game = retrievedParticipationRequests[i].id_game,
+                .created_at = retrievedParticipationRequests[i].created_at,
+                .state = retrievedParticipationRequests[i].state
+            };
+
+            dynamicDTOs = realloc(dynamicDTOs, (filteredObjectCount + 1) * sizeof(ParticipationRequestDTO));
+            if (dynamicDTOs == NULL) {
+                LOG_WARN("%s\n", "Memory not allocated");
+                return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
+            }
+
+            map_participation_request_to_dto(&participationRequest, retrievedParticipationRequests[i].player_nickname, &(dynamicDTOs[filteredObjectCount]));
+        
+            filteredObjectCount = filteredObjectCount + 1;
+        }
     }
 
     *out_dtos = dynamicDTOs;
@@ -70,8 +88,6 @@ ParticipationRequestControllerStatus participation_request_change_state(int64_t 
         status = participation_request_accept_helper(retrievedParticipationRequest.id_game, retrievedParticipationRequest.id_player);
         if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
             return status;
-        
-        // TODO: Reject all other participation requests
     }
 
     return participation_request_update(&retrievedParticipationRequest);
@@ -98,6 +114,24 @@ static ParticipationRequestControllerStatus participation_request_accept_helper(
     if (gameStatus != GAME_CONTROLLER_OK)
         return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
 
+    // Reject pending requests
+    ParticipationRequest* retrievedPendingRequests;
+    int retrievedObjectCount;
+    ParticipationRequestControllerStatus participationRequestStatus = participation_request_find_all_pending_by_id_game(&retrievedPendingRequests, retrievedGame.id_game, &retrievedObjectCount);
+    if (participationRequestStatus != PARTICIPATION_REQUEST_CONTROLLER_OK)
+        return participationRequestStatus;
+
+    return participation_request_reject_all(retrievedPendingRequests, retrievedObjectCount);
+}
+
+static ParticipationRequestControllerStatus participation_request_reject_all(ParticipationRequest* pendingRequestsToReject, int retrievedObjectCount) {
+    for (int i = 0; i < retrievedObjectCount; i++) {
+        pendingRequestsToReject[i].state = REJECTED;
+        ParticipationRequestControllerStatus status = participation_request_update(&(pendingRequestsToReject[i]));
+        if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
+            return status;
+    }
+
     return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
 
@@ -110,13 +144,13 @@ ParticipationRequestControllerStatus participation_request_cancel(int64_t id_par
 const char* return_participation_request_controller_status_to_string(ParticipationRequestControllerStatus status) {
     switch (status) {
         case PARTICIPATION_REQUEST_CONTROLLER_OK:               return "PARTICIPATION_REQUEST_CONTROLLER_OK";
-        // case PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT:    return "PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT";
+        case PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT:    return "PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT";
         case PARTICIPATION_REQUEST_CONTROLLER_NOT_FOUND:        return "PARTICIPATION_REQUEST_CONTROLLER_NOT_FOUND";
         // case PARTICIPATION_REQUEST_CONTROLLER_STATE_VIOLATION:  return "PARTICIPATION_REQUEST_CONTROLLER_STATE_VIOLATION";
         case PARTICIPATION_REQUEST_CONTROLLER_DATABASE_ERROR:   return "PARTICIPATION_REQUEST_CONTROLLER_DATABASE_ERROR";
         // case PARTICIPATION_REQUEST_CONTROLLER_CONFLICT:         return "PARTICIPATION_REQUEST_CONTROLLER_CONFLICT";
         // case PARTICIPATION_REQUEST_CONTROLLER_FORBIDDEN:        return "PARTICIPATION_REQUEST_CONTROLLER_FORBIDDEN";
-        // case PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR:   return "PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR";
+        case PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR:   return "PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR";
         default:                                return "PARTICIPATION_REQUEST_CONTROLLER_UNKNOWN";
     }
 }
@@ -190,6 +224,19 @@ ParticipationRequestControllerStatus participation_request_delete(int64_t id_par
 ParticipationRequestControllerStatus participation_request_find_all_with_player_info(ParticipationRequestWithPlayerNickname** retrievedParticipationRequestArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     ParticipationRequestDaoStatus status = get_all_participation_requests_with_player_info(db, retrievedParticipationRequestArray, retrievedObjectCount);
+    db_close(db);
+    if (status != PARTICIPATION_DAO_REQUEST_OK) {
+        LOG_WARN("%s\n", return_participation_request_dao_status_to_string(status));
+        return PARTICIPATION_REQUEST_CONTROLLER_DATABASE_ERROR;
+    }
+
+    return PARTICIPATION_REQUEST_CONTROLLER_OK;
+}
+
+// Read all (state="pending" by id_game)
+ParticipationRequestControllerStatus participation_request_find_all_pending_by_id_game(ParticipationRequest** retrievedParticipationRequestArray, int64_t id_game, int* retrievedObjectCount) {
+    sqlite3* db = db_open();
+    ParticipationRequestDaoStatus status = get_all_pending_participation_request_by_id_game(db, id_game, retrievedParticipationRequestArray, retrievedObjectCount);
     db_close(db);
     if (status != PARTICIPATION_DAO_REQUEST_OK) {
         LOG_WARN("%s\n", return_participation_request_dao_status_to_string(status));

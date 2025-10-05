@@ -85,7 +85,7 @@ const char* return_player_controller_status_to_string(PlayerControllerStatus sta
         case PLAYER_CONTROLLER_DATABASE_ERROR:   return "PLAYER_CONTROLLER_DATABASE_ERROR";
         case PLAYER_CONTROLLER_CONFLICT:         return "PLAYER_CONTROLLER_CONFLICT";
         // case PLAYER_CONTROLLER_FORBIDDEN:        return "PLAYER_CONTROLLER_FORBIDDEN";
-        // case PLAYER_CONTROLLER_INTERNAL_ERROR:   return "PLAYER_CONTROLLER_INTERNAL_ERROR";
+        case PLAYER_CONTROLLER_INTERNAL_ERROR:   return "PLAYER_CONTROLLER_INTERNAL_ERROR";
         default:                                return "PLAYER_CONTROLLER_UNKNOWN";
     }
 }
