@@ -7,6 +7,9 @@
         "cstring": "c",
         "typeinfo": "c",
         "compare": "c",
-        "cstdint": "c"
+        "cstdint": "c",
+        "bitset": "c",
+        "algorithm": "c",
+        "format": "c"
     }
 }

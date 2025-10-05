@@ -7,8 +7,8 @@
 #include "../db/sqlite/play_dao_sqlite.h"
 
 // This function provides a query by `id_player` and `id_round`. 
-// - Possible values for `id_player` are all integer positive number and -1 (no filter)
-// - Possible values for `id_round` are all integer positive number and -1 (no filter)
+// @param id_player Possible values are all integer positive number and -1 (no filter)
+// @param id_round Possible values are all integer positive number and -1 (no filter)
 PlayControllerStatus plays_get_public_info(PlayDTO **out_dtos, int64_t id_player, int64_t id_round) {
 
     PlayWithPlayerNickname* retrievedPlays;
@@ -17,15 +17,9 @@ PlayControllerStatus plays_get_public_info(PlayDTO **out_dtos, int64_t id_player
         return PLAY_CONTROLLER_INVALID_INPUT;
     }
 
-    PlayDTO *dynamicDTOs = malloc(sizeof(PlayDTO) * retrievedObjectCount);
-
-    if (dynamicDTOs == NULL) {
-        LOG_WARN("%s\n", "Memory not allocated");
-        return PLAY_CONTROLLER_INTERNAL_ERROR;
-    }
-
-    int i = 0;
-    while (i < retrievedObjectCount) {
+    PlayDTO *dynamicDTOs = NULL;
+    int filteredObjectCount = 0;
+    for (int i = 0; i < retrievedObjectCount; i++) {
         if ((id_player == -1 || retrievedPlays[i].id_player == id_player) &&
             (id_round == -1 || retrievedPlays[i].id_round == id_round)) {
 
@@ -35,9 +29,15 @@ PlayControllerStatus plays_get_public_info(PlayDTO **out_dtos, int64_t id_player
                 .result = retrievedPlays[i].result
             };
 
-            map_play_to_dto(&play, retrievedPlays[i].player_nickname, &(dynamicDTOs[i]));
+            dynamicDTOs = realloc(dynamicDTOs, (filteredObjectCount + 1) * sizeof(PlayDTO));
+            if (dynamicDTOs == NULL) {
+                LOG_WARN("%s\n", "Memory not allocated");
+                return PLAY_CONTROLLER_INTERNAL_ERROR;
+            }
 
-            i = i+1;
+            map_play_to_dto(&play, retrievedPlays[i].player_nickname, &(dynamicDTOs[filteredObjectCount]));
+
+            filteredObjectCount = filteredObjectCount + 1;
         }
     }
 
@@ -72,7 +72,13 @@ PlayControllerStatus play_add_round_plays(int64_t id_round, int64_t id_player_1,
     return play_create(&playToBuild_2);
 }
 
-PlayControllerStatus play_set_round_plays(int64_t id_round, PlayResult result, int winner) {
+// This function sets the plays of a round based on its result.
+// @param result Possible values are `WIN` or `DRAW`
+// @param winner If `result` is `WIN`, then winner represents the winner's player number. Otherwise it's ignored.
+PlayControllerStatus play_set_round_plays_result(int64_t id_round, PlayResult result, int winner) {
+
+    if (result != WIN && result != DRAW)
+        return PLAY_CONTROLLER_INVALID_INPUT;
     
     // Retrieve plays of this round
     Play* retrievedPlayArray;
@@ -85,35 +91,24 @@ PlayControllerStatus play_set_round_plays(int64_t id_round, PlayResult result, i
     for (int i=0; i<retrievedPlayCount; i++) {
         if (result == DRAW) {
             retrievedPlayArray[i].result = DRAW;
-        } else {
-            if (retrievedPlayArray[i].player_number == winner)
+        } else if (result == WIN) {
+            if (retrievedPlayArray[i].player_number == winner) {
                 retrievedPlayArray[i].result = WIN;
-            else
+            } else {
                 retrievedPlayArray[i].result = LOSE;
+            }
         }
 
         // Update round
-        PlayControllerStatus status = play_update(&retrievedPlayArray[i]);
-        return status;
+        playStatus = play_update(&retrievedPlayArray[i]);
+        if (playStatus != PLAY_CONTROLLER_OK)
+            return playStatus;
     }
     
     return PLAY_CONTROLLER_OK;
 }
 
-PlayControllerStatus play_change_result(int64_t id_player, int64_t id_round, PlayResult newResult) {
-
-    // Retrieve play to change result
-    Play retrievedPlay;
-    PlayControllerStatus status = play_find_one(id_player, id_round, &retrievedPlay);
-    if (status != PLAY_CONTROLLER_OK)
-        return status;
-
-    retrievedPlay.result = newResult;
-
-    return play_update(&retrievedPlay);
-}
-
-PlayControllerStatus play_retrieve_current_player_number_of_round(int64_t id_round, int64_t id_currentPlayer, int* out_player_number) {
+PlayControllerStatus play_retrieve_round_current_player_number(int64_t id_round, int64_t id_currentPlayer, int* out_player_number) {
 
     // Retrieve plays of this round
     Play* retrievedPlayArray;
@@ -141,13 +136,13 @@ PlayControllerStatus play_retrieve_current_player_number_of_round(int64_t id_rou
 const char* return_play_controller_status_to_string(PlayControllerStatus status) {
     switch (status) {
         case PLAY_CONTROLLER_OK:               return "PLAY_CONTROLLER_OK";
-        // case PLAY_CONTROLLER_INVALID_INPUT:    return "PLAY_CONTROLLER_INVALID_INPUT";
+        case PLAY_CONTROLLER_INVALID_INPUT:    return "PLAY_CONTROLLER_INVALID_INPUT";
         case PLAY_CONTROLLER_NOT_FOUND:        return "PLAY_CONTROLLER_NOT_FOUND";
         // case PLAY_CONTROLLER_STATE_VIOLATION:  return "PLAY_CONTROLLER_STATE_VIOLATION";
         case PLAY_CONTROLLER_DATABASE_ERROR:   return "PLAY_CONTROLLER_DATABASE_ERROR";
         // case PLAY_CONTROLLER_CONFLICT:         return "PLAY_CONTROLLER_CONFLICT";
         // case PLAY_CONTROLLER_FORBIDDEN:        return "PLAY_CONTROLLER_FORBIDDEN";
-        // case PLAY_CONTROLLER_INTERNAL_ERROR:   return "PLAY_CONTROLLER_INTERNAL_ERROR";
+        case PLAY_CONTROLLER_INTERNAL_ERROR:   return "PLAY_CONTROLLER_INTERNAL_ERROR";
         default:                                return "PLAY_CONTROLLER_UNKNOWN";
     }
 }

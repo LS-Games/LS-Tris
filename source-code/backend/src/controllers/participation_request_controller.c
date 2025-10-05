@@ -13,8 +13,8 @@ static ParticipationRequestControllerStatus participation_request_accept_helper(
 static ParticipationRequestControllerStatus participation_request_reject_all(ParticipationRequest* pendingRequestsToReject, int retrievedObjectCount);
 
 // This function provides a query by `state` and `id_game`. 
-// - Possible values for `state` are `pending`, `accepted`, `rejected` and `all` (no filter)
-// - Possible values for `id_game` are all integer positive number and -1 (no filter)
+// @param state Possible values are `pending`, `accepted`, `rejected` and `all` (no filter)
+// @param id_game Possible values are all integer positive number and -1 (no filter)
 ParticipationRequestControllerStatus participation_requests_get_public_info_by_state(ParticipationRequestDTO **out_dtos, char *state, int64_t id_game) {
 
     RequestStatus queryState = REQUEST_STATUS_INVALID;
@@ -29,15 +29,9 @@ ParticipationRequestControllerStatus participation_requests_get_public_info_by_s
         return PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT;
     }
 
-    ParticipationRequestDTO *dynamicDTOs = malloc(sizeof(ParticipationRequestDTO) * retrievedObjectCount);
-
-    if (dynamicDTOs == NULL) {
-        LOG_WARN("%s\n", "Memory not allocated");
-        return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
-    }
-
-    int i = 0;
-    while (i < retrievedObjectCount) {
+    ParticipationRequestDTO *dynamicDTOs = NULL;
+    int filteredObjectCount = 0;
+    for (int i = 0; i < retrievedObjectCount; i++) {
         if ((strcmp(state, "all") == 0 || retrievedParticipationRequests[i].state == queryState) &&
             (id_game == -1 || retrievedParticipationRequests[i].id_game == id_game)) {
 
@@ -47,10 +41,16 @@ ParticipationRequestControllerStatus participation_requests_get_public_info_by_s
                 .created_at = retrievedParticipationRequests[i].created_at,
                 .state = retrievedParticipationRequests[i].state
             };
-            
-            map_participation_request_to_dto(&participationRequest, retrievedParticipationRequests[i].player_nickname, &(dynamicDTOs[i]));
+
+            dynamicDTOs = realloc(dynamicDTOs, (filteredObjectCount + 1) * sizeof(ParticipationRequestDTO));
+            if (dynamicDTOs == NULL) {
+                LOG_WARN("%s\n", "Memory not allocated");
+                return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
+            }
+
+            map_participation_request_to_dto(&participationRequest, retrievedParticipationRequests[i].player_nickname, &(dynamicDTOs[filteredObjectCount]));
         
-            i = i+1;
+            filteredObjectCount = filteredObjectCount + 1;
         }
     }
 
@@ -144,13 +144,13 @@ ParticipationRequestControllerStatus participation_request_cancel(int64_t id_par
 const char* return_participation_request_controller_status_to_string(ParticipationRequestControllerStatus status) {
     switch (status) {
         case PARTICIPATION_REQUEST_CONTROLLER_OK:               return "PARTICIPATION_REQUEST_CONTROLLER_OK";
-        // case PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT:    return "PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT";
+        case PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT:    return "PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT";
         case PARTICIPATION_REQUEST_CONTROLLER_NOT_FOUND:        return "PARTICIPATION_REQUEST_CONTROLLER_NOT_FOUND";
         // case PARTICIPATION_REQUEST_CONTROLLER_STATE_VIOLATION:  return "PARTICIPATION_REQUEST_CONTROLLER_STATE_VIOLATION";
         case PARTICIPATION_REQUEST_CONTROLLER_DATABASE_ERROR:   return "PARTICIPATION_REQUEST_CONTROLLER_DATABASE_ERROR";
         // case PARTICIPATION_REQUEST_CONTROLLER_CONFLICT:         return "PARTICIPATION_REQUEST_CONTROLLER_CONFLICT";
         // case PARTICIPATION_REQUEST_CONTROLLER_FORBIDDEN:        return "PARTICIPATION_REQUEST_CONTROLLER_FORBIDDEN";
-        // case PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR:   return "PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR";
+        case PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR:   return "PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR";
         default:                                return "PARTICIPATION_REQUEST_CONTROLLER_UNKNOWN";
     }
 }

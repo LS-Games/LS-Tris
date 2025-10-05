@@ -11,15 +11,18 @@ typedef enum {
     //GAME_CONTROLLER_STATE_VIOLATION,
     GAME_CONTROLLER_DATABASE_ERROR,
     //GAME_CONTROLLER_CONFLICT,
-    //GAME_CONTROLLER_FORBIDDEN,
+    GAME_CONTROLLER_FORBIDDEN,
     GAME_CONTROLLER_INTERNAL_ERROR
 } GameControllerStatus;
 
 
 GameControllerStatus games_get_public_info(GameDTO **out_dtos, char *status);
 GameControllerStatus game_start(int64_t id_creator);
-GameControllerStatus game_end(int64_t id_game);
+GameControllerStatus game_end(int64_t id_game, int64_t id_owner);
 GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner);
+GameControllerStatus game_send_rematch(int64_t id_game, int64_t id_playerSendingRematch, int64_t id_playerToRematch);
+GameControllerStatus game_refuse_rematch(int64_t id_game);
+GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAcceptingRematch);
 
 // ===================== CRUD Operations =====================
 
