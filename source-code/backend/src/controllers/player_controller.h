@@ -1,3 +1,6 @@
+#ifndef PLAYER_CONTROLLER_H
+#define PLAYER_CONTROLLER_H
+
 #include <stdbool.h>
 
 #include "../entities/player_entity.h"
@@ -10,14 +13,14 @@ typedef enum {
     PLAYER_CONTROLLER_STATE_VIOLATION,
     PLAYER_CONTROLLER_DATABASE_ERROR,
     PLAYER_CONTROLLER_CONFLICT,
-    //PLAYER_CONTROLLER_FORBIDDEN,
+    // PLAYER_CONTROLLER_FORBIDDEN,
     PLAYER_CONTROLLER_INTERNAL_ERROR
 } PlayerControllerStatus;
 
 
-PlayerControllerStatus player_get_public_info(char* nickname, PlayerDTO **out_dto);
+PlayerControllerStatus player_get_public_info(char* nickname, PlayerDTO** out_dto);
 PlayerControllerStatus player_signup(char* nickname, char* email, char* password);
-PlayerControllerStatus player_signin(char* nickname, char* password, bool *signedIn);
+PlayerControllerStatus player_signin(char* nickname, char* password, bool* signedIn);
 
 // ===================== CRUD Operations =====================
 
@@ -31,3 +34,5 @@ PlayerControllerStatus player_find_one_by_nickname(const char *nickname, Player*
 
 // Funzione di utilità per messaggi di errore
 const char* return_player_controller_status_to_string(PlayerControllerStatus status);
+
+#endif

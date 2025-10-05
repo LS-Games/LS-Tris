@@ -30,7 +30,7 @@ void *handle_client(void *arg) {
         buffer[n] = '\0';
         printf("Message was received correctly: %s/n", buffer);
 
-        char reply[1024];
+        char reply[1088];
         snprintf(reply, sizeof(reply), "Server has received %s:", buffer);
 
         //With send we can reply to the client 

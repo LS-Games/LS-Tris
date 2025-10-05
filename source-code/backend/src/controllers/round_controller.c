@@ -10,7 +10,7 @@
 #include "../dao/sqlite/db_connection_sqlite.h"
 #include "../dao/sqlite/round_dao_sqlite.h"
 
-// Private functions
+// ==================== Private functions ====================
 static char find_horizontal_winner(char board[BOARD_MAX]);
 static char find_vertical_winner(char board[BOARD_MAX]);
 static char find_diagonal_winner(char board[BOARD_MAX]);
@@ -20,6 +20,8 @@ static bool is_valid_move(char board[BOARD_MAX], int row, int col);
 static int get_current_turn(char* board);
 static RoundControllerStatus round_start_helper(int64_t id_game, int64_t duration, Round* out_newRound);
 static RoundControllerStatus round_end_helper(Round* roundToEnd, PlayResult result);
+
+// ===========================================================
 
 static char find_horizontal_winner(char board[BOARD_MAX]) {
     char winner = NO_SYMBOL;
@@ -126,7 +128,7 @@ static int get_current_turn(char* board) {
     return p1SymbolCounter <= p2SymbolCounter ? 1 : 2;
 }
 
-RoundControllerStatus round_get_public_info(int64_t id_round, RoundDTO **out_dto) {
+RoundControllerStatus round_get_public_info(int64_t id_round, RoundDTO** out_dto) {
 
     // Check if there's a round with this id_round
     Round retrievedRound;
@@ -268,10 +270,21 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, PlayResult resu
         winner = find_winner(roundToEnd->board);
 
     // Update play results
-    PlayControllerStatus status = play_set_round_plays_result(roundToEnd->id_round, result, player_symbol_to_number(winner));
-    if (status != PLAY_CONTROLLER_OK) {
-        LOG_WARN("%s\n", return_play_controller_status_to_string(status));
+    PlayControllerStatus playStatus = play_set_round_plays_result(roundToEnd->id_round, result, player_symbol_to_number(winner));
+    if (playStatus != PLAY_CONTROLLER_OK) {
+        LOG_WARN("%s\n", return_play_controller_status_to_string(playStatus));
         return ROUND_CONTROLLER_INTERNAL_ERROR;
+    }
+
+    // Update game owner
+    int64_t id_playerWinner;
+    playStatus = play_find_round_winner(roundToEnd->id_round, &id_playerWinner);
+    if (playStatus != PLAY_CONTROLLER_NOT_FOUND) {
+        GameControllerStatus gameStatus = game_change_owner(roundToEnd->id_game, id_playerWinner);
+        if (gameStatus != GAME_CONTROLLER_OK) {
+            LOG_WARN("%s\n", return_game_controller_status_to_string(gameStatus));
+            return ROUND_CONTROLLER_INTERNAL_ERROR;
+        }
     }
 
     // Update round

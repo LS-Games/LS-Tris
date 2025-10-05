@@ -8,7 +8,7 @@
 #include "../dao/sqlite/db_connection_sqlite.h"
 #include "../dao/sqlite/player_dao_sqlite.h"
 
-PlayerControllerStatus player_get_public_info(char* nickname, PlayerDTO **out_dto) {
+PlayerControllerStatus player_get_public_info(char* nickname, PlayerDTO** out_dto) {
 
     // Check if there's a player with this nickname
     Player retrievedPlayer;
@@ -58,7 +58,7 @@ PlayerControllerStatus player_signup(char* nickname, char* email, char* password
     return player_create(&playerToSignup);
 }
 
-PlayerControllerStatus player_signin(char* nickname, char* password, bool *signedIn) {
+PlayerControllerStatus player_signin(char* nickname, char* password, bool* signedIn) {
 
     *signedIn = false;
 

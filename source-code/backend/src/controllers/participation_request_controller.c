@@ -9,13 +9,17 @@
 #include "../dao/sqlite/db_connection_sqlite.h"
 #include "../dao/sqlite/participation_request_dao_sqlite.h"
 
+// ==================== Private functions ====================
+
 static ParticipationRequestControllerStatus participation_request_accept_helper(int64_t id_gameToPlay, int64_t id_playerAccepted);
 static ParticipationRequestControllerStatus participation_request_reject_all(ParticipationRequest* pendingRequestsToReject, int retrievedObjectCount);
+
+// ===========================================================
 
 // This function provides a query by `state` and `id_game`. 
 // @param state Possible values are `pending`, `accepted`, `rejected` and `all` (no filter)
 // @param id_game Possible values are all integer positive number and -1 (no filter)
-ParticipationRequestControllerStatus participation_requests_get_public_info_by_state(ParticipationRequestDTO **out_dtos, char *state, int64_t id_game) {
+ParticipationRequestControllerStatus participation_requests_get_public_info_by_state(char* state, int64_t id_game, ParticipationRequestDTO** out_dtos) {
 
     RequestStatus queryState = REQUEST_STATUS_INVALID;
     if (strcmp(state, "all") != 0)

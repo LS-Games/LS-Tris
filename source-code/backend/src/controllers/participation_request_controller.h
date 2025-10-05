@@ -1,3 +1,6 @@
+#ifndef PARTICIPATION_REQUEST_CONTROLLER_H
+#define PARTICIPATION_REQUEST_CONTROLLER_H
+
 #include <stdbool.h>
 
 #include "../entities/participation_request_entity.h"
@@ -8,15 +11,15 @@ typedef enum {
     PARTICIPATION_REQUEST_CONTROLLER_OK = 0,
     PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT,
     PARTICIPATION_REQUEST_CONTROLLER_NOT_FOUND,
-    //PARTICIPATION_REQUEST_CONTROLLER_STATE_VIOLATION,
+    // PARTICIPATION_REQUEST_CONTROLLER_STATE_VIOLATION,
     PARTICIPATION_REQUEST_CONTROLLER_DATABASE_ERROR,
-    //PARTICIPATION_REQUEST_CONTROLLER_CONFLICT,
-    //PARTICIPATION_REQUEST_CONTROLLER_FORBIDDEN,
+    // PARTICIPATION_REQUEST_CONTROLLER_CONFLICT,
+    // PARTICIPATION_REQUEST_CONTROLLER_FORBIDDEN,
     PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR
 } ParticipationRequestControllerStatus;
 
 
-ParticipationRequestControllerStatus participation_requests_get_public_info_by_state(ParticipationRequestDTO **out_dtos, char *state, int64_t id_game);
+ParticipationRequestControllerStatus participation_requests_get_public_info_by_state(char* state, int64_t id_game, ParticipationRequestDTO** out_dtos);
 ParticipationRequestControllerStatus participation_request_send(int64_t id_game, int64_t id_player);
 ParticipationRequestControllerStatus participation_request_change_state(int64_t id_participation_request, RequestStatus newStatus);
 ParticipationRequestControllerStatus participation_request_cancel(int64_t id_participation_request);
@@ -34,3 +37,5 @@ ParticipationRequestControllerStatus participation_request_find_all_pending_by_i
 
 // Funzione di utilità per messaggi di errore
 const char* return_participation_request_controller_status_to_string(ParticipationRequestControllerStatus status);
+
+#endif

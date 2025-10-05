@@ -9,7 +9,7 @@
 // This function provides a query by `id_player` and `id_round`. 
 // @param id_player Possible values are all integer positive number and -1 (no filter)
 // @param id_round Possible values are all integer positive number and -1 (no filter)
-PlayControllerStatus plays_get_public_info(PlayDTO **out_dtos, int64_t id_player, int64_t id_round) {
+PlayControllerStatus plays_get_public_info(int64_t id_player, int64_t id_round, PlayDTO** out_dtos) {
 
     PlayWithPlayerNickname* retrievedPlays;
     int retrievedObjectCount;
@@ -128,6 +128,31 @@ PlayControllerStatus play_retrieve_round_current_player_number(int64_t id_round,
 
     *out_player_number = player_number;
 
+    return PLAY_CONTROLLER_OK;
+}
+
+PlayControllerStatus play_find_round_winner(int64_t id_round, int64_t *out_id_playerWinner) {
+
+    // Retrieve plays of this round
+    Play* retrievedPlayArray;
+    int retrievedPlayCount;
+    PlayControllerStatus playStatus = play_find_all_by_id_round(&retrievedPlayArray, id_round, &retrievedPlayCount);
+    if (playStatus != PLAY_CONTROLLER_OK || retrievedPlayCount <= 0)
+        return PLAY_CONTROLLER_INTERNAL_ERROR;
+
+    // Find winner
+    int64_t id_winner = -1;
+    for (int i=0; i < retrievedPlayCount; i++) {
+        if (retrievedPlayArray[i].result == WIN) {
+            id_winner = retrievedPlayArray[i].id_player;
+        }
+    }
+
+    *out_id_playerWinner = id_winner;
+
+    if (id_winner == -1)
+        return PLAY_CONTROLLER_NOT_FOUND;
+    
     return PLAY_CONTROLLER_OK;
 }
 

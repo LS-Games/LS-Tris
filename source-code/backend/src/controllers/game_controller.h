@@ -1,3 +1,6 @@
+#ifndef GAME_CONTROLLER_H
+#define GAME_CONTROLLER_H
+
 #include <stdbool.h>
 
 #include "../entities/game_entity.h"
@@ -8,19 +11,18 @@ typedef enum {
     GAME_CONTROLLER_OK = 0,
     GAME_CONTROLLER_INVALID_INPUT,
     GAME_CONTROLLER_NOT_FOUND,
-    //GAME_CONTROLLER_STATE_VIOLATION,
+    // GAME_CONTROLLER_STATE_VIOLATION,
     GAME_CONTROLLER_DATABASE_ERROR,
-    //GAME_CONTROLLER_CONFLICT,
+    // GAME_CONTROLLER_CONFLICT,
     GAME_CONTROLLER_FORBIDDEN,
     GAME_CONTROLLER_INTERNAL_ERROR
 } GameControllerStatus;
 
 
-GameControllerStatus games_get_public_info(GameDTO **out_dtos, char *status);
+GameControllerStatus games_get_public_info(char* status, GameDTO** out_dtos);
 GameControllerStatus game_start(int64_t id_creator);
 GameControllerStatus game_end(int64_t id_game, int64_t id_owner);
 GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner);
-GameControllerStatus game_send_rematch(int64_t id_game, int64_t id_playerSendingRematch, int64_t id_playerToRematch);
 GameControllerStatus game_refuse_rematch(int64_t id_game);
 GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAcceptingRematch);
 
@@ -36,3 +38,5 @@ GameControllerStatus game_find_all_with_player_info(GameWithPlayerNickname** ret
 
 // Funzione di utilità per messaggi di errore
 const char* return_game_controller_status_to_string(GameControllerStatus status);
+
+#endif

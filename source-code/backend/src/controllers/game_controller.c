@@ -10,7 +10,7 @@
 
 // This function provides a query by `status`. 
 // @param status Possible values are `new`, `active`, `waiting`, `finished` and `all` (no filter)
-GameControllerStatus games_get_public_info(GameDTO **out_dtos, char *status) {
+GameControllerStatus games_get_public_info(char* status, GameDTO** out_dtos) {
 
     GameStatus queryStatus = GAME_STATUS_INVALID;
     if (strcmp(status, "all") != 0)
@@ -92,21 +92,6 @@ GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner) {
     retrievedGame.id_owner = id_newOwner;
 
     return game_update(&retrievedGame);
-}
-
-// TODO: Scegliere se inserirlo nel controller delle notifications
-GameControllerStatus game_send_rematch(int64_t id_game, int64_t id_playerSendingRematch, int64_t id_playerToRematch) {
-
-    Game retrievedGame;
-    GameControllerStatus status = game_find_one(id_game, &retrievedGame);
-    if (status != GAME_CONTROLLER_OK)
-        return status;
-
-    if (id_playerSendingRematch == retrievedGame.id_owner) {
-        // TODO: Invia notifica di rematch
-    }
-
-    return GAME_CONTROLLER_OK;
 }
 
 GameControllerStatus game_refuse_rematch(int64_t id_game) {
