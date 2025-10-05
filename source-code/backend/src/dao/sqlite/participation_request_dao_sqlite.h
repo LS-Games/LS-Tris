@@ -4,7 +4,7 @@
 #include <sqlite3.h>
 
 #include "../../entities/participation_request_entity.h"
-#include "../../db/sqlite/dto/participation_request_join_player.h"
+#include "../dto/participation_request_join_player.h"
 
 typedef enum {
     PARTICIPATION_DAO_REQUEST_OK = 0,

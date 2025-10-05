@@ -5,8 +5,8 @@
 
 #include "game_controller.h"
 #include "round_controller.h"
-#include "../db/sqlite/db_connection_sqlite.h"
-#include "../db/sqlite/game_dao_sqlite.h"
+#include "../dao/sqlite/db_connection_sqlite.h"
+#include "../dao/sqlite/game_dao_sqlite.h"
 
 // This function provides a query by `status`. 
 // @param status Possible values are `new`, `active`, `waiting`, `finished` and `all` (no filter)

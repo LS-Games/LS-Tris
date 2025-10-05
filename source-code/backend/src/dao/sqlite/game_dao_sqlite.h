@@ -4,7 +4,7 @@
 #include <sqlite3.h>
 
 #include "../../entities/game_entity.h"
-#include "../../db/sqlite/dto/game_join_player.h"
+#include "../dto/game_join_player.h"
 
 typedef enum {
     GAME_DAO_OK = 0,

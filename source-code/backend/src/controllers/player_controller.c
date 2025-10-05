@@ -5,8 +5,8 @@
 #include "../../include/debug_log.h"
 
 #include "player_controller.h"
-#include "../db/sqlite/db_connection_sqlite.h"
-#include "../db/sqlite/player_dao_sqlite.h"
+#include "../dao/sqlite/db_connection_sqlite.h"
+#include "../dao/sqlite/player_dao_sqlite.h"
 
 PlayerControllerStatus player_get_public_info(char* nickname, PlayerDTO **out_dto) {
 

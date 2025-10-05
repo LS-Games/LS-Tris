@@ -3,8 +3,8 @@
 #include "../../include/debug_log.h"
 
 #include "play_controller.h"
-#include "../db/sqlite/db_connection_sqlite.h"
-#include "../db/sqlite/play_dao_sqlite.h"
+#include "../dao/sqlite/db_connection_sqlite.h"
+#include "../dao/sqlite/play_dao_sqlite.h"
 
 // This function provides a query by `id_player` and `id_round`. 
 // @param id_player Possible values are all integer positive number and -1 (no filter)

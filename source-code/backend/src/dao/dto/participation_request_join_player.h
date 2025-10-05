@@ -1,8 +1,8 @@
 #ifndef PARTICIPATION_REQUEST_JOIN_PLAYER_H
 #define PARTICIPATION_REQUEST_JOIN_PLAYER_H
 
-#include "../../../entities/participation_request_entity.h"
-#include "../../../entities/player_entity.h"
+#include "../../entities/participation_request_entity.h"
+#include "../../entities/player_entity.h"
 
 typedef struct {
     int64_t id_request;

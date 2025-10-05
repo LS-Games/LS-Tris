@@ -2,7 +2,7 @@
 
 #include "../entities/participation_request_entity.h"
 #include "../dto/participation_request_dto.h"
-#include "../db/sqlite/dto/participation_request_join_player.h"
+#include "../dao/dto/participation_request_join_player.h"
 
 typedef enum {
     PARTICIPATION_REQUEST_CONTROLLER_OK = 0,

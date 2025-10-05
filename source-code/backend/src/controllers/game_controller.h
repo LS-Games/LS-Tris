@@ -2,7 +2,7 @@
 
 #include "../entities/game_entity.h"
 #include "../dto/game_dto.h"
-#include "../db/sqlite/dto/game_join_player.h"
+#include "../dao/dto/game_join_player.h"
 
 typedef enum {
     GAME_CONTROLLER_OK = 0,

@@ -7,8 +7,8 @@
 #include "round_controller.h"
 #include "game_controller.h"
 #include "play_controller.h"
-#include "../db/sqlite/db_connection_sqlite.h"
-#include "../db/sqlite/round_dao_sqlite.h"
+#include "../dao/sqlite/db_connection_sqlite.h"
+#include "../dao/sqlite/round_dao_sqlite.h"
 
 // Private functions
 static char find_horizontal_winner(char board[BOARD_MAX]);

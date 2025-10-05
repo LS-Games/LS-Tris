@@ -4,7 +4,7 @@
 
 #include "../include/debug_log.h"
 
-#include "./db/sqlite/db_connection_sqlite.h"
+#include "./dao/sqlite/db_connection_sqlite.h"
 #include "./json-parser/test_json-parser.h"
 
 #include "./dto/player_dto.h"

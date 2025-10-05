@@ -6,8 +6,8 @@
 #include "participation_request_controller.h"
 #include "round_controller.h"
 #include "game_controller.h"
-#include "../db/sqlite/db_connection_sqlite.h"
-#include "../db/sqlite/participation_request_dao_sqlite.h"
+#include "../dao/sqlite/db_connection_sqlite.h"
+#include "../dao/sqlite/participation_request_dao_sqlite.h"
 
 static ParticipationRequestControllerStatus participation_request_accept_helper(int64_t id_gameToPlay, int64_t id_playerAccepted);
 static ParticipationRequestControllerStatus participation_request_reject_all(ParticipationRequest* pendingRequestsToReject, int retrievedObjectCount);
