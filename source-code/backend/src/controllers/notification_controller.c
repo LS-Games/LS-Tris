@@ -8,14 +8,14 @@
 #include "game_controller.h"
 #include "round_controller.h"
 
-NotificationControllerStatus notification_rematch_game(int64_t id_game, int64_t id_playerSendingRematch, int64_t id_playerToRematch, NotificationDTO** out_dto) {
+NotificationControllerStatus notification_rematch_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO** out_dto) {
 
     Game retrievedGame;
     GameControllerStatus status = game_find_one(id_game, &retrievedGame);
     if (status != GAME_CONTROLLER_OK)
         return NOTIFICATION_CONTROLLER_INTERNAL_ERROR;
 
-    if (id_playerSendingRematch != retrievedGame.id_owner) {
+    if (id_sender != retrievedGame.id_owner) {
         return NOTIFICATION_CONTROLLER_FORBIDDEN;
     }
 
@@ -26,9 +26,9 @@ NotificationControllerStatus notification_rematch_game(int64_t id_game, int64_t 
         return NOTIFICATION_CONTROLLER_INTERNAL_ERROR;
     }
 
-    dynamicDTO->id_playerSender = id_playerSendingRematch;
-    dynamicDTO->id_playerReceiver = id_playerToRematch;
-    dynamicDTO->message = "Sei stato invitato a un rematch!";
+    dynamicDTO->id_playerSender = id_sender;
+    dynamicDTO->id_playerReceiver = id_receiver;
+    dynamicDTO->message = "You've been invited to a rematch!";
     dynamicDTO->id_game = id_game;
     dynamicDTO->id_round = -1;
 
@@ -37,14 +37,14 @@ NotificationControllerStatus notification_rematch_game(int64_t id_game, int64_t 
     return NOTIFICATION_CONTROLLER_OK;
 }
 
-NotificationControllerStatus notification_new_game(int64_t id_game, int64_t id_playerSendingRematch, int64_t id_playerToRematch, NotificationDTO** out_dto) {
+NotificationControllerStatus notification_new_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO** out_dto) {
 
     Game retrievedGame;
     GameControllerStatus status = game_find_one(id_game, &retrievedGame);
     if (status != GAME_CONTROLLER_OK)
         return NOTIFICATION_CONTROLLER_INTERNAL_ERROR;
 
-    if (id_playerSendingRematch != retrievedGame.id_creator) {
+    if (id_sender != retrievedGame.id_creator) {
         return NOTIFICATION_CONTROLLER_FORBIDDEN;
     }
 
@@ -55,9 +55,9 @@ NotificationControllerStatus notification_new_game(int64_t id_game, int64_t id_p
         return NOTIFICATION_CONTROLLER_INTERNAL_ERROR;
     }
 
-    dynamicDTO->id_playerSender = id_playerSendingRematch;
-    dynamicDTO->id_playerReceiver = id_playerToRematch;
-    dynamicDTO->message = "E' stato creato una nuova partita! Invia la tua richiesta di partecipazione!";
+    dynamicDTO->id_playerSender = id_sender;
+    dynamicDTO->id_playerReceiver = id_receiver;
+    dynamicDTO->message = "A new game has been created! Submit your request to participate!";
     dynamicDTO->id_game = id_game;
     dynamicDTO->id_round = -1;
 
@@ -66,14 +66,14 @@ NotificationControllerStatus notification_new_game(int64_t id_game, int64_t id_p
     return NOTIFICATION_CONTROLLER_OK;
 }
 
-NotificationControllerStatus notification_waiting_game(int64_t id_game, int64_t id_playerSendingRematch, int64_t id_playerToRematch, NotificationDTO** out_dto) {
+NotificationControllerStatus notification_waiting_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO** out_dto) {
 
     Game retrievedGame;
     GameControllerStatus status = game_find_one(id_game, &retrievedGame);
     if (status != GAME_CONTROLLER_OK)
         return NOTIFICATION_CONTROLLER_INTERNAL_ERROR;
 
-    if (id_playerSendingRematch != retrievedGame.id_creator) {
+    if (id_sender != retrievedGame.id_creator) {
         return NOTIFICATION_CONTROLLER_FORBIDDEN;
     }
 
@@ -84,9 +84,9 @@ NotificationControllerStatus notification_waiting_game(int64_t id_game, int64_t 
         return NOTIFICATION_CONTROLLER_INTERNAL_ERROR;
     }
 
-    dynamicDTO->id_playerSender = id_playerSendingRematch;
-    dynamicDTO->id_playerReceiver = id_playerToRematch;
-    dynamicDTO->message = "Il proprietario di una partita è in attesa di giocatori! Invia la tua richiesta di partecipazione!";
+    dynamicDTO->id_playerSender = id_sender;
+    dynamicDTO->id_playerReceiver = id_receiver;
+    dynamicDTO->message = "The owner of a game is waiting for players! Send your request to participate!";
     dynamicDTO->id_game = id_game;
     dynamicDTO->id_round = -1;
 
@@ -95,7 +95,7 @@ NotificationControllerStatus notification_waiting_game(int64_t id_game, int64_t 
     return NOTIFICATION_CONTROLLER_OK;
 }
 
-NotificationControllerStatus notification_finished_round(int64_t id_round, int64_t id_playerSendingRematch, int64_t id_playerToRematch, PlayResult result, NotificationDTO** out_dto) {
+NotificationControllerStatus notification_finished_round(int64_t id_round, int64_t id_sender, int64_t id_receiver, PlayResult result, NotificationDTO** out_dto) {
 
     Round retrievedRound;
     RoundControllerStatus status = round_find_one(id_round, &retrievedRound);
@@ -109,15 +109,15 @@ NotificationControllerStatus notification_finished_round(int64_t id_round, int64
         return NOTIFICATION_CONTROLLER_INTERNAL_ERROR;
     }
 
-    dynamicDTO->id_playerSender = id_playerSendingRematch;
-    dynamicDTO->id_playerReceiver = id_playerToRematch;
+    dynamicDTO->id_playerSender = id_sender;
+    dynamicDTO->id_playerReceiver = id_receiver;
     dynamicDTO->id_game = retrievedRound.id_game;
     dynamicDTO->id_round = id_round;
 
     if (result == DRAW)
-        dynamicDTO->message = "Il round si è risolto in un pareggio!";
+        dynamicDTO->message = "The round ended in a draw!";
     else if (result == WIN)
-        dynamicDTO->message = "Il round si è risolto in una vittoria!";
+        dynamicDTO->message = "The round ended in victory!";
 
     *out_dto = dynamicDTO;
 
