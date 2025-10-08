@@ -65,15 +65,15 @@ int extract_int_from_json(const char* json_str, const char* key) {
     return result;
 }
 
-char* serialize_notification_to_json(NotificationDTO* notification) {
+char* serialize_notification_to_json(NotificationDTO* in_notification) {
 
     struct json_object *json_response = json_object_new_object();
 
-    json_object_object_add(json_response, "id_sender", json_object_new_int64(notification->id_playerSender));
-    json_object_object_add(json_response, "id_receiver", json_object_new_int64(notification->id_playerReceiver));
-    json_object_object_add(json_response, "message", json_object_new_string(notification->message));
-    json_object_object_add(json_response, "id_game", json_object_new_int64(notification->id_game));
-    json_object_object_add(json_response, "id_round", json_object_new_int64(notification->id_round));
+    json_object_object_add(json_response, "id_sender", json_object_new_int64(in_notification->id_playerSender));
+    json_object_object_add(json_response, "id_receiver", json_object_new_int64(in_notification->id_playerReceiver));
+    json_object_object_add(json_response, "message", json_object_new_string(in_notification->message));
+    json_object_object_add(json_response, "id_game", json_object_new_int64(in_notification->id_game));
+    json_object_object_add(json_response, "id_round", json_object_new_int64(in_notification->id_round));
 
     const char* json_str = json_object_to_json_string(json_response);
 

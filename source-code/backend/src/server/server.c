@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include "server.h"
+#include "backend/include/debug_log.h"
 
 //This functino named "function worker" handles a single client
 //It returns void* because the thread POSIX standard wants this signature
@@ -104,4 +105,21 @@ int start_server(int port) {
 
     close(server_fd);
     return 0;
+}
+
+int server_send(int client_socket, const char *data) {
+
+    if(client_socket < 0 || !data) {
+        LOG_WARN("Invalid parameters: socket = %d, data = %p", client_socket, (void*)data);
+        return -1;
+    }
+
+    ssize_t sent = send(client_socket, data, strlen(data), 0);
+
+    if (sent < 0) {
+        LOG_ERROR("Failed to send data to client socket %d", client_socket);
+        return -1;
+    }
+
+    return sent;
 }

@@ -5,5 +5,5 @@
 #define MAX_CLIENTS 100
 
 int start_server(int port);
-
+int server_send(int client_socket, const char* data);
 #endif

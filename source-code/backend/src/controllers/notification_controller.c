@@ -95,7 +95,7 @@ NotificationControllerStatus notification_waiting_game(int64_t id_game, int64_t 
     return NOTIFICATION_CONTROLLER_OK;
 }
 
-NotificationControllerStatus notification_finished_round(int64_t id_round, int64_t id_sender, int64_t id_receiver, PlayResult result, NotificationDTO** out_dto) {
+NotificationControllerStatus notification_finished_round(int64_t id_round, int64_t id_sender, int64_t id_receiver, const char* result, NotificationDTO** out_dto) {
 
     Round retrievedRound;
     RoundControllerStatus status = round_find_one(id_round, &retrievedRound);
@@ -114,9 +114,11 @@ NotificationControllerStatus notification_finished_round(int64_t id_round, int64
     dynamicDTO->id_game = retrievedRound.id_game;
     dynamicDTO->id_round = id_round;
 
-    if (result == DRAW)
+    PlayResult play_res = string_to_play_result(result);
+
+    if (play_res == DRAW)
         dynamicDTO->message = "The round ended in a draw!";
-    else if (result == WIN)
+    else if (play_res == WIN)
         dynamicDTO->message = "The round ended in victory!";
 
     *out_dto = dynamicDTO;
