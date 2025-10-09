@@ -17,7 +17,7 @@ import { of, Observable } from 'rxjs';
 @Injectable({ providedIn: 'root' }) // This means that there is only one global instance of this service available throughout the entire app 
 export class AuthService {
 
-  private readonly _isLoggedIn = signal<boolean>(true); // It creates a private boolean signal that is false by default (the _ before the word remind us that it's private)
+  private readonly _isLoggedIn = signal<boolean>(false); // It creates a private boolean signal that is false by default (the _ before the word remind us that it's private)
   readonly isLoggedIn = computed(() => this._isLoggedIn());  //We want the computed function to update itself when _isLoggedIn change, we use readonly because to change the state we use login() and logout() function
 
   constructor(private readonly _http: HttpClient) { 

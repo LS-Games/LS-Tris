@@ -1,0 +1,39 @@
+<div class="signup-form">
+  <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+    <span class="close-btn" (click)="close()">&times;</span>
+
+    <div class="signup-form-logo-container">
+      <img src="/ls-games-logo.png" alt="Site Logo" class="logo-image">
+    </div>
+
+    <p>Join us and start playing!</p>
+
+    <input type="text" formControlName="nickname" placeholder="Nickname">
+    <input type="email" formControlName="email" placeholder="Email">
+    <input type="password" formControlName="password" placeholder="Password">
+
+    @if (buttonClicked) {
+      <div class="form-error-message">
+        @if (signupForm.get('email')?.invalid) {
+          <p>Please enter a valid email.</p>
+        }
+        @if (signupForm.get('password')?.invalid) {
+          <p>Please enter a valid password.</p>
+        }
+        @if (signupForm.get('nickname')?.invalid) {
+          <p>Please enter a valid nickname.</p>
+        }
+      </div>
+    }
+
+    <button type="submit">SIGN UP</button>
+  </form>
+
+  <div class="policy-container">
+    <input type="checkbox" id="signup-policy" name="policy">
+    <label for="signup-policy">
+      I agree to the
+      <a routerLink="/privacy-policy" target="_blank">Privacy Policy</a>
+    </label>
+  </div>
+</div>

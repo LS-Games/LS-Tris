@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Dialog, DialogRef } from '@angular/cdk/dialog';
-import { SigninForm } from '../signin-form/signin-form';
+import { SignupForm } from '../signup-form/signup-form';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../core/auth/auth.service';
 
@@ -33,7 +33,7 @@ export class LoginForm {
   
   gotoSignIn() {
     this._dialogRef.close(); 
-    this._dialog.open(SigninForm, { 
+    this._dialog.open(SignupForm, { 
       disableClose: true 
     });
   } 

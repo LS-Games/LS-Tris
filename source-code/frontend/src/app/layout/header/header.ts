@@ -3,7 +3,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth/auth.service';
 import { Dialog } from '@angular/cdk/dialog';
-import { SigninForm } from '../../pages/signin-form/signin-form';
+import { SignupForm } from '../../pages/signup-form/signup-form';
 import { LoginForm } from '../../pages/login-form/login-form';
 
 
@@ -24,8 +24,8 @@ export class Header {
 
   private readonly dialog = inject(Dialog);
 
-  protected openSignIn() {
-    this.dialog.open(SigninForm, {
+  protected openSignUp() {
+    this.dialog.open(SignupForm, {
       disableClose: true // Prevent closing the dialog by clicking outside or pressing ESC
     });
   }
