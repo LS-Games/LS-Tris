@@ -12,7 +12,7 @@ typedef enum {
     ROUND_DAO_INVALID_INPUT,
     ROUND_DAO_MALLOC_ERROR,
     ROUND_DAO_NOT_MODIFIED
-} RoundReturnStatus;
+} RoundDaoStatus;
 
 typedef enum {
     UPDATE_ROUND_ID_GAME        = 1 << 0,
@@ -23,13 +23,13 @@ typedef enum {
 
 
 // Funzioni CRUD concrete
-RoundReturnStatus get_round_by_id(sqlite3 *db, int64_t id_round, Round *out); 
-RoundReturnStatus get_all_rounds(sqlite3 *db, Round** out_array, int *out_count);
-RoundReturnStatus update_round_by_id(sqlite3 *db, const Round *upd_round);
-RoundReturnStatus delete_round_by_id(sqlite3 *db, int64_t id_round);
-RoundReturnStatus insert_round(sqlite3 *db, Round *in_out_round);
+RoundDaoStatus get_round_by_id(sqlite3 *db, int64_t id_round, Round *out); 
+RoundDaoStatus get_all_rounds(sqlite3 *db, Round** out_array, int *out_count);
+RoundDaoStatus update_round_by_id(sqlite3 *db, const Round *upd_round);
+RoundDaoStatus delete_round_by_id(sqlite3 *db, int64_t id_round);
+RoundDaoStatus insert_round(sqlite3 *db, Round *in_out_round);
 
 // Funzione di utilità per messaggi di errore
-const char* return_round_status_to_string(RoundReturnStatus status);
+const char* return_round_dao_status_to_string(RoundDaoStatus status);
 
 #endif

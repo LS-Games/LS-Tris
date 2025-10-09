@@ -1,7 +1,6 @@
 #include <string.h>
 
 #include "play_dto.h"
-#include "../entities/play_entity.h"
 
 void map_play_to_dto(const Play *play, const char *player_nick, PlayDTO *out_dto) {
     if (!play || !out_dto) return;

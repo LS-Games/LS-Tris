@@ -12,8 +12,6 @@
 #define P2_SYMBOL 'O'
 #define EMPTY_SYMBOL '@'
 
-#define EMPTY_BOARD "@@@@@@@@@"
-
 typedef enum {
     ACTIVE_ROUND,
     PENDING_ROUND,
@@ -25,7 +23,7 @@ typedef struct {
     int64_t id_round;
     int64_t id_game;
     RoundStatus state;
-    int64_t duration;
+    int64_t duration;   // Duration in seconds
     char board[BOARD_MAX];
 } Round;
 
@@ -40,5 +38,7 @@ int player_symbol_to_number(const char player_symbol);
 
 void set_round_board_cell(char board[BOARD_MAX], int row, int col, char symbol);
 char get_round_board_cell(char board[BOARD_MAX], int row, int col);
+
+void fill_empty_board(char board[BOARD_MAX]);
 
 #endif

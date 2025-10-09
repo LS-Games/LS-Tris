@@ -2,7 +2,6 @@
 #include <time.h>
 
 #include "participation_request_dto.h"
-#include "../entities/participation_request_entity.h"
 
 void map_participation_request_to_dto(const ParticipationRequest *pr, const char *player_nick, ParticipationRequestDTO *out_dto) {
     if (!pr || !out_dto) return;

@@ -2,10 +2,8 @@
 #include <time.h>
 
 #include "player_dto.h"
-#include "../entities/player_entity.h"
 
-void map_player_to_dto(const Player *player, PlayerDTO *out_dto)
-{
+void map_player_to_dto(const Player *player, PlayerDTO *out_dto) {
     if (!player || !out_dto) return;
 
     out_dto->id_player      = player->id_player;

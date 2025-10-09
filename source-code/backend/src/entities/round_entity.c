@@ -96,3 +96,9 @@ char get_round_board_cell(char board[BOARD_MAX], int row, int col) {
 
     return cell;
 }
+
+void fill_empty_board(char board[BOARD_MAX]) {
+    for (size_t i = 0; i < BOARD_MAX; i++) {
+        board[i] = EMPTY_SYMBOL;
+    }
+}

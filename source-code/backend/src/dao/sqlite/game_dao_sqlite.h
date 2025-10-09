@@ -1,0 +1,38 @@
+#ifndef GAME_DAO_SQLITE_H
+#define GAME_DAO_SQLITE_H
+
+#include <sqlite3.h>
+
+#include "../../entities/game_entity.h"
+#include "../dto/game_join_player.h"
+
+typedef enum {
+    GAME_DAO_OK = 0,
+    GAME_DAO_NOT_FOUND,
+    GAME_DAO_SQL_ERROR,
+    GAME_DAO_INVALID_INPUT,
+    GAME_DAO_MALLOC_ERROR,
+    GAME_DAO_NOT_MODIFIED
+} GameDaoStatus;
+
+typedef enum {
+    UPDATE_GAME_ID_CREATOR     = 1 << 0,  
+    UPDATE_GAME_ID_OWNER       = 1 << 1,  
+    UPDATE_GAME_STATE          = 1 << 2,
+    UPDATE_GAME_CREATED_AT     = 1 << 3  
+} UpdateGameFlags;
+
+
+// Funzioni CRUD concrete
+GameDaoStatus get_game_by_id(sqlite3 *db, int64_t id_game, Game *out); 
+GameDaoStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count);
+GameDaoStatus update_game_by_id(sqlite3 *db, const Game *upd_game);
+GameDaoStatus delete_game_by_id(sqlite3 *db, int64_t id_game);
+GameDaoStatus insert_game(sqlite3 *db, Game *in_out_game);
+
+GameDaoStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickname** out_array, int *out_count);
+
+// Funzione di utilità per messaggi di errore
+const char* return_game_dao_status_to_string(GameDaoStatus status);
+
+#endif

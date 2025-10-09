@@ -1,7 +1,15 @@
 {
     "files.associations": {
+        "*.pl": "prolog",
+        "*.kt": "gradle-kotlin-dsl",
+        "*.h": "c",
         "**/backend/**/*.h": "c",
         "cstring": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "compare": "c",
+        "cstdint": "c",
+        "bitset": "c",
+        "algorithm": "c",
+        "format": "c"
     }
 }
