@@ -1,9 +1,9 @@
 #ifndef PLAY_DTO_H
 #define PLAY_DTO_H
 
-#include "../entities/play_entity.h"
-
 #include <stdint.h>
+
+#include "../entities/play_entity.h"
 
 #define RESULT_STR_MAX 8
 

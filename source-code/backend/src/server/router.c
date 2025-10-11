@@ -1,17 +1,19 @@
 #include <string.h>
+#include <stdlib.h>
 
-#include "json-parser.h"
-#include "notification_dto.h"
-#include "controllers/notification_controller.h"
+#include "../../include/debug_log.h"
+
 #include "server.h"
-#include "include/debug_log.h"
+#include "../json-parser/json-parser.h"
+#include "../dto/notification_dto.h"
+#include "../controllers/notification_controller.h"
 
 void route_request(const char* json_body, int client_socket) {
 
     char* action = extract_string_from_json(json_body, "action");
 
     if (!action) {
-        LOG_WARN("Missing 'action' key in JSON");
+        LOG_WARN("%s\n", "Missing 'action' key in JSON");
         return;
     }
 
@@ -55,7 +57,7 @@ void route_request(const char* json_body, int client_socket) {
     if (json_response) {
         server_send(client_socket, json_response);
     } else {
-        LOG_WARN("JSON response is empty");
+        LOG_WARN("%s\n", "JSON response is empty");
         return;
     }
     

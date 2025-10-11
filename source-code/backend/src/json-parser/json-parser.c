@@ -1,10 +1,11 @@
 #include <json-c/json.h>
 #include <string.h>
+
 #include "json-parser.h"
 
 //json_str is the variable which contains the entire JSON
 //key is the json key which we will use to extract the correct value from the JSON
-const char* extract_string_from_json(const char* json_str, const char* key) {
+char* extract_string_from_json(const char* json_str, const char* key) {
 
     //parsed_join will contain the entire JSON object after the parsing
     //value will contain the value associated with the key

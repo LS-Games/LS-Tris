@@ -1,9 +1,9 @@
 #ifndef PARTICIPATION_REQUEST_DTO_H
 #define PARTICIPATION_REQUEST_DTO_H
 
-#include "../entities/participation_request_entity.h"
-
 #include <stdint.h>
+
+#include "../entities/participation_request_entity.h"
 
 #define DATE_STR_MAX 100
 

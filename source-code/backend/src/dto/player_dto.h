@@ -1,9 +1,9 @@
 #ifndef PLAYER_DTO_H
 #define PLAYER_DTO_H
 
-#include "../entities/player_entity.h"
-
 #include <stdint.h>
+
+#include "../entities/player_entity.h"
 
 #define NICKNAME_MAX 100
 #define DATE_STR_MAX 100

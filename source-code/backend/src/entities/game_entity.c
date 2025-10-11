@@ -4,7 +4,6 @@
 
 #include "game_entity.h"
 
-
 void print_game(const Game *g) {
     if (!g) {
         printf("Game: (NULL)\n");

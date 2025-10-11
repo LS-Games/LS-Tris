@@ -4,8 +4,10 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+
+#include "../../include/debug_log.h"
+
 #include "server.h"
-#include "backend/include/debug_log.h"
 
 //This functino named "function worker" handles a single client
 //It returns void* because the thread POSIX standard wants this signature
