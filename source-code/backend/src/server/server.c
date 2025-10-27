@@ -15,7 +15,7 @@
 void *handle_client(void *arg) {
 
     //When we call accept() we dinamicalyy allocate an int using malloc 
-    //We do a cast in a int pointer and then We dereference it to obtain the numerical value. 
+    //We do a cast in a int pointer and then we dereference it to obtain the numerical value. 
     int client_fd = *(int*)arg; 
 
     //We free up the allocated memory after saving it
@@ -31,7 +31,7 @@ void *handle_client(void *arg) {
 
         //We added the string terminator so we can use it as a string in C
         buffer[n] = '\0';
-        printf("Message was received correctly: %s/n", buffer);
+        LOG_INFO("Message was received correctly: %s/n", buffer);
 
         char reply[1088];
         snprintf(reply, sizeof(reply), "Server has received %s:", buffer);
@@ -42,7 +42,7 @@ void *handle_client(void *arg) {
         //NB: We're using recv and send functions instead of read and write because we're working with socket
     }
 
-    printf("Client disconnected");
+    LOG_INFO("Client disconnected\n");
     close(client_fd);
     return NULL;
 }
@@ -78,7 +78,7 @@ int start_server(int port) {
         return -1;
     }
 
-    printf("Server listens on port: %d ... \n", port);
+    LOG_INFO("Server listens on port: %d ... \n", port);
 
     //Infinite loops continue to accept clients 
     while(1) {

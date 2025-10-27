@@ -1,0 +1,10 @@
+{
+  "name": "ls-tris-bridge",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "bridge.js",
+  "dependencies": {
+    "express": "^5.1.0",
+    "ws": "^8.16.0"
+  }
+}

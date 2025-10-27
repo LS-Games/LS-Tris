@@ -16,6 +16,23 @@ services:
     networks:
       - backend-network
     command: sleep infinity # Overrides default command so things don't shut down after the process ends.
-
+  
+  bridge:
+    container_name: ls-tris_bridge
+    profiles: [prod]
+    build: 
+      context: ../source-code/bridge
+      dockerfile: Dockerfile 
+    restart: unless-stopped
+    ports:
+      - 8080:3001
+    depends_on:
+      - backend
+    networks:
+      - backend-network
+    environment:
+      - TCP_HOST=backend #We use this environment variables in bridge.js (runtime variables)
+      - TCP_PORT=5050
+    
 networks:
   backend-network:

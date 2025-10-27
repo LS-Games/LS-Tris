@@ -12,8 +12,8 @@ export class SocketService {
 
     constructor() {
         //ws:// is a protocol similar to https:// but with persistence
-        //We pass him the listening server port
-        this._socket = new WebSocket('ws://localhost:5050')
+        //We pass him the listening bridge port
+        this._socket = new WebSocket('ws://localhost:3001')
     }
 
     //Send takes object (JSON object) as a parameter
