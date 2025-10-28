@@ -40,7 +40,13 @@ function sendToBackend(message) {
     client.connect(BACKEND_PORT, BACKEND_HOST, () => {
       console.log(`Connected to backend at ${BACKEND_HOST}:${BACKEND_PORT}`);
       // Send the message to the backend as raw text
+      //We use '/n' at end because we want know if the json is complete
       client.write(message);
+
+      //This client.end() is very important because if we don't do this after send a message
+      //The recv() function on backend may remain waiting for additional bytes 
+      //Whereas this way we signal him to stop waiting
+      client.end();
     });
 
     //client.on are a events listener
@@ -54,6 +60,7 @@ function sendToBackend(message) {
 
     // When the connection is closed (either by us or the server)
     client.on('close', () => {
+      
       // Resolve the Promise with the full response string
       resolve(dataBuffer);
     });
@@ -82,6 +89,7 @@ app.post('/api/send', async (req, res) => {
     // Send message to backend through the TCP helper function
     const response = await sendToBackend(message);
 
+    //Capture and print the backend response
     console.log(`Received from backend: ${response}`);
 
     // Return the backend's response to the frontend in JSON format

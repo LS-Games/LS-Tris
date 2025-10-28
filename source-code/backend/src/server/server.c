@@ -8,6 +8,7 @@
 #include "../../include/debug_log.h"
 
 #include "server.h"
+#include "router.h"
 
 //This functino named "function worker" handles a single client
 //It returns void* because the thread POSIX standard wants this signature
@@ -22,8 +23,11 @@ void *handle_client(void *arg) {
     free(arg); 
 
     //The buffer is used for to store data arriving from client 
+    
     char buffer[1024];
-    int n;
+    ssize_t n;
+    ssize_t total = 0 ;
+    char* accumulated = NULL;
 
     //We have to use while because the TCP connection is a stream, we may receive fragmented message
     //recv return a 0 if the connection is interrupted, -1 in case of errors and n which are the bytes received 
@@ -31,18 +35,32 @@ void *handle_client(void *arg) {
 
         //We added the string terminator so we can use it as a string in C
         buffer[n] = '\0';
-        LOG_INFO("Message was received correctly: %s/n", buffer);
+        
+        char *new_accum = realloc(accumulated, total + n + 1);
 
-        char reply[1088];
-        snprintf(reply, sizeof(reply), "Server has received %s:", buffer);
+        if (!new_accum) {
+            LOG_ERROR("Realloc error");
+            free(accumulated);
+            close(client_fd);
+            break;
+        }
 
-        //With send we can reply to the client 
-        send(client_fd, reply, strlen(reply), 0);
+        accumulated = new_accum;
+
+        //Start from total value and copy what's inside buffer which has length n
+        memcpy(&accumulated[total], buffer, n);
+        total += n;
+        accumulated[total] = '\0';
 
         //NB: We're using recv and send functions instead of read and write because we're working with socket
     }
+        if (n == 0 && total > 0) {
+            LOG_INFO("\nMessage was received correctly from backend server: %s/n", buffer);
+            route_request(accumulated, client_fd);
+        }
 
     LOG_INFO("Client disconnected\n");
+    free(accumulated);
     close(client_fd);
     return NULL;
 }

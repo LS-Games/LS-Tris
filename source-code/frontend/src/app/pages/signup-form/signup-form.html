@@ -12,28 +12,32 @@
     <input type="email" formControlName="email" placeholder="Email">
     <input type="password" formControlName="password" placeholder="Password">
 
+    <div class="policy-container">
+      <input type="checkbox" formControlName="accepted_policy" id="signup-policy" name="policy">
+      <label for="signup-policy">
+        I agree to the
+      <a routerLink="/privacy-policy" target="_blank">Privacy Policy</a>
+      </label>
+    </div>
+
     @if (buttonClicked) {
       <div class="form-error-message">
+        @if (signupForm.get('nickname')?.invalid) {
+          <p>Please enter a valid nickname.</p>
+        }
         @if (signupForm.get('email')?.invalid) {
           <p>Please enter a valid email.</p>
         }
         @if (signupForm.get('password')?.invalid) {
           <p>Please enter a valid password.</p>
         }
-        @if (signupForm.get('nickname')?.invalid) {
-          <p>Please enter a valid nickname.</p>
+        @if (signupForm.get('accepted_policy')?.invalid) {
+          <p>You must accept the Privacy Policy to sign up.</p>
         }
+        
       </div>
     }
 
     <button type="submit">SIGN UP</button>
   </form>
-
-  <div class="policy-container">
-    <input type="checkbox" id="signup-policy" name="policy">
-    <label for="signup-policy">
-      I agree to the
-      <a routerLink="/privacy-policy" target="_blank">Privacy Policy</a>
-    </label>
-  </div>
 </div>

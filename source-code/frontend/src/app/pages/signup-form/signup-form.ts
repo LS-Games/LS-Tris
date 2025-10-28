@@ -27,7 +27,8 @@ export class SignupForm {
     this.signupForm = this._formBuilder.group({
       nickname: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      accepted_policy: [false, Validators.requiredTrue],
     });
   }
   
@@ -48,7 +49,8 @@ export class SignupForm {
 
       //We use this http function to send payload to bridge
       //The http function return a Observable
-      this.http.post('http://localhost:3001/api/send', { message: JSON.stringify(payload) })
+      //We use '/n' at end because we want know if the json is complete
+      this.http.post('http://localhost:3001/api/send', { message: JSON.stringify(payload)})
 
         //It is similar to .then()
         .subscribe({
@@ -56,7 +58,9 @@ export class SignupForm {
           //next is executed when the request is successful 
           next: (response: any) => {
             console.log('Backend response:', response.backendResponse)
+            
           // Optionally show a success message or close dialog
+            
             alert('Signup successful!');
             this.close();
           },

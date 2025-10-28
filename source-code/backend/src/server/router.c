@@ -32,7 +32,6 @@ void route_request(const char* json_body, int client_socket) {
         return;
     }
 
-
     /* === Extracted value === */
 
     // Player controller input
@@ -124,8 +123,10 @@ void route_request(const char* json_body, int client_socket) {
 
     /* === Send response === */
 
+    //DEBUG
+    LOG_INFO("\n\nRISPOSTA DEL ROUTER DEL SERVER: %c", json_response);
     if (json_response) {
-        // server_send(client_socket, json_response);
+        server_send(client_socket, json_response);
         LOG_DEBUG("Client socket %d - Sent response: %s\n", client_socket, json_response);
     } else {
         LOG_WARN("%s\n", "JSON response is empty");

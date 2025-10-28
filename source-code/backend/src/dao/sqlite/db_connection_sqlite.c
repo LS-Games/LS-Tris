@@ -4,6 +4,9 @@
 
 #include "db_connection_sqlite.h"
 
+#include <unistd.h>
+
+
 /**
  * Function that opens database 
  * @return A `sqlite3*` pointer that is ready to use. `NULL` if something goes wrong.
@@ -11,6 +14,12 @@
 sqlite3* db_open() {
 
     sqlite3* db = NULL;
+
+    char cwd[1024];
+    getcwd(cwd, sizeof(cwd));
+    LOG_DEBUG("Current working directory: %s", cwd);
+    LOG_DEBUG("Trying to open DB at: %s", DB_PATH);
+
 
     //If an error occured in database opening we print the error and close it, even if it was partially opened
     if(sqlite3_open(DB_PATH, &db) != SQLITE_OK) {
