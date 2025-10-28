@@ -4,20 +4,12 @@
 
 #include "../include/debug_log.h"
 
-#include "./dao/sqlite/db_connection_sqlite.h"
 #include "./json-parser/test_json-parser.h"
-
-#include "./dto/player_dto.h"
-#include "./dto/game_dto.h"
-#include "./controllers/player_controller.h"
-#include "./controllers/game_controller.h"
+#include "./server/router.h"
 
 int main(void) {
 
-    
-    
-    // Parse json
-    // json_c();
-    
+    route_request("{\"action\":\"player_get_public_info\",\"nickname\":\"pippo_nuovo\"}", 1);
+
     return 0;
 }
