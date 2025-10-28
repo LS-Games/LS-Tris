@@ -14,7 +14,9 @@ PlayControllerStatus plays_get_public_info(int64_t id_player, int64_t id_round, 
     PlayWithPlayerNickname* retrievedPlays;
     int retrievedObjectCount;
     if (play_find_all_with_player_info(&retrievedPlays, &retrievedObjectCount) == PLAY_CONTROLLER_NOT_FOUND) {
-        return PLAY_CONTROLLER_INVALID_INPUT;
+        *out_dtos = NULL;
+        *out_count = 0;
+        return PLAY_CONTROLLER_NOT_FOUND;
     }
 
     PlayDTO *dynamicDTOs = NULL;

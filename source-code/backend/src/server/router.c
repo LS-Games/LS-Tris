@@ -70,13 +70,12 @@ void route_request(const char* json_body, int client_socket) {
 
     if (strcmp(action, "player_get_public_info") == 0) { // Player routes
         PlayerControllerStatus playerStatus = player_get_public_info(nickname, &player, &count);
-        if (playerStatus == PLAYER_CONTROLLER_OK) {
+        if (playerStatus == PLAYER_CONTROLLER_OK || playerStatus == PLAYER_CONTROLLER_NOT_FOUND) {
             json_response = serialize_players_to_json(player, count);
-        } else if (playerStatus == PLAYER_CONTROLLER_INVALID_INPUT) {
-            json_response = serialize_action_error(action, "Invalid input values");
         } else {
             json_response = serialize_action_error(action, return_player_controller_status_to_string(playerStatus));
         }
+
     } else if (strcmp(action, "player_signup") == 0) {
         PlayerControllerStatus playerStatus = player_signup(nickname, email, password);
         if (playerStatus == PLAYER_CONTROLLER_OK) {
@@ -88,6 +87,7 @@ void route_request(const char* json_body, int client_socket) {
         } else {
             json_response = serialize_action_error(action, return_player_controller_status_to_string(playerStatus));
         }
+
     } else if (strcmp(action, "player_signin") == 0) {
         PlayerControllerStatus playerStatus = player_signin(nickname, password, &signedIn);
         if (playerStatus == PLAYER_CONTROLLER_OK) {
@@ -100,9 +100,10 @@ void route_request(const char* json_body, int client_socket) {
         } else {
             json_response = serialize_action_error(action, return_player_controller_status_to_string(playerStatus));
         }
+
     } else if (strcmp(action, "games_get_public_info") == 0) { // Game routes
         GameControllerStatus gameStatus = games_get_public_info(status, &games, &count);
-        if (gameStatus == GAME_CONTROLLER_OK) {
+        if (gameStatus == GAME_CONTROLLER_OK || gameStatus == GAME_CONTROLLER_NOT_FOUND) {
             json_response = serialize_games_to_json(games, count);
         } else if (gameStatus == GAME_CONTROLLER_INVALID_INPUT) {
             json_response = serialize_action_error(action, "Invalid input values");

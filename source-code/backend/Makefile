@@ -70,7 +70,7 @@ install: all
 
 # run: executes the program
 run: $(BIN)
-	@cd $(BIN_DIR) && ./$(notdir $(BIN))
+	./$(BIN)
 
 # clean: removes OBJ_DIR and BIN_DIR
 clean:

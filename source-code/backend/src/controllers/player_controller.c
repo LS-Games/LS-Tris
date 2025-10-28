@@ -13,7 +13,9 @@ PlayerControllerStatus player_get_public_info(char* nickname, PlayerDTO** out_dt
     // Check if there's a player with this nickname
     Player retrievedPlayer;
     if (player_find_one_by_nickname(nickname, &retrievedPlayer) == PLAYER_CONTROLLER_NOT_FOUND) {
-        return PLAYER_CONTROLLER_INVALID_INPUT;
+        *out_dto = NULL;
+        *out_count = 0;
+        return PLAYER_CONTROLLER_NOT_FOUND;
     }
 
     PlayerDTO *dynamicDTO = malloc(sizeof(PlayerDTO));

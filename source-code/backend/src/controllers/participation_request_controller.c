@@ -22,15 +22,18 @@ static ParticipationRequestControllerStatus participation_request_reject_all(Par
 ParticipationRequestControllerStatus participation_requests_get_public_info(char* state, int64_t id_game, ParticipationRequestDTO** out_dtos, int *out_count) {
 
     RequestStatus queryState = REQUEST_STATUS_INVALID;
-    if (strcmp(state, "all") != 0)
+    if (strcmp(state, "all") != 0) {
         queryState = string_to_request_participation_status(state);
-    if (queryState == REQUEST_STATUS_INVALID)
-        return PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT;
+        if (queryState == REQUEST_STATUS_INVALID)
+            return PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT;
+    }
 
     ParticipationRequestWithPlayerNickname* retrievedParticipationRequests;
     int retrievedObjectCount;
     if (participation_request_find_all_with_player_info(&retrievedParticipationRequests, &retrievedObjectCount) == PARTICIPATION_REQUEST_CONTROLLER_NOT_FOUND) {
-        return PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT;
+        *out_dtos = NULL;
+        *out_count = 0;
+        return PARTICIPATION_REQUEST_CONTROLLER_NOT_FOUND;
     }
 
     ParticipationRequestDTO *dynamicDTOs = NULL;

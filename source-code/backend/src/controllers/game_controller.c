@@ -12,16 +12,21 @@
 // @param status Possible values are `new`, `active`, `waiting`, `finished` and `all` (no filter)
 GameControllerStatus games_get_public_info(char* status, GameDTO** out_dtos, int *out_count) {
 
+    LOG_DEBUG("Status: %s\n", status);
+
     GameStatus queryStatus = GAME_STATUS_INVALID;
-    if (strcmp(status, "all") != 0)
+    if (strcmp(status, "all") != 0) {
         queryStatus = string_to_game_status(status);
-    if (queryStatus == GAME_STATUS_INVALID)
-        return GAME_CONTROLLER_INVALID_INPUT;
+        if (queryStatus == GAME_STATUS_INVALID)
+            return GAME_CONTROLLER_INVALID_INPUT;
+    }
 
     GameWithPlayerNickname* retrievedGames;
     int retrievedObjectCount;
     if (game_find_all_with_player_info(&retrievedGames, &retrievedObjectCount) == GAME_CONTROLLER_NOT_FOUND) {
-        return GAME_CONTROLLER_INVALID_INPUT;
+        *out_dtos = NULL;
+        *out_count = 0;
+        return GAME_CONTROLLER_NOT_FOUND;
     }
 
     GameDTO *dynamicDTOs = NULL;
