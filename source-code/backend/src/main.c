@@ -5,13 +5,8 @@
 #include "../include/debug_log.h"
 #include "./server/server.h"
 
-#include "./dao/sqlite/db_connection_sqlite.h"
 #include "./json-parser/test_json-parser.h"
-
-#include "./dto/player_dto.h"
-#include "./dto/game_dto.h"
-#include "./controllers/player_controller.h"
-#include "./controllers/game_controller.h"
+#include "./server/router.h"
 
 #define SERVER_PORT 5050
 
