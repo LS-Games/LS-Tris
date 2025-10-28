@@ -33,7 +33,7 @@ PlayerControllerStatus player_get_public_info(char* nickname, PlayerDTO** out_dt
     return PLAYER_CONTROLLER_OK;
 }
 
-PlayerControllerStatus player_signup(char* nickname, char* email, char* password) {
+PlayerControllerStatus player_signup(char* nickname, char* email, char* password, int64_t* out_id_player) {
 
     // Input validation
     if (strlen(nickname) >= NICKNAME_MAX ||
@@ -58,10 +58,14 @@ PlayerControllerStatus player_signup(char* nickname, char* email, char* password
     strcpy(playerToSignup.password, password);
 
     // Create player
-    return player_create(&playerToSignup);
+    PlayerControllerStatus status = player_create(&playerToSignup);
+    if (status == PLAYER_CONTROLLER_OK)
+        *out_id_player = playerToSignup.id_player;
+
+    return status;
 }
 
-PlayerControllerStatus player_signin(char* nickname, char* password, bool* signedIn) {
+PlayerControllerStatus player_signin(char* nickname, char* password, bool* signedIn, int64_t* out_id_player) {
 
     *signedIn = false;
 
@@ -73,6 +77,8 @@ PlayerControllerStatus player_signin(char* nickname, char* password, bool* signe
 
     if (strcmp(retrievedPlayer.password, password) == 0)
         *signedIn = true;
+
+    *out_id_player = retrievedPlayer.id_player;
 
     return PLAYER_CONTROLLER_OK;
 }

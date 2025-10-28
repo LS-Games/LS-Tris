@@ -281,9 +281,10 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, PlayResult resu
 
     // Update game owner
     int64_t id_playerWinner;
+    int64_t id_game;
     playStatus = play_find_round_winner(roundToEnd->id_round, &id_playerWinner);
     if (playStatus != PLAY_CONTROLLER_NOT_FOUND) {
-        GameControllerStatus gameStatus = game_change_owner(roundToEnd->id_game, id_playerWinner);
+        GameControllerStatus gameStatus = game_change_owner(roundToEnd->id_game, id_playerWinner, &id_game);
         if (gameStatus != GAME_CONTROLLER_OK) {
             LOG_WARN("%s\n", return_game_controller_status_to_string(gameStatus));
             return ROUND_CONTROLLER_INTERNAL_ERROR;

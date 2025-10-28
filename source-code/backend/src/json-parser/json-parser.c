@@ -76,10 +76,13 @@ int extract_int_from_json(const char* json_str, const char* key) {
 /* === Serialize functions === */
 
 // Serialize: Action Success
-char* serialize_action_success(const char* action, const char* message) {
+char* serialize_action_success(const char* action, const char* message, int64_t id) {
     struct json_object *json_response = json_object_new_object();
 
     json_object_object_add(json_response, "status", json_object_new_string("success"));
+
+    json_object_object_add(json_response, "id", json_object_new_int64(id));
+
     if (action) {
         json_object_object_add(json_response, "action", json_object_new_string(action));
     }

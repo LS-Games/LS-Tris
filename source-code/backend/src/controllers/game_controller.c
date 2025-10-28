@@ -58,7 +58,7 @@ GameControllerStatus games_get_public_info(char* status, GameDTO** out_dtos, int
     return GAME_CONTROLLER_OK;
 }
 
-GameControllerStatus game_start(int64_t id_creator) {
+GameControllerStatus game_start(int64_t id_creator, int64_t* out_id_game) {
 
     // Build game to start
     Game gameToStart = {
@@ -69,10 +69,14 @@ GameControllerStatus game_start(int64_t id_creator) {
     };
 
     // Create game
-    return game_create(&gameToStart);
+    GameControllerStatus status = game_create(&gameToStart);
+    if (status == GAME_CONTROLLER_OK)
+        *out_id_game = gameToStart.id_game;
+
+    return status;
 }
 
-GameControllerStatus game_end(int64_t id_game, int64_t id_owner) {
+GameControllerStatus game_end(int64_t id_game, int64_t id_owner, int64_t* out_id_game) {
 
     // Retrieve game to end
     Game retrievedGame;
@@ -85,22 +89,14 @@ GameControllerStatus game_end(int64_t id_game, int64_t id_owner) {
 
     retrievedGame.state = FINISHED_GAME;
 
-    return game_update(&retrievedGame);
+    status = game_update(&retrievedGame);
+    if (status == GAME_CONTROLLER_OK)
+        *out_id_game = retrievedGame.id_game;
+
+    return status;
 }
 
-GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner) {
-
-    Game retrievedGame;
-    GameControllerStatus status = game_find_one(id_game, &retrievedGame);
-    if (status != GAME_CONTROLLER_OK)
-        return status;
-
-    retrievedGame.id_owner = id_newOwner;
-
-    return game_update(&retrievedGame);
-}
-
-GameControllerStatus game_refuse_rematch(int64_t id_game) {
+GameControllerStatus game_refuse_rematch(int64_t id_game, int64_t* out_id_game) {
 
     Game retrievedGame;
     GameControllerStatus status = game_find_one(id_game, &retrievedGame);
@@ -110,10 +106,14 @@ GameControllerStatus game_refuse_rematch(int64_t id_game) {
     // Update game state in order to let anyone send participation requests
     retrievedGame.state = WAITING_GAME;
 
-    return game_update(&retrievedGame);
+    status = game_update(&retrievedGame);
+    if (status == GAME_CONTROLLER_OK)
+        *out_id_game = retrievedGame.id_game;
+
+    return status;
 }
 
-GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAcceptingRematch) {
+GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAcceptingRematch, int64_t* out_id_game) {
 
     Game retrievedGame;
     GameControllerStatus gameStatus = game_find_one(id_game, &retrievedGame);
@@ -127,7 +127,25 @@ GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAccep
         return GAME_CONTROLLER_INTERNAL_ERROR;
     }
 
+    *out_id_game = retrievedGame.id_game;
+
     return GAME_CONTROLLER_OK;
+}
+
+GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner, int64_t* out_id_game) {
+
+    Game retrievedGame;
+    GameControllerStatus status = game_find_one(id_game, &retrievedGame);
+    if (status != GAME_CONTROLLER_OK)
+        return status;
+
+    retrievedGame.id_owner = id_newOwner;
+
+    status = game_update(&retrievedGame);
+    if (status == GAME_CONTROLLER_OK)
+        *out_id_game = retrievedGame.id_game;
+
+    return status;
 }
 
 // ===================== CRUD Operations =====================
