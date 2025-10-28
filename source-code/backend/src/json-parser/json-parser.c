@@ -116,22 +116,62 @@ char* serialize_action_error(const char* action, const char* error_message) {
 }
 
 // Serialize: PlayerDTO
-char* serialize_player_to_json(const PlayerDTO* in_player) {
-    if (!in_player) return NULL;
+char* serialize_players_to_json(const PlayerDTO* players, size_t count) {
+    if (!players || count == 0) {
+        char* empty = malloc(3); // Ritorna un array vuoto
+        if (empty) strcpy(empty, "[]");
+        return empty;
+    }
 
-    struct json_object *json_response = json_object_new_object();
+    struct json_object *json_array = json_object_new_array();
 
-    json_object_object_add(json_response, "id_player", json_object_new_int64(in_player->id_player));
-    json_object_object_add(json_response, "nickname", json_object_new_string(in_player->nickname));
-    json_object_object_add(json_response, "current_streak", json_object_new_int(in_player->current_streak));
-    json_object_object_add(json_response, "max_streak", json_object_new_int(in_player->max_streak));
-    json_object_object_add(json_response, "registration_date", json_object_new_string(in_player->registration_date_str));
+    for (size_t i = 0; i < count; i++) {
+        struct json_object *json_player = json_object_new_object();
 
-    const char* json_str = json_object_to_json_string(json_response);
+        json_object_object_add(json_player, "id_player", json_object_new_int64(players[i].id_player));
+        json_object_object_add(json_player, "nickname", json_object_new_string(players[i].nickname));
+        json_object_object_add(json_player, "current_streak", json_object_new_int(players[i].current_streak));
+        json_object_object_add(json_player, "max_streak", json_object_new_int(players[i].max_streak));
+        json_object_object_add(json_player, "registration_date", json_object_new_string(players[i].registration_date_str));
+
+        json_object_array_add(json_array, json_player);
+    }
+
+    const char* json_str = json_object_to_json_string(json_array);
     char* result = malloc(strlen(json_str) + 1);
     if (result) strcpy(result, json_str);
 
-    json_object_put(json_response);
+    json_object_put(json_array);
+    return result;
+}
+
+// Serialize: GameDTO
+char* serialize_games_to_json(const GameDTO* games, size_t count) {
+    if (!games || count == 0) { // Ritorna un array vuoto
+        char* empty = malloc(3);
+        if (empty) strcpy(empty, "[]");
+        return empty;
+    }
+
+    struct json_object *json_array = json_object_new_array();
+
+    for (size_t i = 0; i < count; i++) {
+        struct json_object *json_game = json_object_new_object();
+
+        json_object_object_add(json_game, "id_game", json_object_new_int64(games[i].id_game));
+        json_object_object_add(json_game, "creator_nickname", json_object_new_string(games[i].creator_nickname));
+        json_object_object_add(json_game, "owner_nickname", json_object_new_string(games[i].owner_nickname));
+        json_object_object_add(json_game, "state", json_object_new_string(games[i].state_str));
+        json_object_object_add(json_game, "created_at", json_object_new_string(games[i].created_at_str));
+
+        json_object_array_add(json_array, json_game);
+    }
+
+    const char* json_str = json_object_to_json_string(json_array);
+    char* result = malloc(strlen(json_str) + 1);
+    if (result) strcpy(result, json_str);
+
+    json_object_put(json_array);
     return result;
 }
 

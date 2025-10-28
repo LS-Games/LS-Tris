@@ -19,7 +19,7 @@ typedef enum {
 } ParticipationRequestControllerStatus;
 
 
-ParticipationRequestControllerStatus participation_requests_get_public_info_by_state(char* state, int64_t id_game, ParticipationRequestDTO** out_dtos);
+ParticipationRequestControllerStatus participation_requests_get_public_info(char* state, int64_t id_game, ParticipationRequestDTO** out_dtos, int *out_count);
 ParticipationRequestControllerStatus participation_request_send(int64_t id_game, int64_t id_player);
 ParticipationRequestControllerStatus participation_request_change_state(int64_t id_participation_request, RequestStatus newStatus);
 ParticipationRequestControllerStatus participation_request_cancel(int64_t id_participation_request);

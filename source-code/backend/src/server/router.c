@@ -40,6 +40,9 @@ void route_request(const char* json_body, int client_socket) {
     char* email = extract_string_from_json(json_body, "email");
     char* password = extract_string_from_json(json_body, "password");
 
+    // Game controller input
+    char *status = extract_string_from_json(json_body, "status");
+
     // Notification controller input
     int64_t id_game = extract_int_from_json(json_body, "id_game");
     int64_t id_sender = extract_int_from_json(json_body, "id_sender");
@@ -48,9 +51,14 @@ void route_request(const char* json_body, int client_socket) {
 
     /* === Result value === */
 
+    int count = 0;
+
     // Player controller output
     bool signedIn = false;
     PlayerDTO *player = NULL;
+
+    // Game controller output
+    GameDTO *games = NULL;
 
     // Notification controller output
     char* result = NULL;
@@ -61,9 +69,9 @@ void route_request(const char* json_body, int client_socket) {
     char *json_response = NULL;
 
     if (strcmp(action, "player_get_public_info") == 0) { // Player routes
-        PlayerControllerStatus playerStatus = player_get_public_info(nickname, &player);
+        PlayerControllerStatus playerStatus = player_get_public_info(nickname, &player, &count);
         if (playerStatus == PLAYER_CONTROLLER_OK) {
-            json_response = serialize_player_to_json(player);
+            json_response = serialize_players_to_json(player, count);
         } else if (playerStatus == PLAYER_CONTROLLER_INVALID_INPUT) {
             json_response = serialize_action_error(action, "Invalid input values");
         } else {
@@ -92,7 +100,31 @@ void route_request(const char* json_body, int client_socket) {
         } else {
             json_response = serialize_action_error(action, return_player_controller_status_to_string(playerStatus));
         }
-    } else if (strcmp(action, "rematch_game") == 0) { // Notification routes
+    } else if (strcmp(action, "games_get_public_info") == 0) { // Game routes
+        GameControllerStatus gameStatus = games_get_public_info(status, &games, &count);
+        if (gameStatus == GAME_CONTROLLER_OK) {
+            json_response = serialize_games_to_json(games, count);
+        } else if (gameStatus == GAME_CONTROLLER_INVALID_INPUT) {
+            json_response = serialize_action_error(action, "Invalid input values");
+        } else {
+            json_response = serialize_action_error(action, return_game_controller_status_to_string(gameStatus));
+        }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    if (strcmp(action, "rematch_game") == 0) { // Notification routes
 
        if (notification_rematch_game(id_game, id_sender, id_receiver, &notification) == NOTIFICATION_CONTROLLER_OK) {
             json_response = serialize_notification_to_json(notification);

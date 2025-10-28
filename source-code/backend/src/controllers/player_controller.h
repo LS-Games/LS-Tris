@@ -18,7 +18,7 @@ typedef enum {
 } PlayerControllerStatus;
 
 
-PlayerControllerStatus player_get_public_info(char* nickname, PlayerDTO** out_dto);
+PlayerControllerStatus player_get_public_info(char* nickname, PlayerDTO** out_dto, int *out_count);
 PlayerControllerStatus player_signup(char* nickname, char* email, char* password);
 PlayerControllerStatus player_signin(char* nickname, char* password, bool* signedIn);
 

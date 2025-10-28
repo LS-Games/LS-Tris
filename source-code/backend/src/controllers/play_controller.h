@@ -19,7 +19,7 @@ typedef enum {
 } PlayControllerStatus;
 
 
-PlayControllerStatus plays_get_public_info(int64_t id_player, int64_t id_round, PlayDTO** out_dtos);
+PlayControllerStatus plays_get_public_info(int64_t id_player, int64_t id_round, PlayDTO** out_dtos, int *out_count);
 PlayControllerStatus play_add_round_plays(int64_t id_round, int64_t id_player_1, int64_t id_player_2);
 PlayControllerStatus play_set_round_plays_result(int64_t id_round, PlayResult result, int winner);
 PlayControllerStatus play_retrieve_round_current_player_number(int64_t id_round, int64_t id_currentPlayer, int* out_player_number);

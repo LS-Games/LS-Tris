@@ -10,7 +10,7 @@
 
 // This function provides a query by `status`. 
 // @param status Possible values are `new`, `active`, `waiting`, `finished` and `all` (no filter)
-GameControllerStatus games_get_public_info(char* status, GameDTO** out_dtos) {
+GameControllerStatus games_get_public_info(char* status, GameDTO** out_dtos, int *out_count) {
 
     GameStatus queryStatus = GAME_STATUS_INVALID;
     if (strcmp(status, "all") != 0)
@@ -48,6 +48,7 @@ GameControllerStatus games_get_public_info(char* status, GameDTO** out_dtos) {
     }
 
     *out_dtos = dynamicDTOs;
+    *out_count = filteredObjectCount;
     
     return GAME_CONTROLLER_OK;
 }

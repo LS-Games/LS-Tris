@@ -19,7 +19,7 @@ static ParticipationRequestControllerStatus participation_request_reject_all(Par
 // This function provides a query by `state` and `id_game`. 
 // @param state Possible values are `pending`, `accepted`, `rejected` and `all` (no filter)
 // @param id_game Possible values are all integer positive number and -1 (no filter)
-ParticipationRequestControllerStatus participation_requests_get_public_info_by_state(char* state, int64_t id_game, ParticipationRequestDTO** out_dtos) {
+ParticipationRequestControllerStatus participation_requests_get_public_info(char* state, int64_t id_game, ParticipationRequestDTO** out_dtos, int *out_count) {
 
     RequestStatus queryState = REQUEST_STATUS_INVALID;
     if (strcmp(state, "all") != 0)
@@ -59,6 +59,7 @@ ParticipationRequestControllerStatus participation_requests_get_public_info_by_s
     }
 
     *out_dtos = dynamicDTOs;
+    *out_count = filteredObjectCount;
     
     return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }

@@ -18,7 +18,7 @@ typedef enum {
 } RoundControllerStatus;
 
 
-RoundControllerStatus round_get_public_info(int64_t id_round, RoundDTO** out_dto);
+RoundControllerStatus round_get_public_info(int64_t id_round, RoundDTO** out_dto, int *out_count);
 RoundControllerStatus round_start(int64_t id_game, int64_t id_player1, int64_t id_player2, int64_t duration);
 RoundControllerStatus round_make_move(int64_t id_round, int64_t id_player, int row, int col);
 RoundControllerStatus round_end(int64_t id_round);

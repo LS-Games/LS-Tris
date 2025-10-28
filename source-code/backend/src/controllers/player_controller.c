@@ -8,7 +8,7 @@
 #include "../dao/sqlite/db_connection_sqlite.h"
 #include "../dao/sqlite/player_dao_sqlite.h"
 
-PlayerControllerStatus player_get_public_info(char* nickname, PlayerDTO** out_dto) {
+PlayerControllerStatus player_get_public_info(char* nickname, PlayerDTO** out_dto, int *out_count) {
 
     // Check if there's a player with this nickname
     Player retrievedPlayer;
@@ -26,6 +26,7 @@ PlayerControllerStatus player_get_public_info(char* nickname, PlayerDTO** out_dt
     map_player_to_dto(&retrievedPlayer, &(*dynamicDTO));
     
     *out_dto = dynamicDTO;
+    *out_count = 1;
     
     return PLAYER_CONTROLLER_OK;
 }

@@ -18,7 +18,8 @@ int extract_int_from_json(const char* json_str, const char* key);
 
 char* serialize_action_success(const char* action, const char* message);
 char* serialize_action_error(const char* action, const char* error_message);
-char* serialize_player_to_json(const PlayerDTO* in_player);
+char* serialize_players_to_json(const PlayerDTO* players, size_t count);
+char* serialize_games_to_json(const GameDTO* games, size_t count);
 char* serialize_notification_to_json(NotificationDTO* in_notification);
 
 #endif

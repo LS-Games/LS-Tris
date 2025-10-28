@@ -9,7 +9,7 @@
 // This function provides a query by `id_player` and `id_round`. 
 // @param id_player Possible values are all integer positive number and -1 (no filter)
 // @param id_round Possible values are all integer positive number and -1 (no filter)
-PlayControllerStatus plays_get_public_info(int64_t id_player, int64_t id_round, PlayDTO** out_dtos) {
+PlayControllerStatus plays_get_public_info(int64_t id_player, int64_t id_round, PlayDTO** out_dtos, int *out_count) {
 
     PlayWithPlayerNickname* retrievedPlays;
     int retrievedObjectCount;
@@ -42,6 +42,7 @@ PlayControllerStatus plays_get_public_info(int64_t id_player, int64_t id_round, 
     }
 
     *out_dtos = dynamicDTOs;
+    *out_count = filteredObjectCount;
     
     return PLAY_CONTROLLER_OK;
 }
