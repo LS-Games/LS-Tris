@@ -203,6 +203,34 @@ char* serialize_rounds_to_json(const RoundDTO* rounds, size_t count) {
 }
 
 
+// Serialize: ParticipationRequestDTO
+char* serialize_participation_requests_to_json(const ParticipationRequestDTO* participationRequests, size_t count) {
+    struct json_object *json_response = json_object_new_object();
+    struct json_object *json_array = json_object_new_array();
+
+    for (size_t i = 0; i < count; i++) {
+        struct json_object *json_request = json_object_new_object();
+
+        json_object_object_add(json_request, "id_request", json_object_new_int64(participationRequests[i].id_request));
+        json_object_object_add(json_request, "id_game", json_object_new_int64(participationRequests[i].id_game));
+        json_object_object_add(json_request, "player_nickname", json_object_new_string(participationRequests[i].player_nickname));
+        json_object_object_add(json_request, "state", json_object_new_string(participationRequests[i].state_str));
+        json_object_object_add(json_request, "created_at", json_object_new_string(participationRequests[i].created_at_str));
+
+        json_object_array_add(json_array, json_request);
+    }
+
+    json_object_object_add(json_response, "count", json_object_new_int64(count));
+    json_object_object_add(json_response, "participation_requests", json_array);
+
+    const char* json_str = json_object_to_json_string(json_response);
+    char* result = malloc(strlen(json_str) + 1);
+    if (result) strcpy(result, json_str);
+
+    json_object_put(json_response);
+    return result;
+}
+
 
 char* serialize_notification_to_json(NotificationDTO* in_notification) {
     if (!in_notification) return NULL;

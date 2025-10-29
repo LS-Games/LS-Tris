@@ -67,7 +67,7 @@ ParticipationRequestControllerStatus participation_requests_get_public_info(char
     return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
 
-ParticipationRequestControllerStatus participation_request_send(int64_t id_game, int64_t id_player) {
+ParticipationRequestControllerStatus participation_request_send(int64_t id_game, int64_t id_player, int64_t* out_id_participation_request) {
 
     // Build participation request to send
     ParticipationRequest participationRequestToSend = {
@@ -78,10 +78,16 @@ ParticipationRequestControllerStatus participation_request_send(int64_t id_game,
     };
 
     // Create participation request
-    return participation_request_create(&participationRequestToSend);
+    ParticipationRequestControllerStatus status = participation_request_create(&participationRequestToSend);
+    if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
+        return status;
+
+    *out_id_participation_request = participationRequestToSend.id_request;
+
+    return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
 
-ParticipationRequestControllerStatus participation_request_change_state(int64_t id_participation_request, RequestStatus newStatus) {
+ParticipationRequestControllerStatus participation_request_change_state(int64_t id_participation_request, char* newState, int64_t* out_id_participation_request) {
 
     // Retrieve participation request to change state
     ParticipationRequest retrievedParticipationRequest;
@@ -89,7 +95,12 @@ ParticipationRequestControllerStatus participation_request_change_state(int64_t 
     if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
         return status;
 
-    retrievedParticipationRequest.state = newStatus;
+    // Convert status
+    RequestStatus state = string_to_request_participation_status(newState);
+    if (state == REQUEST_STATUS_INVALID)
+        return PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT;
+
+    retrievedParticipationRequest.state = state;
 
     // If the request is accepted, we should start a new round and reject all other requests
     if (retrievedParticipationRequest.state == ACCEPTED) {
@@ -98,7 +109,13 @@ ParticipationRequestControllerStatus participation_request_change_state(int64_t 
             return status;
     }
 
-    return participation_request_update(&retrievedParticipationRequest);
+    status = participation_request_update(&retrievedParticipationRequest);
+    if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
+        return status;
+
+    *out_id_participation_request = retrievedParticipationRequest.id_request;
+
+    return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
 
 static ParticipationRequestControllerStatus participation_request_accept_helper(int64_t id_gameToPlay, int64_t id_playerAccepted) {
@@ -143,8 +160,14 @@ static ParticipationRequestControllerStatus participation_request_reject_all(Par
     return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
 
-ParticipationRequestControllerStatus participation_request_cancel(int64_t id_participation_request) {
-    return participation_request_delete(id_participation_request);
+ParticipationRequestControllerStatus participation_request_cancel(int64_t id_participation_request, int64_t* out_id_participation_request) {
+    ParticipationRequestControllerStatus status = participation_request_delete(id_participation_request);
+    if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
+        return status;
+
+    *out_id_participation_request = id_participation_request;
+
+    return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
 
 // ===================== CRUD Operations =====================

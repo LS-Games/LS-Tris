@@ -368,11 +368,10 @@ PlayDaoStatus get_all_plays_by_round(sqlite3 *db, Play** out_array, int64_t id_r
     *out_array = NULL;
     *out_count = 0; 
 
-    const char *sql = "SELECT p.id_player, p.id_round, p.result, p.player_number "
-                      "FROM Play p "
-                      "JOIN Round r ON p.id_round = r.id_round "
-                      "WHERE r.id_round = ?1 "
-                      "ORDER BY r.id_round ASC;"; 
+    const char *sql = "SELECT id_player, id_round, result, player_number "
+                      "FROM Play "
+                      "WHERE id_round = ?1 "
+                      "ORDER BY id_round ASC;"; 
 
     sqlite3_stmt *st = NULL;
 
