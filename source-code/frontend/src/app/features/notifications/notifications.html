@@ -1,0 +1,11 @@
+<div class="notifications">
+
+  @for (n of notifications; track n.id) {
+    <div class="notification"
+         [ngClass]="n.type"
+         (click)="remove(n.id)">
+      <div class="message">{{ n.message }}</div>
+    </div>
+  }
+</div>
+

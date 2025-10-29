@@ -3,6 +3,7 @@ import { DialogRef } from '@angular/cdk/dialog';
 import { RouterLink } from '@angular/router'; 
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Notification, NotificationService } from '../../core/services/notification';
 
 @Component({
   selector: 'app-signup-form',
@@ -13,9 +14,12 @@ import { HttpClient } from '@angular/common/http';
 export class SignupForm {
 
   private readonly http = inject(HttpClient);
+
   // When we created the dialog in header.ts, Angular automatically provided a DialogRef instance for this component.
   // To manage it we have to inject a DialogRef, after which we can create a function to close it, for example. 
   private readonly _dialogRef = inject(DialogRef<SignupForm>);
+
+  private readonly _notificationService = inject(NotificationService)
 
   // Create a reactive form using FormBuilder
   private readonly _formBuilder = inject(FormBuilder);
@@ -57,11 +61,29 @@ export class SignupForm {
 
           //next is executed when the request is successful 
           next: (response: any) => {
-            console.log('Backend response:', response.backendResponse)
+
+          //We can manage the backend response here
+          if(response?.backendResponse) {
+
+            //We convert JS object received from Bridge in JSON
+            const backend_response = JSON.parse(response.backendResponse);
             
+            //DEBUG
+            console.log('Backend response:', backend_response);
+
+            if (backend_response.status == 'success') {
+
+              this._notificationService.show('success', backend_response.message, 6000);
+
+            } else if (backend_response.status == 'error') {
+
+              this._notificationService.show('error', backend_response.error_message, 6000);
+
+            }
+    
+          }
+
           // Optionally show a success message or close dialog
-            
-            alert('Signup successful!');
             this.close();
           },
 

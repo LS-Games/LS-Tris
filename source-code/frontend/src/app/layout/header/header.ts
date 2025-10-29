@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../core/auth/auth.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Dialog } from '@angular/cdk/dialog';
 import { SignupForm } from '../../pages/signup-form/signup-form';
 import { LoginForm } from '../../pages/login-form/login-form';

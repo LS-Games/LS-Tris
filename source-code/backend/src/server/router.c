@@ -71,7 +71,7 @@ void route_request(const char* json_body, int client_socket) {
     } else if (strcmp(action, "player_signup") == 0) {
         PlayerControllerStatus playerStatus = player_signup(nickname, email, password);
         if (playerStatus == PLAYER_CONTROLLER_OK) {
-            json_response = serialize_action_success(action, NULL);
+            json_response = serialize_action_success(action, "Your account has been successfully created.");
         } else if (playerStatus == PLAYER_CONTROLLER_INVALID_INPUT) {
             json_response = serialize_action_error(action, "Invalid input values");
         } else if (playerStatus == PLAYER_CONTROLLER_STATE_VIOLATION) {
