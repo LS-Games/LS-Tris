@@ -35,6 +35,6 @@ RoundControllerStatus round_update(Round* updatedRound);
 RoundControllerStatus round_delete(int64_t id_round);
 
 // Funzione di utilità per messaggi di errore
-const char* return_round_controller_status_to_string(RoundControllerStatus status);
+const char *return_round_controller_status_to_string(RoundControllerStatus status);
 
 #endif

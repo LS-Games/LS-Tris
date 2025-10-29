@@ -8,7 +8,7 @@
 #include "../dao/sqlite/db_connection_sqlite.h"
 #include "../dao/sqlite/player_dao_sqlite.h"
 
-PlayerControllerStatus player_get_public_info(char* nickname, PlayerDTO** out_dto, int *out_count) {
+PlayerControllerStatus player_get_public_info(char *nickname, PlayerDTO** out_dto, int *out_count) {
 
     // Check if there's a player with this nickname
     Player retrievedPlayer;
@@ -33,7 +33,7 @@ PlayerControllerStatus player_get_public_info(char* nickname, PlayerDTO** out_dt
     return PLAYER_CONTROLLER_OK;
 }
 
-PlayerControllerStatus player_signup(char* nickname, char* email, char* password, int64_t* out_id_player) {
+PlayerControllerStatus player_signup(char *nickname, char *email, char *password, int64_t* out_id_player) {
 
     // Input validation
     if (strlen(nickname) >= NICKNAME_MAX ||
@@ -67,7 +67,7 @@ PlayerControllerStatus player_signup(char* nickname, char* email, char* password
     return PLAYER_CONTROLLER_OK;
 }
 
-PlayerControllerStatus player_signin(char* nickname, char* password, bool* signedIn, int64_t* out_id_player) {
+PlayerControllerStatus player_signin(char *nickname, char *password, bool* signedIn, int64_t* out_id_player) {
 
     *signedIn = false;
 
@@ -87,7 +87,7 @@ PlayerControllerStatus player_signin(char* nickname, char* password, bool* signe
 
 // ===================== CRUD Operations =====================
 
-const char* return_player_controller_status_to_string(PlayerControllerStatus status) {
+const char *return_player_controller_status_to_string(PlayerControllerStatus status) {
     switch (status) {
         case PLAYER_CONTROLLER_OK:               return "PLAYER_CONTROLLER_OK";
         case PLAYER_CONTROLLER_INVALID_INPUT:    return "PLAYER_CONTROLLER_INVALID_INPUT";

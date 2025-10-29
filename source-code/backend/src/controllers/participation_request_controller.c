@@ -19,7 +19,7 @@ static ParticipationRequestControllerStatus participation_request_reject_all(Par
 // This function provides a query by `state` and `id_game`. 
 // @param state Possible values are `pending`, `accepted`, `rejected` and `all` (no filter)
 // @param id_game Possible values are all integer positive number and -1 (no filter)
-ParticipationRequestControllerStatus participation_requests_get_public_info(char* state, int64_t id_game, ParticipationRequestDTO** out_dtos, int *out_count) {
+ParticipationRequestControllerStatus participation_requests_get_public_info(char *state, int64_t id_game, ParticipationRequestDTO** out_dtos, int *out_count) {
 
     RequestStatus queryState = REQUEST_STATUS_INVALID;
     if (strcmp(state, "all") != 0) {
@@ -87,7 +87,7 @@ ParticipationRequestControllerStatus participation_request_send(int64_t id_game,
     return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
 
-ParticipationRequestControllerStatus participation_request_change_state(int64_t id_participation_request, char* newState, int64_t* out_id_participation_request) {
+ParticipationRequestControllerStatus participation_request_change_state(int64_t id_participation_request, char *newState, int64_t* out_id_participation_request) {
 
     // Retrieve participation request to change state
     ParticipationRequest retrievedParticipationRequest;
@@ -172,7 +172,7 @@ ParticipationRequestControllerStatus participation_request_cancel(int64_t id_par
 
 // ===================== CRUD Operations =====================
 
-const char* return_participation_request_controller_status_to_string(ParticipationRequestControllerStatus status) {
+const char *return_participation_request_controller_status_to_string(ParticipationRequestControllerStatus status) {
     switch (status) {
         case PARTICIPATION_REQUEST_CONTROLLER_OK:               return "PARTICIPATION_REQUEST_CONTROLLER_OK";
         case PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT:    return "PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT";

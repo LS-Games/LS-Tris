@@ -30,6 +30,6 @@ RoundDaoStatus delete_round_by_id(sqlite3 *db, int64_t id_round);
 RoundDaoStatus insert_round(sqlite3 *db, Round *in_out_round);
 
 // Funzione di utilità per messaggi di errore
-const char* return_round_dao_status_to_string(RoundDaoStatus status);
+const char *return_round_dao_status_to_string(RoundDaoStatus status);
 
 #endif

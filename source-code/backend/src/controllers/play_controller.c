@@ -161,7 +161,7 @@ PlayControllerStatus play_find_round_winner(int64_t id_round, int64_t *out_id_pl
 
 // ===================== CRUD Operations =====================
 
-const char* return_play_controller_status_to_string(PlayControllerStatus status) {
+const char *return_play_controller_status_to_string(PlayControllerStatus status) {
     switch (status) {
         case PLAY_CONTROLLER_OK:               return "PLAY_CONTROLLER_OK";
         case PLAY_CONTROLLER_INVALID_INPUT:    return "PLAY_CONTROLLER_INVALID_INPUT";

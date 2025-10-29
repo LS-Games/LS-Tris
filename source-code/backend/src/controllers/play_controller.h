@@ -37,6 +37,6 @@ PlayControllerStatus play_find_all_by_id_round(Play** retrievedPlayArray, int64_
 PlayControllerStatus play_find_all_with_player_info(PlayWithPlayerNickname** retrievedPlayArray, int* retrievedObjectCount);
 
 // Funzione di utilità per messaggi di errore
-const char* return_play_controller_status_to_string(PlayControllerStatus status);
+const char *return_play_controller_status_to_string(PlayControllerStatus status);
 
 #endif

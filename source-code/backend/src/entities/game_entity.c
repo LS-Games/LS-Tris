@@ -25,7 +25,7 @@ void print_game(const Game *g) {
     printf("}\n");
 }
 
-const char* game_status_to_string(GameStatus state) {
+const char *game_status_to_string(GameStatus state) {
     switch (state) {
         case NEW_GAME :         return "new";
         case ACTIVE_GAME :      return "active";

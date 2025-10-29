@@ -20,7 +20,7 @@ typedef struct {
 void print_play(const Play *p);
 void print_play_inline(const Play *p);
 
-const char* play_result_to_string(PlayResult result);
+const char *play_result_to_string(PlayResult result);
 PlayResult string_to_play_result(const char *result_str);
 
 #endif

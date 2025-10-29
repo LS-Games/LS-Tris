@@ -10,7 +10,7 @@
 
 // This function provides a query by `status`. 
 // @param status Possible values are `new`, `active`, `waiting`, `finished` and `all` (no filter)
-GameControllerStatus games_get_public_info(char* status, GameDTO** out_dtos, int *out_count) {
+GameControllerStatus games_get_public_info(char *status, GameDTO** out_dtos, int *out_count) {
 
     LOG_DEBUG("Status: %s\n", status);
 
@@ -154,7 +154,7 @@ GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner) {
 
 // ===================== CRUD Operations =====================
 
-const char* return_game_controller_status_to_string(GameControllerStatus status) {
+const char *return_game_controller_status_to_string(GameControllerStatus status) {
     switch (status) {
         case GAME_CONTROLLER_OK:               return "GAME_CONTROLLER_OK";
         case GAME_CONTROLLER_INVALID_INPUT:    return "GAME_CONTROLLER_INVALID_INPUT";

@@ -19,7 +19,7 @@ typedef enum {
 } GameControllerStatus;
 
 
-GameControllerStatus games_get_public_info(char* status, GameDTO** out_dtos, int *out_count);
+GameControllerStatus games_get_public_info(char *status, GameDTO** out_dtos, int *out_count);
 GameControllerStatus game_start(int64_t id_creator, int64_t* out_id_game);
 GameControllerStatus game_end(int64_t id_game, int64_t id_owner, int64_t* out_id_game);
 GameControllerStatus game_refuse_rematch(int64_t id_game, int64_t* out_id_game);
@@ -40,6 +40,6 @@ GameControllerStatus game_delete(int64_t id_game);
 GameControllerStatus game_find_all_with_player_info(GameWithPlayerNickname** retrievedGameArray, int* retrievedObjectCount);
 
 // Funzione di utilità per messaggi di errore
-const char* return_game_controller_status_to_string(GameControllerStatus status);
+const char *return_game_controller_status_to_string(GameControllerStatus status);
 
 #endif

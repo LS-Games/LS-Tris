@@ -34,6 +34,6 @@ ParticipationRequestDaoStatus get_all_participation_requests_with_player_info(sq
 ParticipationRequestDaoStatus get_all_pending_participation_request_by_id_game(sqlite3 *db, int64_t id_game, ParticipationRequest **out_array, int *out_count);
 
 // Funzione di utilità per messaggi di errore
-const char* return_participation_request_dao_status_to_string(ParticipationRequestDaoStatus status);
+const char *return_participation_request_dao_status_to_string(ParticipationRequestDaoStatus status);
 
 #endif

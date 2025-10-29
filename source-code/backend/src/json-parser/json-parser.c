@@ -8,7 +8,7 @@
 // @param json_str is the variable which contains the entire JSON
 // @param key is the json key which we will use to extract the correct value from the JSON
 // @return The value extracted from the json key. It returns `NULL` if no key is found.
-char* extract_string_from_json(const char* json_str, const char* key) {
+char *extract_string_from_json(const char *json_str, const char *key) {
 
     // - parsed_join will contain the entire JSON object after the parsing
     // - value will contain the value associated with the key
@@ -50,7 +50,7 @@ char* extract_string_from_json(const char* json_str, const char* key) {
 // @param json_str is the variable which contains the entire JSON
 // @param key is the json key which we will use to extract the correct value from the JSON
 // @return The value extracted from the json key. It returns `-1` if no key is found.
-int extract_int_from_json(const char* json_str, const char* key) {
+int extract_int_from_json(const char *json_str, const char *key) {
     
     struct json_object *parsed_json, *value;
 
@@ -76,7 +76,7 @@ int extract_int_from_json(const char* json_str, const char* key) {
 /* === Serialize functions === */
 
 // Serialize: Action Success
-char* serialize_action_success(const char* action, const char* message, int64_t id) {
+char *serialize_action_success(const char *action, const char *message, int64_t id) {
     struct json_object *json_response = json_object_new_object();
 
     json_object_object_add(json_response, "status", json_object_new_string("success"));
@@ -90,8 +90,8 @@ char* serialize_action_success(const char* action, const char* message, int64_t 
         json_object_object_add(json_response, "message", json_object_new_string(message));
     }
 
-    const char* json_str = json_object_to_json_string(json_response);
-    char* result = malloc(strlen(json_str) + 1);
+    const char *json_str = json_object_to_json_string(json_response);
+    char *result = malloc(strlen(json_str) + 1);
     if (result) strcpy(result, json_str);
 
     json_object_put(json_response);
@@ -99,7 +99,7 @@ char* serialize_action_success(const char* action, const char* message, int64_t 
 }
 
 // Serialize: Action Error
-char* serialize_action_error(const char* action, const char* error_message) {
+char *serialize_action_error(const char *action, const char *error_message) {
     struct json_object *json_response = json_object_new_object();
 
     json_object_object_add(json_response, "status", json_object_new_string("error"));
@@ -110,8 +110,8 @@ char* serialize_action_error(const char* action, const char* error_message) {
         json_object_object_add(json_response, "error_message", json_object_new_string(error_message));
     }
 
-    const char* json_str = json_object_to_json_string(json_response);
-    char* result = malloc(strlen(json_str) + 1);
+    const char *json_str = json_object_to_json_string(json_response);
+    char *result = malloc(strlen(json_str) + 1);
     if (result) strcpy(result, json_str);
 
     json_object_put(json_response);
@@ -119,7 +119,7 @@ char* serialize_action_error(const char* action, const char* error_message) {
 }
 
 // Serialize: PlayerDTO
-char* serialize_players_to_json(const PlayerDTO* players, size_t count) {
+char *serialize_players_to_json(const PlayerDTO* players, size_t count) {
     struct json_object *json_response = json_object_new_object();
     struct json_object *json_array = json_object_new_array();
 
@@ -138,8 +138,8 @@ char* serialize_players_to_json(const PlayerDTO* players, size_t count) {
     json_object_object_add(json_response, "count", json_object_new_int64(count));
     json_object_object_add(json_response, "players", json_array);
 
-    const char* json_str = json_object_to_json_string(json_response);
-    char* result = malloc(strlen(json_str) + 1);
+    const char *json_str = json_object_to_json_string(json_response);
+    char *result = malloc(strlen(json_str) + 1);
     if (result) strcpy(result, json_str);
 
     json_object_put(json_response);
@@ -147,7 +147,7 @@ char* serialize_players_to_json(const PlayerDTO* players, size_t count) {
 }
 
 // Serialize: GameDTO
-char* serialize_games_to_json(const GameDTO* games, size_t count) {
+char *serialize_games_to_json(const GameDTO* games, size_t count) {
     struct json_object *json_response = json_object_new_object();
     struct json_object *json_array = json_object_new_array();
 
@@ -166,8 +166,8 @@ char* serialize_games_to_json(const GameDTO* games, size_t count) {
     json_object_object_add(json_response, "count", json_object_new_int64(count));
     json_object_object_add(json_response, "games", json_array);
 
-    const char* json_str = json_object_to_json_string(json_response);
-    char* result = malloc(strlen(json_str) + 1);
+    const char *json_str = json_object_to_json_string(json_response);
+    char *result = malloc(strlen(json_str) + 1);
     if (result) strcpy(result, json_str);
 
     json_object_put(json_response);
@@ -175,7 +175,7 @@ char* serialize_games_to_json(const GameDTO* games, size_t count) {
 }
 
 // Serialize: RoundDTO
-char* serialize_rounds_to_json(const RoundDTO* rounds, size_t count) {
+char *serialize_rounds_to_json(const RoundDTO* rounds, size_t count) {
     struct json_object *json_response = json_object_new_object();
     struct json_object *json_array = json_object_new_array();
 
@@ -194,8 +194,8 @@ char* serialize_rounds_to_json(const RoundDTO* rounds, size_t count) {
     json_object_object_add(json_response, "count", json_object_new_int64(count));
     json_object_object_add(json_response, "rounds", json_array);
 
-    const char* json_str = json_object_to_json_string(json_response);
-    char* result = malloc(strlen(json_str) + 1);
+    const char *json_str = json_object_to_json_string(json_response);
+    char *result = malloc(strlen(json_str) + 1);
     if (result) strcpy(result, json_str);
 
     json_object_put(json_response);
@@ -204,7 +204,7 @@ char* serialize_rounds_to_json(const RoundDTO* rounds, size_t count) {
 
 
 // Serialize: ParticipationRequestDTO
-char* serialize_participation_requests_to_json(const ParticipationRequestDTO* participationRequests, size_t count) {
+char *serialize_participation_requests_to_json(const ParticipationRequestDTO* participationRequests, size_t count) {
     struct json_object *json_response = json_object_new_object();
     struct json_object *json_array = json_object_new_array();
 
@@ -223,8 +223,8 @@ char* serialize_participation_requests_to_json(const ParticipationRequestDTO* pa
     json_object_object_add(json_response, "count", json_object_new_int64(count));
     json_object_object_add(json_response, "participation_requests", json_array);
 
-    const char* json_str = json_object_to_json_string(json_response);
-    char* result = malloc(strlen(json_str) + 1);
+    const char *json_str = json_object_to_json_string(json_response);
+    char *result = malloc(strlen(json_str) + 1);
     if (result) strcpy(result, json_str);
 
     json_object_put(json_response);
@@ -232,7 +232,7 @@ char* serialize_participation_requests_to_json(const ParticipationRequestDTO* pa
 }
 
 
-char* serialize_notification_to_json(NotificationDTO* in_notification) {
+char *serialize_notification_to_json(NotificationDTO* in_notification) {
     if (!in_notification) return NULL;
 
     struct json_object *json_response = json_object_new_object();
@@ -243,8 +243,8 @@ char* serialize_notification_to_json(NotificationDTO* in_notification) {
     json_object_object_add(json_response, "id_game", json_object_new_int64(in_notification->id_game));
     json_object_object_add(json_response, "id_round", json_object_new_int64(in_notification->id_round));
 
-    const char* json_str = json_object_to_json_string(json_response);
-    char* result = malloc(strlen(json_str) + 1);
+    const char *json_str = json_object_to_json_string(json_response);
+    char *result = malloc(strlen(json_str) + 1);
     if (result) strcpy(result, json_str);
 
     json_object_put(json_response); 

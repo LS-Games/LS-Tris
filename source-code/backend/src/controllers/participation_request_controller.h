@@ -19,9 +19,9 @@ typedef enum {
 } ParticipationRequestControllerStatus;
 
 
-ParticipationRequestControllerStatus participation_requests_get_public_info(char* state, int64_t id_game, ParticipationRequestDTO** out_dtos, int *out_count);
+ParticipationRequestControllerStatus participation_requests_get_public_info(char *state, int64_t id_game, ParticipationRequestDTO** out_dtos, int *out_count);
 ParticipationRequestControllerStatus participation_request_send(int64_t id_game, int64_t id_player, int64_t* out_id_participation_request);
-ParticipationRequestControllerStatus participation_request_change_state(int64_t id_participation_request, char* newState, int64_t* out_id_participation_request);
+ParticipationRequestControllerStatus participation_request_change_state(int64_t id_participation_request, char *newState, int64_t* out_id_participation_request);
 ParticipationRequestControllerStatus participation_request_cancel(int64_t id_participation_request, int64_t* out_id_participation_request);
 
 // ===================== CRUD Operations =====================
@@ -36,6 +36,6 @@ ParticipationRequestControllerStatus participation_request_find_all_with_player_
 ParticipationRequestControllerStatus participation_request_find_all_pending_by_id_game(ParticipationRequest** retrievedParticipationRequestArray, int64_t id_game, int* retrievedObjectCount);
 
 // Funzione di utilità per messaggi di errore
-const char* return_participation_request_controller_status_to_string(ParticipationRequestControllerStatus status);
+const char *return_participation_request_controller_status_to_string(ParticipationRequestControllerStatus status);
 
 #endif

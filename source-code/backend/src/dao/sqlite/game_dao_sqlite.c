@@ -7,7 +7,7 @@
 
 #include "game_dao_sqlite.h"
 
-const char* return_game_dao_status_to_string(GameDaoStatus status) {
+const char *return_game_dao_status_to_string(GameDaoStatus status) {
     switch (status) {
         case GAME_DAO_OK:               return "GAME_DAO_OK";
         case GAME_DAO_INVALID_INPUT:    return "GAME_DAO_INVALID_INPUT";
@@ -282,7 +282,7 @@ GameDaoStatus delete_game_by_id(sqlite3 *db, int64_t id_game) {
         return GAME_DAO_INVALID_INPUT;
     }
 
-    const char* query = "DELETE FROM Game WHERE id_game = ?1";
+    const char *query = "DELETE FROM Game WHERE id_game = ?1";
 
     sqlite3_stmt *stmt = NULL;
 
@@ -332,7 +332,7 @@ GameDaoStatus insert_game(sqlite3 *db, Game *in_out_game) {
 
     sqlite3_stmt *stmt = NULL;
 
-    const char* query = 
+    const char *query = 
         "INSERT INTO Game (id_creator, id_owner, state, created_at)"
         " VALUES ( ?, ?, ?, datetime(?,'unixepoch')) RETURNING id_game, id_creator, id_owner, state, unixepoch(created_at)";
 
@@ -347,7 +347,7 @@ GameDaoStatus insert_game(sqlite3 *db, Game *in_out_game) {
     rc = sqlite3_bind_int64(stmt, param_index++, in_out_game->id_owner);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    const char* g_st = game_status_to_string(in_out_game->state);
+    const char *g_st = game_status_to_string(in_out_game->state);
     if(!g_st) {
         sqlite3_finalize(stmt);
         return GAME_DAO_INVALID_INPUT;
@@ -364,7 +364,7 @@ GameDaoStatus insert_game(sqlite3 *db, Game *in_out_game) {
     in_out_game->id_game = sqlite3_column_int64(stmt, 0);
     in_out_game->id_creator = sqlite3_column_int64(stmt, 1);
     in_out_game->id_owner = sqlite3_column_int64(stmt, 2);
-    const unsigned char* state = sqlite3_column_text(stmt, 3);
+    const unsigned char *state = sqlite3_column_text(stmt, 3);
     in_out_game->state = string_to_game_status((const char*) state);
     in_out_game->created_at = (time_t) sqlite3_column_int64(stmt,4);
 

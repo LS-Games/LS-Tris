@@ -25,7 +25,7 @@ typedef struct Game {
 void print_game(const Game *g);
 void print_game_inline(const Game *g);
 
-const char* game_status_to_string(GameStatus state);
+const char *game_status_to_string(GameStatus state);
 GameStatus string_to_game_status(const char *state_str);
 
 #endif

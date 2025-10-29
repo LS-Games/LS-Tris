@@ -17,7 +17,7 @@ static char find_diagonal_winner(char board[BOARD_MAX]);
 static char find_winner(char board[BOARD_MAX]);
 static bool is_draw(char board[BOARD_MAX]);
 static bool is_valid_move(char board[BOARD_MAX], int row, int col);
-static int get_current_turn(char* board);
+static int get_current_turn(char *board);
 static RoundControllerStatus round_start_helper(int64_t id_game, int64_t duration, Round* out_newRound);
 static RoundControllerStatus round_end_helper(Round* roundToEnd, PlayResult result);
 
@@ -111,7 +111,7 @@ static bool is_valid_move(char board[BOARD_MAX], int row, int col) {
     return valid;
 }
 
-static int get_current_turn(char* board) {
+static int get_current_turn(char *board) {
     int p1SymbolCounter = 0;
     int p2SymbolCounter = 0;
     
@@ -306,7 +306,7 @@ static RoundControllerStatus round_start_helper(int64_t id_game, int64_t duratio
 
 // ===================== CRUD Operations =====================
 
-const char* return_round_controller_status_to_string(RoundControllerStatus status) {
+const char *return_round_controller_status_to_string(RoundControllerStatus status) {
     switch (status) {
         case ROUND_CONTROLLER_OK:               return "ROUND_CONTROLLER_OK";
         case ROUND_CONTROLLER_INVALID_INPUT:    return "ROUND_CONTROLLER_INVALID_INPUT";
