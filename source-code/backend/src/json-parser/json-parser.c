@@ -1,4 +1,15 @@
-#include <json-c/json.h>
+/**
+ * The json parser library we used is json-c.
+ * GitHub repository: https://github.com/json-c/json-c 
+ * Reference: https://json-c.github.io/json-c/
+ * 
+ * You can verify the installed libjson-c version with the command: `dpkg -l | grep libjson-c`
+ * Our version is the json-c 16.0. 
+ * json-c 0.16 reference: https://json-c.github.io/json-c/json-c-0.16/doc/html/index.html
+ * Video tutorial: https://youtu.be/dQyXuFWylm4?si=KWfLu5QcM055VKwl
+*/
+
+#include <json-c/json.h> // Header to access all the functions that json-c offers
 #include <string.h>
 
 #include "json-parser.h"
@@ -28,6 +39,7 @@ char *extract_string_from_json(const char *json_str, const char *key) {
         return NULL;
     }
 
+    // Convert the json_object into desired type
     const char *temp = json_object_get_string(value);
     if (!temp) {
         json_object_put(parsed_json);
@@ -54,10 +66,12 @@ int extract_int_from_json(const char *json_str, const char *key) {
     
     struct json_object *parsed_json, *value;
 
+    // Parsing the JSON string content into JSON object
     parsed_json = json_tokener_parse(json_str);
 
     if(!parsed_json) return -1;
 
+    // Get the value of a key in the JSON object
     if(!json_object_object_get_ex(parsed_json, key, &value)) {
 
         // This function is used to free up the memory allocated from json_tokener_parse() function
@@ -65,6 +79,7 @@ int extract_int_from_json(const char *json_str, const char *key) {
         return -1;
     }
 
+    // Convert the json_object into desired type
     int result = json_object_get_int(value);
 
     json_object_put(parsed_json);
@@ -81,8 +96,9 @@ char *serialize_action_success(const char *action, const char *message, int64_t 
 
     json_object_object_add(json_response, "status", json_object_new_string("success"));
 
-    json_object_object_add(json_response, "id", json_object_new_int64(id));
-
+    if (id) {
+        json_object_object_add(json_response, "id", json_object_new_int64(id));
+    }
     if (action) {
         json_object_object_add(json_response, "action", json_object_new_string(action));
     }
@@ -231,6 +247,33 @@ char *serialize_participation_requests_to_json(const ParticipationRequestDTO* pa
     return result;
 }
 
+// Serialize: PlayDTO
+char *serialize_plays_to_json(const PlayDTO* plays, size_t count) {
+    struct json_object *json_response = json_object_new_object();
+    struct json_object *json_array = json_object_new_array();
+
+    for (size_t i = 0; i < count; i++) {
+        struct json_object *json_play = json_object_new_object();
+
+        json_object_object_add(json_play, "id_player", json_object_new_int64(plays[i].id_player));
+        json_object_object_add(json_play, "id_round", json_object_new_int64(plays[i].id_round));
+        json_object_object_add(json_play, "player_number", json_object_new_int(plays[i].player_number));
+        json_object_object_add(json_play, "player_nickname", json_object_new_string(plays[i].player_nickname));
+        json_object_object_add(json_play, "result", json_object_new_string(plays[i].result_str));
+
+        json_object_array_add(json_array, json_play);
+    }
+
+    json_object_object_add(json_response, "count", json_object_new_int64(count));
+    json_object_object_add(json_response, "plays", json_array);
+
+    const char *json_str = json_object_to_json_string(json_response);
+    char *result = malloc(strlen(json_str) + 1);
+    if (result) strcpy(result, json_str);
+
+    json_object_put(json_response);
+    return result;
+}
 
 char *serialize_notification_to_json(NotificationDTO* in_notification) {
     if (!in_notification) return NULL;

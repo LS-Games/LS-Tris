@@ -102,9 +102,9 @@ void route_request(const char* json_body, int client_socket) {
         }
 
     } else if (strcmp(action, "player_signup") == 0) {
-        PlayerControllerStatus playerStatus = player_signup(nickname, email, password, &out_id_player);
+        PlayerControllerStatus playerStatus = player_signup(nickname, email, password);
         if (playerStatus == PLAYER_CONTROLLER_OK) {
-            json_response = serialize_action_success(action, "Player signed up", out_id_player);
+            json_response = serialize_action_success(action, "Player signed up", 0);
         } else if (playerStatus == PLAYER_CONTROLLER_INVALID_INPUT) {
             json_response = serialize_action_error(action, "Invalid input values");
         } else if (playerStatus == PLAYER_CONTROLLER_STATE_VIOLATION) {

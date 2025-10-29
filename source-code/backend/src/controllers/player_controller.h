@@ -19,7 +19,7 @@ typedef enum {
 
 
 PlayerControllerStatus player_get_public_info(char *nickname, PlayerDTO **out_dto, int *out_count);
-PlayerControllerStatus player_signup(char *nickname, char *email, char *password, int64_t* out_id_player);
+PlayerControllerStatus player_signup(char *nickname, char *email, char *password);
 PlayerControllerStatus player_signin(char *nickname, char *password, bool* signedIn, int64_t* out_id_player);
 
 // ===================== CRUD Operations =====================
