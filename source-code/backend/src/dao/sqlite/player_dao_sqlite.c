@@ -7,7 +7,7 @@
 
 #include "player_dao_sqlite.h"
 
-const char* return_player_dao_status_to_string(PlayerDaoStatus status) {
+const char *return_player_dao_status_to_string(PlayerDaoStatus status) {
     switch (status) {
         case PLAYER_DAO_OK:                 return "PLAYER_DAO_OK";
         case PLAYER_DAO_INVALID_INPUT:      return "PLAYER_DAO_INVALID_INPUT";
@@ -368,7 +368,7 @@ PlayerDaoStatus delete_player_by_id(sqlite3 *db, int64_t id) {
         return PLAYER_DAO_INVALID_INPUT;
     }
 
-    const char* query = "DELETE FROM Player WHERE id_player = ?1";
+    const char *query = "DELETE FROM Player WHERE id_player = ?1";
 
     sqlite3_stmt *stmt = NULL;
 
@@ -411,7 +411,7 @@ PlayerDaoStatus insert_player(sqlite3* db, Player *in_out_player) {
 
     sqlite3_stmt *stmt = NULL;
 
-    const char* query = 
+    const char *query = 
         "INSERT INTO Player (nickname, email, password, current_streak, max_streak, registration_date)"
         " VALUES ( ?, ?, ?, ?, ?, datetime(?,'unixepoch')) RETURNING id_player, nickname, email, password, current_streak, max_streak, unixepoch(registration_date)";
 
@@ -473,7 +473,7 @@ PlayerDaoStatus insert_player(sqlite3* db, Player *in_out_player) {
         return PLAYER_DAO_SQL_ERROR;
 }
 
-PlayerDaoStatus get_player_by_nickname(sqlite3 *db, const char* nickname, Player *out) {
+PlayerDaoStatus get_player_by_nickname(sqlite3 *db, const char *nickname, Player *out) {
 
     if (db == NULL || nickname == NULL || out == NULL) {
         return PLAYER_DAO_INVALID_INPUT;

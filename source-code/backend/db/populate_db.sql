@@ -15,7 +15,8 @@ INSERT INTO Game (id_creator, id_owner, state, created_at) VALUES
 INSERT INTO Round (id_game, state, duration, board) VALUES
 (2, 'active', 120, 'XOOXOOX@@'),
 (2, 'finished', 90, 'XOOXOOXXX'),
-(4, 'finished', 75, '@@@@@@@@@');
+(4, 'finished', 75, '@@@@@@@@@'),
+(4, 'active', 75, '@@@@@@@@@');
 
 INSERT INTO Play (id_player, id_round, result, player_number) VALUES
 (1, 1, 'win', 1),
@@ -30,5 +31,4 @@ INSERT INTO Play (id_player, id_round, result, player_number) VALUES
 INSERT INTO Participation_request (id_player, id_game, created_at, state) VALUES
 (1, 2, '2025-08-01 11:00:00', 'pending'),
 (3, 1, '2025-08-01 12:30:00', 'accepted'),
-(4, 3, '2025-08-02 14:00:00', 'rejected'),
-(2, 4, '2025-08-03 09:45:00', 'canceled');
+(4, 3, '2025-08-02 14:00:00', 'rejected');

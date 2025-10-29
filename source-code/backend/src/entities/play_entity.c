@@ -27,7 +27,7 @@ void print_play_inline(const Play *p) {
             play_result_to_string(p->result));
 }
 
-const char* play_result_to_string(PlayResult result) {
+const char *play_result_to_string(PlayResult result) {
     switch (result) {
         case WIN :              return "win";
         case LOSE :             return "lose";

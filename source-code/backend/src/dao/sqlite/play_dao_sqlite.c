@@ -7,7 +7,7 @@
 
 #include "play_dao_sqlite.h"
 
-const char* return_play_dao_status_to_string(PlayDaoStatus status) {
+const char *return_play_dao_status_to_string(PlayDaoStatus status) {
     switch (status) {
         case PLAY_DAO_OK:               return "PLAY_DAO_OK";
         case PLAY_DAO_INVALID_INPUT:    return "PLAY_DAO_INVALID_INPUT";
@@ -78,7 +78,7 @@ PlayDaoStatus get_play_by_pk(sqlite3 *db, int64_t id_player, int64_t id_round, P
         return PLAY_DAO_SQL_ERROR;
 }
 
-PlayDaoStatus get_all_plays(sqlite3 *db, Play** out_array, int *out_count) {
+PlayDaoStatus get_all_plays(sqlite3 *db, Play **out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
         return PLAY_DAO_INVALID_INPUT;
@@ -227,7 +227,7 @@ PlayDaoStatus update_play_by_pk(sqlite3 *db, Play *upd_play) {
 
     upd_play->id_player = (int64_t) sqlite3_column_int64(st, 0);
     upd_play->id_round = (int64_t) sqlite3_column_int64(st, 1);
-    unsigned const char* result = sqlite3_column_text(st, 2);
+    unsigned const char *result = sqlite3_column_text(st, 2);
     upd_play->player_number = sqlite3_column_int(st,3);
 
     upd_play->result = string_to_play_result((const char*) result);
@@ -259,7 +259,7 @@ PlayDaoStatus delete_play_by_pk(sqlite3 *db, int64_t id_player, int64_t id_round
         return PLAY_DAO_INVALID_INPUT;
     }
 
-    const char* query = "DELETE FROM Play WHERE id_player = ?1 AND id_round = ?2";
+    const char *query = "DELETE FROM Play WHERE id_player = ?1 AND id_round = ?2";
 
     sqlite3_stmt *stmt = NULL;
 
@@ -308,7 +308,7 @@ PlayDaoStatus insert_play(sqlite3 *db, Play *in_out_play) {
 
     sqlite3_stmt *stmt = NULL;
 
-    const char* query = 
+    const char *query = 
         "INSERT INTO Play (id_player, id_round, result, player_number)"
         " VALUES ( ?1, ?2, ?3, ?4) RETURNING id_player, id_round, result, player_number";
 
@@ -321,7 +321,7 @@ PlayDaoStatus insert_play(sqlite3 *db, Play *in_out_play) {
     rc = sqlite3_bind_int64(stmt, 2, in_out_play->id_round);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    const char* p_st = play_result_to_string(in_out_play->result);
+    const char *p_st = play_result_to_string(in_out_play->result);
     if(!p_st) {
         sqlite3_finalize(stmt);
         return PLAY_DAO_INVALID_INPUT;
@@ -337,7 +337,7 @@ PlayDaoStatus insert_play(sqlite3 *db, Play *in_out_play) {
 
     in_out_play->id_player = sqlite3_column_int64(stmt, 0);
     in_out_play->id_round = sqlite3_column_int64(stmt, 1);
-    unsigned const char* result = sqlite3_column_text(stmt,2);
+    unsigned const char *result = sqlite3_column_text(stmt,2);
     in_out_play->result = string_to_play_result((const char*) result);
     in_out_play->player_number = sqlite3_column_int(stmt, 3);
 
@@ -359,7 +359,7 @@ PlayDaoStatus insert_play(sqlite3 *db, Play *in_out_play) {
         return PLAY_DAO_SQL_ERROR;
 }
 
-PlayDaoStatus get_all_plays_by_round(sqlite3 *db, Play** out_array, int64_t id_round, int *out_count) {
+PlayDaoStatus get_all_plays_by_round(sqlite3 *db, Play **out_array, int64_t id_round, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL || id_round <= 0) { 
         return PLAY_DAO_INVALID_INPUT;
@@ -370,8 +370,8 @@ PlayDaoStatus get_all_plays_by_round(sqlite3 *db, Play** out_array, int64_t id_r
 
     const char *sql = "SELECT id_player, id_round, result, player_number "
                       "FROM Play "
-                      "WHERE y.id_round = ?1 "
-                      "ORDER BY y.id_round ASC;"; 
+                      "WHERE id_round = ?1 "
+                      "ORDER BY id_round ASC;"; 
 
     sqlite3_stmt *st = NULL;
 
@@ -448,7 +448,7 @@ PlayDaoStatus get_all_plays_by_round(sqlite3 *db, Play** out_array, int64_t id_r
         return PLAY_DAO_SQL_ERROR;
 }
 
-PlayDaoStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickname** out_array, int *out_count) {
+PlayDaoStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickname **out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
         return PLAY_DAO_INVALID_INPUT;

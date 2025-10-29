@@ -34,7 +34,7 @@ void print_round_inline(const Round *r) {
             r->board);
 }
 
-const char* round_status_to_string(RoundStatus state) {
+const char *round_status_to_string(RoundStatus state) {
     switch (state) {
         case ACTIVE_ROUND :               return "active";
         case PENDING_ROUND :              return "pending";

@@ -30,7 +30,7 @@ typedef struct {
 void print_round(const Round *r);
 void print_round_inline(const Round *r);
 
-const char* round_status_to_string(RoundStatus state);
+const char *round_status_to_string(RoundStatus state);
 RoundStatus string_to_round_status(const char *state_str);
 
 char player_number_to_symbol(int player_number);

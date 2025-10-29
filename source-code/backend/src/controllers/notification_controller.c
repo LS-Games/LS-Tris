@@ -8,7 +8,7 @@
 #include "game_controller.h"
 #include "round_controller.h"
 
-NotificationControllerStatus notification_rematch_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO** out_dto) {
+NotificationControllerStatus notification_rematch_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO **out_dto) {
 
     Game retrievedGame;
     GameControllerStatus status = game_find_one(id_game, &retrievedGame);
@@ -37,7 +37,7 @@ NotificationControllerStatus notification_rematch_game(int64_t id_game, int64_t 
     return NOTIFICATION_CONTROLLER_OK;
 }
 
-NotificationControllerStatus notification_new_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO** out_dto) {
+NotificationControllerStatus notification_new_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO **out_dto) {
 
     Game retrievedGame;
     GameControllerStatus status = game_find_one(id_game, &retrievedGame);
@@ -66,7 +66,7 @@ NotificationControllerStatus notification_new_game(int64_t id_game, int64_t id_s
     return NOTIFICATION_CONTROLLER_OK;
 }
 
-NotificationControllerStatus notification_waiting_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO** out_dto) {
+NotificationControllerStatus notification_waiting_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO **out_dto) {
 
     Game retrievedGame;
     GameControllerStatus status = game_find_one(id_game, &retrievedGame);
@@ -95,7 +95,7 @@ NotificationControllerStatus notification_waiting_game(int64_t id_game, int64_t 
     return NOTIFICATION_CONTROLLER_OK;
 }
 
-NotificationControllerStatus notification_finished_round(int64_t id_round, int64_t id_sender, int64_t id_receiver, const char* result, NotificationDTO** out_dto) {
+NotificationControllerStatus notification_finished_round(int64_t id_round, int64_t id_sender, int64_t id_receiver, const char *result, NotificationDTO **out_dto) {
 
     Round retrievedRound;
     RoundControllerStatus status = round_find_one(id_round, &retrievedRound);
@@ -129,7 +129,7 @@ NotificationControllerStatus notification_finished_round(int64_t id_round, int64
 // ===================== CRUD Operations =====================
 
 // Funzione di utilità per messaggi di errore
-const char* return_notification_controller_status_to_string(NotificationControllerStatus status) {
+const char *return_notification_controller_status_to_string(NotificationControllerStatus status) {
     switch (status) {
         case NOTIFICATION_CONTROLLER_OK:                    return "NOTIFICATION_CONTROLLER_OK";
         // case NOTIFICATION_CONTROLLER_INVALID_INPUT:      return "NOTIFICATION_CONTROLLER_INVALID_INPUT";

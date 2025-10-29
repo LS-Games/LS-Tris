@@ -10,18 +10,23 @@
 
 // This function provides a query by `status`. 
 // @param status Possible values are `new`, `active`, `waiting`, `finished` and `all` (no filter)
-GameControllerStatus games_get_public_info(char* status, GameDTO** out_dtos) {
+GameControllerStatus games_get_public_info(char *status, GameDTO **out_dtos, int *out_count) {
+
+    LOG_DEBUG("Status: %s\n", status);
 
     GameStatus queryStatus = GAME_STATUS_INVALID;
-    if (strcmp(status, "all") != 0)
+    if (strcmp(status, "all") != 0) {
         queryStatus = string_to_game_status(status);
-    if (queryStatus == GAME_STATUS_INVALID)
-        return GAME_CONTROLLER_INVALID_INPUT;
+        if (queryStatus == GAME_STATUS_INVALID)
+            return GAME_CONTROLLER_INVALID_INPUT;
+    }
 
     GameWithPlayerNickname* retrievedGames;
     int retrievedObjectCount;
     if (game_find_all_with_player_info(&retrievedGames, &retrievedObjectCount) == GAME_CONTROLLER_NOT_FOUND) {
-        return GAME_CONTROLLER_INVALID_INPUT;
+        *out_dtos = NULL;
+        *out_count = 0;
+        return GAME_CONTROLLER_NOT_FOUND;
     }
 
     GameDTO *dynamicDTOs = NULL;
@@ -48,11 +53,12 @@ GameControllerStatus games_get_public_info(char* status, GameDTO** out_dtos) {
     }
 
     *out_dtos = dynamicDTOs;
+    *out_count = filteredObjectCount;
     
     return GAME_CONTROLLER_OK;
 }
 
-GameControllerStatus game_start(int64_t id_creator) {
+GameControllerStatus game_start(int64_t id_creator, int64_t* out_id_game) {
 
     // Build game to start
     Game gameToStart = {
@@ -63,10 +69,16 @@ GameControllerStatus game_start(int64_t id_creator) {
     };
 
     // Create game
-    return game_create(&gameToStart);
+    GameControllerStatus status = game_create(&gameToStart);
+    if (status != GAME_CONTROLLER_OK)
+        return status;
+
+    *out_id_game = gameToStart.id_game;
+
+    return GAME_CONTROLLER_OK;
 }
 
-GameControllerStatus game_end(int64_t id_game, int64_t id_owner) {
+GameControllerStatus game_end(int64_t id_game, int64_t id_owner, int64_t* out_id_game) {
 
     // Retrieve game to end
     Game retrievedGame;
@@ -79,22 +91,16 @@ GameControllerStatus game_end(int64_t id_game, int64_t id_owner) {
 
     retrievedGame.state = FINISHED_GAME;
 
-    return game_update(&retrievedGame);
-}
-
-GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner) {
-
-    Game retrievedGame;
-    GameControllerStatus status = game_find_one(id_game, &retrievedGame);
+    status = game_update(&retrievedGame);
     if (status != GAME_CONTROLLER_OK)
         return status;
 
-    retrievedGame.id_owner = id_newOwner;
+    *out_id_game = retrievedGame.id_game;
 
-    return game_update(&retrievedGame);
+    return GAME_CONTROLLER_OK;
 }
 
-GameControllerStatus game_refuse_rematch(int64_t id_game) {
+GameControllerStatus game_refuse_rematch(int64_t id_game, int64_t* out_id_game) {
 
     Game retrievedGame;
     GameControllerStatus status = game_find_one(id_game, &retrievedGame);
@@ -104,10 +110,16 @@ GameControllerStatus game_refuse_rematch(int64_t id_game) {
     // Update game state in order to let anyone send participation requests
     retrievedGame.state = WAITING_GAME;
 
-    return game_update(&retrievedGame);
+    status = game_update(&retrievedGame);
+    if (status != GAME_CONTROLLER_OK)
+        return status;
+
+    *out_id_game = retrievedGame.id_game;
+
+    return GAME_CONTROLLER_OK;
 }
 
-GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAcceptingRematch) {
+GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAcceptingRematch, int64_t* out_id_game) {
 
     Game retrievedGame;
     GameControllerStatus gameStatus = game_find_one(id_game, &retrievedGame);
@@ -121,12 +133,28 @@ GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAccep
         return GAME_CONTROLLER_INTERNAL_ERROR;
     }
 
+    *out_id_game = retrievedGame.id_game;
+
     return GAME_CONTROLLER_OK;
+}
+
+// ===================== Controllers Helper Functions =====================
+
+GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner) {
+
+    Game retrievedGame;
+    GameControllerStatus status = game_find_one(id_game, &retrievedGame);
+    if (status != GAME_CONTROLLER_OK)
+        return status;
+
+    retrievedGame.id_owner = id_newOwner;
+
+    return game_update(&retrievedGame);
 }
 
 // ===================== CRUD Operations =====================
 
-const char* return_game_controller_status_to_string(GameControllerStatus status) {
+const char *return_game_controller_status_to_string(GameControllerStatus status) {
     switch (status) {
         case GAME_CONTROLLER_OK:               return "GAME_CONTROLLER_OK";
         case GAME_CONTROLLER_INVALID_INPUT:    return "GAME_CONTROLLER_INVALID_INPUT";
@@ -154,7 +182,7 @@ GameControllerStatus game_create(Game* gameToCreate) {
 }
 
 // Read all
-GameControllerStatus game_find_all(Game** retrievedGameArray, int* retrievedObjectCount) {
+GameControllerStatus game_find_all(Game **retrievedGameArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     GameDaoStatus status = get_all_games(db, retrievedGameArray, retrievedObjectCount);
     db_close(db);
@@ -206,7 +234,7 @@ GameControllerStatus game_delete(int64_t id_game) {
 }
 
 // Read all with player info
-GameControllerStatus game_find_all_with_player_info(GameWithPlayerNickname** retrievedGameArray, int* retrievedObjectCount) {
+GameControllerStatus game_find_all_with_player_info(GameWithPlayerNickname **retrievedGameArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     GameDaoStatus status = get_all_games_with_player_info(db, retrievedGameArray, retrievedObjectCount);
     db_close(db);

@@ -45,7 +45,7 @@ void print_participation_request_inline(const ParticipationRequest *pr) {
             request_participation_status_to_string(pr->state));
 }
 
-const char* request_participation_status_to_string(RequestStatus state) {
+const char *request_participation_status_to_string(RequestStatus state) {
     switch (state) {
         case PENDING :          return "pending";
         case ACCEPTED :         return "accepted";

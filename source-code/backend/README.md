@@ -4,7 +4,7 @@
 
 ### Creazione dello schema da terminale
 
-Nella directory [backend/db/](./db/), creiamo un file `scheme.sql`, contenente lo schema del database in linguaggio SQL. Spostiamoci nella working directory [backend](.). Creeremo le tabelle con il comando:
+Nella directory [backend](.), creiamo un file `scheme.sql`, contenente lo schema del database in linguaggio SQL. Spostiamoci nella working directory [backend](.). Creeremo le tabelle con il comando:
 
 ```bash
 mkdir -p ./db/data
@@ -26,7 +26,7 @@ Tuttavia, tramite l'estensione [SQLite](https://marketplace.visualstudio.com/ite
 
 ### Popolazione del database da terminale
 
-Nella directory [backend/db/](./db/), creiamo un file `populate_db.sql`, contenente le istruzioni SQL per popolare il database. Spostiamoci nella working directory [backend](.). Popoleremo il database con il comando:
+Nella directory [backend](.), creiamo un file `populate_db.sql`, contenente le istruzioni SQL per popolare il database. Spostiamoci nella working directory [backend](.). Popoleremo il database con il comando:
 
 ```bash
 sqlite3 ./db/data/database.sqlite < ./db/populate_db.sql

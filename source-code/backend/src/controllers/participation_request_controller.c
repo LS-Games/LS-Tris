@@ -19,18 +19,21 @@ static ParticipationRequestControllerStatus participation_request_reject_all(Par
 // This function provides a query by `state` and `id_game`. 
 // @param state Possible values are `pending`, `accepted`, `rejected` and `all` (no filter)
 // @param id_game Possible values are all integer positive number and -1 (no filter)
-ParticipationRequestControllerStatus participation_requests_get_public_info_by_state(char* state, int64_t id_game, ParticipationRequestDTO** out_dtos) {
+ParticipationRequestControllerStatus participation_requests_get_public_info(char *state, int64_t id_game, ParticipationRequestDTO **out_dtos, int *out_count) {
 
     RequestStatus queryState = REQUEST_STATUS_INVALID;
-    if (strcmp(state, "all") != 0)
+    if (strcmp(state, "all") != 0) {
         queryState = string_to_request_participation_status(state);
-    if (queryState == REQUEST_STATUS_INVALID)
-        return PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT;
+        if (queryState == REQUEST_STATUS_INVALID)
+            return PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT;
+    }
 
     ParticipationRequestWithPlayerNickname* retrievedParticipationRequests;
     int retrievedObjectCount;
     if (participation_request_find_all_with_player_info(&retrievedParticipationRequests, &retrievedObjectCount) == PARTICIPATION_REQUEST_CONTROLLER_NOT_FOUND) {
-        return PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT;
+        *out_dtos = NULL;
+        *out_count = 0;
+        return PARTICIPATION_REQUEST_CONTROLLER_NOT_FOUND;
     }
 
     ParticipationRequestDTO *dynamicDTOs = NULL;
@@ -59,11 +62,12 @@ ParticipationRequestControllerStatus participation_requests_get_public_info_by_s
     }
 
     *out_dtos = dynamicDTOs;
+    *out_count = filteredObjectCount;
     
     return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
 
-ParticipationRequestControllerStatus participation_request_send(int64_t id_game, int64_t id_player) {
+ParticipationRequestControllerStatus participation_request_send(int64_t id_game, int64_t id_player, int64_t* out_id_participation_request) {
 
     // Build participation request to send
     ParticipationRequest participationRequestToSend = {
@@ -74,10 +78,16 @@ ParticipationRequestControllerStatus participation_request_send(int64_t id_game,
     };
 
     // Create participation request
-    return participation_request_create(&participationRequestToSend);
+    ParticipationRequestControllerStatus status = participation_request_create(&participationRequestToSend);
+    if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
+        return status;
+
+    *out_id_participation_request = participationRequestToSend.id_request;
+
+    return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
 
-ParticipationRequestControllerStatus participation_request_change_state(int64_t id_participation_request, RequestStatus newStatus) {
+ParticipationRequestControllerStatus participation_request_change_state(int64_t id_participation_request, char *newState, int64_t* out_id_participation_request) {
 
     // Retrieve participation request to change state
     ParticipationRequest retrievedParticipationRequest;
@@ -85,7 +95,12 @@ ParticipationRequestControllerStatus participation_request_change_state(int64_t 
     if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
         return status;
 
-    retrievedParticipationRequest.state = newStatus;
+    // Convert status
+    RequestStatus state = string_to_request_participation_status(newState);
+    if (state == REQUEST_STATUS_INVALID)
+        return PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT;
+
+    retrievedParticipationRequest.state = state;
 
     // If the request is accepted, we should start a new round and reject all other requests
     if (retrievedParticipationRequest.state == ACCEPTED) {
@@ -94,7 +109,13 @@ ParticipationRequestControllerStatus participation_request_change_state(int64_t 
             return status;
     }
 
-    return participation_request_update(&retrievedParticipationRequest);
+    status = participation_request_update(&retrievedParticipationRequest);
+    if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
+        return status;
+
+    *out_id_participation_request = retrievedParticipationRequest.id_request;
+
+    return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
 
 static ParticipationRequestControllerStatus participation_request_accept_helper(int64_t id_gameToPlay, int64_t id_playerAccepted) {
@@ -139,13 +160,19 @@ static ParticipationRequestControllerStatus participation_request_reject_all(Par
     return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
 
-ParticipationRequestControllerStatus participation_request_cancel(int64_t id_participation_request) {
-    return participation_request_delete(id_participation_request);
+ParticipationRequestControllerStatus participation_request_cancel(int64_t id_participation_request, int64_t* out_id_participation_request) {
+    ParticipationRequestControllerStatus status = participation_request_delete(id_participation_request);
+    if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
+        return status;
+
+    *out_id_participation_request = id_participation_request;
+
+    return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
 
 // ===================== CRUD Operations =====================
 
-const char* return_participation_request_controller_status_to_string(ParticipationRequestControllerStatus status) {
+const char *return_participation_request_controller_status_to_string(ParticipationRequestControllerStatus status) {
     switch (status) {
         case PARTICIPATION_REQUEST_CONTROLLER_OK:               return "PARTICIPATION_REQUEST_CONTROLLER_OK";
         case PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT:    return "PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT";
@@ -173,7 +200,7 @@ ParticipationRequestControllerStatus participation_request_create(ParticipationR
 }
 
 // Read all
-ParticipationRequestControllerStatus participation_request_find_all(ParticipationRequest** retrievedParticipationRequestArray, int* retrievedObjectCount) {
+ParticipationRequestControllerStatus participation_request_find_all(ParticipationRequest **retrievedParticipationRequestArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     ParticipationRequestDaoStatus status = get_all_participation_requests(db, retrievedParticipationRequestArray, retrievedObjectCount);
     db_close(db);
@@ -225,7 +252,7 @@ ParticipationRequestControllerStatus participation_request_delete(int64_t id_par
 }
 
 // Read all with player info
-ParticipationRequestControllerStatus participation_request_find_all_with_player_info(ParticipationRequestWithPlayerNickname** retrievedParticipationRequestArray, int* retrievedObjectCount) {
+ParticipationRequestControllerStatus participation_request_find_all_with_player_info(ParticipationRequestWithPlayerNickname **retrievedParticipationRequestArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     ParticipationRequestDaoStatus status = get_all_participation_requests_with_player_info(db, retrievedParticipationRequestArray, retrievedObjectCount);
     db_close(db);
@@ -238,7 +265,7 @@ ParticipationRequestControllerStatus participation_request_find_all_with_player_
 }
 
 // Read all (state="pending" by id_game)
-ParticipationRequestControllerStatus participation_request_find_all_pending_by_id_game(ParticipationRequest** retrievedParticipationRequestArray, int64_t id_game, int* retrievedObjectCount) {
+ParticipationRequestControllerStatus participation_request_find_all_pending_by_id_game(ParticipationRequest **retrievedParticipationRequestArray, int64_t id_game, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     ParticipationRequestDaoStatus status = get_all_pending_participation_request_by_id_game(db, id_game, retrievedParticipationRequestArray, retrievedObjectCount);
     db_close(db);

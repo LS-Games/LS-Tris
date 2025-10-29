@@ -7,7 +7,7 @@
 
 #include "participation_request_dao_sqlite.h"
 
-const char* return_participation_request_dao_status_to_string(ParticipationRequestDaoStatus status) {
+const char *return_participation_request_dao_status_to_string(ParticipationRequestDaoStatus status) {
     switch (status) {
         case PARTICIPATION_DAO_REQUEST_OK:              return "PARTICIPATION_DAO_REQUEST_OK";
         case PARTICIPATION_DAO_REQUEST_INVALID_INPUT:   return "PARTICIPATION_DAO_REQUEST_INVALID_INPUT";
@@ -284,7 +284,7 @@ ParticipationRequestDaoStatus delete_participation_request_by_id(sqlite3 *db, in
         return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;
     }
 
-    const char* query = "DELETE FROM Participation_request WHERE id_request = ?1";
+    const char *query = "DELETE FROM Participation_request WHERE id_request = ?1";
 
     sqlite3_stmt *stmt = NULL;
 
@@ -367,7 +367,7 @@ ParticipationRequestDaoStatus insert_participation_request(sqlite3 *db, Particip
     in_out_request->id_player = sqlite3_column_int64(stmt, 1);
     in_out_request->id_game = sqlite3_column_int64(stmt, 2);
     in_out_request->created_at = (time_t) sqlite3_column_int64(stmt,3);
-    const unsigned char* state = sqlite3_column_text(stmt, 4);
+    const unsigned char *state = sqlite3_column_text(stmt, 4);
     in_out_request->state = string_to_request_participation_status((const char*) state);
 
     sqlite3_finalize(stmt);
@@ -473,7 +473,7 @@ ParticipationRequestDaoStatus get_all_participation_requests_with_player_info(sq
         return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 }
 
-ParticipationRequestDaoStatus get_all_pending_participation_request_by_id_game(sqlite3 *db, int64_t id_game, ParticipationRequest** out_array, int* out_count) {
+ParticipationRequestDaoStatus get_all_pending_participation_request_by_id_game(sqlite3 *db, int64_t id_game, ParticipationRequest **out_array, int* out_count) {
     
     if(!db || id_game <= 0 || !out_array || !out_count ) {
         return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;
@@ -482,7 +482,7 @@ ParticipationRequestDaoStatus get_all_pending_participation_request_by_id_game(s
     *out_count = 0;
     *out_array = NULL;
 
-    const char* sql = "SELECT id_request, id_player, id_game, unixepoch(created_at), state "
+    const char *sql = "SELECT id_request, id_player, id_game, unixepoch(created_at), state "
                       "FROM Participation_request "
                       "WHERE id_game = ?1 AND state = 'pending' "
                       "ORDER BY created_at DESC"; 

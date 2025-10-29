@@ -7,7 +7,7 @@
 
 #include "round_dao_sqlite.h"
 
-const char* return_round_dao_status_to_string(RoundDaoStatus status) {
+const char *return_round_dao_status_to_string(RoundDaoStatus status) {
     switch (status) {
         case ROUND_DAO_OK:              return "ROUND_DAO_OK";
         case ROUND_DAO_INVALID_INPUT:   return "ROUND_DAO_INVALID_INPUT";
@@ -82,7 +82,7 @@ RoundDaoStatus get_round_by_id(sqlite3 *db, int64_t id_round, Round *out) {
         return ROUND_DAO_SQL_ERROR;
 }
 
-RoundDaoStatus get_all_rounds(sqlite3 *db, Round** out_array, int *out_count) {
+RoundDaoStatus get_all_rounds(sqlite3 *db, Round **out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
         return ROUND_DAO_INVALID_INPUT;
@@ -293,7 +293,7 @@ RoundDaoStatus delete_round_by_id(sqlite3 *db, int64_t id_round) {
         return ROUND_DAO_INVALID_INPUT;
     }
 
-    const char* query = "DELETE FROM Round WHERE id_round = ?1";
+    const char *query = "DELETE FROM Round WHERE id_round = ?1";
 
     sqlite3_stmt *stmt = NULL;
 
@@ -343,7 +343,7 @@ RoundDaoStatus insert_round(sqlite3 *db, Round *in_out_round) {
 
     sqlite3_stmt *stmt = NULL;
 
-    const char* query = 
+    const char *query = 
         "INSERT INTO Round (id_game, state, duration, board)"
         " VALUES ( ?1, ?2, ?3, ?4) RETURNING id_round";
 
@@ -355,7 +355,7 @@ RoundDaoStatus insert_round(sqlite3 *db, Round *in_out_round) {
     rc = sqlite3_bind_int64(stmt, param_index++, in_out_round->id_game);
     if (rc != SQLITE_OK) goto bind_fail;
 
-    const char* r_st = round_status_to_string(in_out_round->state);
+    const char *r_st = round_status_to_string(in_out_round->state);
     if(!r_st) {
         sqlite3_finalize(stmt);
         return ROUND_DAO_INVALID_INPUT;

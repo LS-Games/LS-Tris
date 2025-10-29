@@ -8,12 +8,14 @@
 #include "../dao/sqlite/db_connection_sqlite.h"
 #include "../dao/sqlite/player_dao_sqlite.h"
 
-PlayerControllerStatus player_get_public_info(char* nickname, PlayerDTO** out_dto) {
+PlayerControllerStatus player_get_public_info(char *nickname, PlayerDTO **out_dto, int *out_count) {
 
     // Check if there's a player with this nickname
     Player retrievedPlayer;
     if (player_find_one_by_nickname(nickname, &retrievedPlayer) == PLAYER_CONTROLLER_NOT_FOUND) {
-        return PLAYER_CONTROLLER_INVALID_INPUT;
+        *out_dto = NULL;
+        *out_count = 0;
+        return PLAYER_CONTROLLER_NOT_FOUND;
     }
 
     PlayerDTO *dynamicDTO = malloc(sizeof(PlayerDTO));
@@ -26,11 +28,12 @@ PlayerControllerStatus player_get_public_info(char* nickname, PlayerDTO** out_dt
     map_player_to_dto(&retrievedPlayer, &(*dynamicDTO));
     
     *out_dto = dynamicDTO;
+    *out_count = 1;
     
     return PLAYER_CONTROLLER_OK;
 }
 
-PlayerControllerStatus player_signup(char* nickname, char* email, char* password) {
+PlayerControllerStatus player_signup(char *nickname, char *email, char *password, int64_t* out_id_player) {
 
     // Input validation
     if (strlen(nickname) >= NICKNAME_MAX ||
@@ -55,10 +58,16 @@ PlayerControllerStatus player_signup(char* nickname, char* email, char* password
     strcpy(playerToSignup.password, password);
 
     // Create player
-    return player_create(&playerToSignup);
+    PlayerControllerStatus status = player_create(&playerToSignup);
+    if (status != PLAYER_CONTROLLER_OK)
+        return status;
+
+    *out_id_player = playerToSignup.id_player;
+
+    return PLAYER_CONTROLLER_OK;
 }
 
-PlayerControllerStatus player_signin(char* nickname, char* password, bool* signedIn) {
+PlayerControllerStatus player_signin(char *nickname, char *password, bool* signedIn, int64_t* out_id_player) {
 
     *signedIn = false;
 
@@ -71,12 +80,14 @@ PlayerControllerStatus player_signin(char* nickname, char* password, bool* signe
     if (strcmp(retrievedPlayer.password, password) == 0)
         *signedIn = true;
 
+    *out_id_player = retrievedPlayer.id_player;
+
     return PLAYER_CONTROLLER_OK;
 }
 
 // ===================== CRUD Operations =====================
 
-const char* return_player_controller_status_to_string(PlayerControllerStatus status) {
+const char *return_player_controller_status_to_string(PlayerControllerStatus status) {
     switch (status) {
         case PLAYER_CONTROLLER_OK:               return "PLAYER_CONTROLLER_OK";
         case PLAYER_CONTROLLER_INVALID_INPUT:    return "PLAYER_CONTROLLER_INVALID_INPUT";
@@ -105,7 +116,7 @@ PlayerControllerStatus player_create(Player* playerToCreate) {
 }
 
 // Read all
-PlayerControllerStatus player_find_all(Player** retrievedPlayerArray, int* retrievedObjectCount) {
+PlayerControllerStatus player_find_all(Player **retrievedPlayerArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     PlayerDaoStatus status = get_all_players(db, retrievedPlayerArray, retrievedObjectCount);
     db_close(db);
