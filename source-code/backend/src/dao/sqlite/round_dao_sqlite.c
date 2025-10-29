@@ -82,7 +82,7 @@ RoundDaoStatus get_round_by_id(sqlite3 *db, int64_t id_round, Round *out) {
         return ROUND_DAO_SQL_ERROR;
 }
 
-RoundDaoStatus get_all_rounds(sqlite3 *db, Round** out_array, int *out_count) {
+RoundDaoStatus get_all_rounds(sqlite3 *db, Round **out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
         return ROUND_DAO_INVALID_INPUT;

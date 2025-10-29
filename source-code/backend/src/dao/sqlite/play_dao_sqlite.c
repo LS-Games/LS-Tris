@@ -78,7 +78,7 @@ PlayDaoStatus get_play_by_pk(sqlite3 *db, int64_t id_player, int64_t id_round, P
         return PLAY_DAO_SQL_ERROR;
 }
 
-PlayDaoStatus get_all_plays(sqlite3 *db, Play** out_array, int *out_count) {
+PlayDaoStatus get_all_plays(sqlite3 *db, Play **out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
         return PLAY_DAO_INVALID_INPUT;
@@ -359,7 +359,7 @@ PlayDaoStatus insert_play(sqlite3 *db, Play *in_out_play) {
         return PLAY_DAO_SQL_ERROR;
 }
 
-PlayDaoStatus get_all_plays_by_round(sqlite3 *db, Play** out_array, int64_t id_round, int *out_count) {
+PlayDaoStatus get_all_plays_by_round(sqlite3 *db, Play **out_array, int64_t id_round, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL || id_round <= 0) { 
         return PLAY_DAO_INVALID_INPUT;
@@ -448,7 +448,7 @@ PlayDaoStatus get_all_plays_by_round(sqlite3 *db, Play** out_array, int64_t id_r
         return PLAY_DAO_SQL_ERROR;
 }
 
-PlayDaoStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickname** out_array, int *out_count) {
+PlayDaoStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickname **out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
         return PLAY_DAO_INVALID_INPUT;

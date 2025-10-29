@@ -10,7 +10,7 @@
 
 // This function provides a query by `status`. 
 // @param status Possible values are `new`, `active`, `waiting`, `finished` and `all` (no filter)
-GameControllerStatus games_get_public_info(char *status, GameDTO** out_dtos, int *out_count) {
+GameControllerStatus games_get_public_info(char *status, GameDTO **out_dtos, int *out_count) {
 
     LOG_DEBUG("Status: %s\n", status);
 
@@ -182,7 +182,7 @@ GameControllerStatus game_create(Game* gameToCreate) {
 }
 
 // Read all
-GameControllerStatus game_find_all(Game** retrievedGameArray, int* retrievedObjectCount) {
+GameControllerStatus game_find_all(Game **retrievedGameArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     GameDaoStatus status = get_all_games(db, retrievedGameArray, retrievedObjectCount);
     db_close(db);
@@ -234,7 +234,7 @@ GameControllerStatus game_delete(int64_t id_game) {
 }
 
 // Read all with player info
-GameControllerStatus game_find_all_with_player_info(GameWithPlayerNickname** retrievedGameArray, int* retrievedObjectCount) {
+GameControllerStatus game_find_all_with_player_info(GameWithPlayerNickname **retrievedGameArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     GameDaoStatus status = get_all_games_with_player_info(db, retrievedGameArray, retrievedObjectCount);
     db_close(db);

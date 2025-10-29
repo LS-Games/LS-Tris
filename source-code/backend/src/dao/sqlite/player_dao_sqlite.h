@@ -26,7 +26,7 @@ typedef enum {
 
 // Funzioni CRUD concrete
 PlayerDaoStatus get_player_by_id(sqlite3 *db, int64_t id_player, Player *out); //We use Player pointer parameter to work by reference rather than by value 
-PlayerDaoStatus get_all_players(sqlite3 *db, Player** out_array, int *out_count);
+PlayerDaoStatus get_all_players(sqlite3 *db, Player **out_array, int *out_count);
 PlayerDaoStatus update_player_by_id(sqlite3 *db, const Player *upd_player);
 PlayerDaoStatus delete_player_by_id(sqlite3 *db, int64_t id_player);
 PlayerDaoStatus insert_player(sqlite3 *db, Player *in_out_player);

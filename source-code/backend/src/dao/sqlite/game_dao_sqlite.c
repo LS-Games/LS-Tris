@@ -76,7 +76,7 @@ GameDaoStatus get_game_by_id(sqlite3 *db, int64_t id_game, Game *out) {
         return GAME_DAO_SQL_ERROR;
 }
 
-GameDaoStatus get_all_games(sqlite3 *db, Game** out_array, int *out_count) {
+GameDaoStatus get_all_games(sqlite3 *db, Game **out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
         return GAME_DAO_INVALID_INPUT;
@@ -386,7 +386,7 @@ GameDaoStatus insert_game(sqlite3 *db, Game *in_out_game) {
         return GAME_DAO_SQL_ERROR;
 }
 
-GameDaoStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickname** out_array, int *out_count) {
+GameDaoStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickname **out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) {
         return GAME_DAO_INVALID_INPUT;

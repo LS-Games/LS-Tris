@@ -19,7 +19,7 @@ static ParticipationRequestControllerStatus participation_request_reject_all(Par
 // This function provides a query by `state` and `id_game`. 
 // @param state Possible values are `pending`, `accepted`, `rejected` and `all` (no filter)
 // @param id_game Possible values are all integer positive number and -1 (no filter)
-ParticipationRequestControllerStatus participation_requests_get_public_info(char *state, int64_t id_game, ParticipationRequestDTO** out_dtos, int *out_count) {
+ParticipationRequestControllerStatus participation_requests_get_public_info(char *state, int64_t id_game, ParticipationRequestDTO **out_dtos, int *out_count) {
 
     RequestStatus queryState = REQUEST_STATUS_INVALID;
     if (strcmp(state, "all") != 0) {
@@ -200,7 +200,7 @@ ParticipationRequestControllerStatus participation_request_create(ParticipationR
 }
 
 // Read all
-ParticipationRequestControllerStatus participation_request_find_all(ParticipationRequest** retrievedParticipationRequestArray, int* retrievedObjectCount) {
+ParticipationRequestControllerStatus participation_request_find_all(ParticipationRequest **retrievedParticipationRequestArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     ParticipationRequestDaoStatus status = get_all_participation_requests(db, retrievedParticipationRequestArray, retrievedObjectCount);
     db_close(db);
@@ -252,7 +252,7 @@ ParticipationRequestControllerStatus participation_request_delete(int64_t id_par
 }
 
 // Read all with player info
-ParticipationRequestControllerStatus participation_request_find_all_with_player_info(ParticipationRequestWithPlayerNickname** retrievedParticipationRequestArray, int* retrievedObjectCount) {
+ParticipationRequestControllerStatus participation_request_find_all_with_player_info(ParticipationRequestWithPlayerNickname **retrievedParticipationRequestArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     ParticipationRequestDaoStatus status = get_all_participation_requests_with_player_info(db, retrievedParticipationRequestArray, retrievedObjectCount);
     db_close(db);
@@ -265,7 +265,7 @@ ParticipationRequestControllerStatus participation_request_find_all_with_player_
 }
 
 // Read all (state="pending" by id_game)
-ParticipationRequestControllerStatus participation_request_find_all_pending_by_id_game(ParticipationRequest** retrievedParticipationRequestArray, int64_t id_game, int* retrievedObjectCount) {
+ParticipationRequestControllerStatus participation_request_find_all_pending_by_id_game(ParticipationRequest **retrievedParticipationRequestArray, int64_t id_game, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     ParticipationRequestDaoStatus status = get_all_pending_participation_request_by_id_game(db, id_game, retrievedParticipationRequestArray, retrievedObjectCount);
     db_close(db);

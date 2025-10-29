@@ -18,14 +18,14 @@ typedef enum {
 } PlayerControllerStatus;
 
 
-PlayerControllerStatus player_get_public_info(char *nickname, PlayerDTO** out_dto, int *out_count);
+PlayerControllerStatus player_get_public_info(char *nickname, PlayerDTO **out_dto, int *out_count);
 PlayerControllerStatus player_signup(char *nickname, char *email, char *password, int64_t* out_id_player);
 PlayerControllerStatus player_signin(char *nickname, char *password, bool* signedIn, int64_t* out_id_player);
 
 // ===================== CRUD Operations =====================
 
 PlayerControllerStatus player_create(Player* playerToCreate);
-PlayerControllerStatus player_find_all(Player** retrievedPlayerArray, int* retrievedObjectCount);
+PlayerControllerStatus player_find_all(Player **retrievedPlayerArray, int* retrievedObjectCount);
 PlayerControllerStatus player_find_one(int64_t id_player, Player* retrievedPlayer);
 PlayerControllerStatus player_update(Player* updatedPlayer);
 PlayerControllerStatus player_delete(int64_t id_player);

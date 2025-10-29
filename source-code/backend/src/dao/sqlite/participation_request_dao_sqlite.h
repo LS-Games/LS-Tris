@@ -25,7 +25,7 @@ typedef enum {
 
 // Funzioni CRUD concrete
 ParticipationRequestDaoStatus get_participation_request_by_id(sqlite3 *db, int64_t id_request, ParticipationRequest *out);  
-ParticipationRequestDaoStatus get_all_participation_requests(sqlite3 *db, ParticipationRequest** out_array, int *out_count);
+ParticipationRequestDaoStatus get_all_participation_requests(sqlite3 *db, ParticipationRequest **out_array, int *out_count);
 ParticipationRequestDaoStatus update_participation_request_by_id(sqlite3 *db, const ParticipationRequest *upd_participation_request);
 ParticipationRequestDaoStatus delete_participation_request_by_id(sqlite3 *db, int64_t id_request);
 ParticipationRequestDaoStatus insert_participation_request(sqlite3 *db, ParticipationRequest *in_out_request);

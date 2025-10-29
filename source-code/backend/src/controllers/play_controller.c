@@ -9,7 +9,7 @@
 // This function provides a query by `id_player` and `id_round`. 
 // @param id_player Possible values are all integer positive number and -1 (no filter)
 // @param id_round Possible values are all integer positive number and -1 (no filter)
-PlayControllerStatus plays_get_public_info(int64_t id_player, int64_t id_round, PlayDTO** out_dtos, int *out_count) {
+PlayControllerStatus plays_get_public_info(int64_t id_player, int64_t id_round, PlayDTO **out_dtos, int *out_count) {
 
     PlayWithPlayerNickname* retrievedPlays;
     int retrievedObjectCount;
@@ -189,7 +189,7 @@ PlayControllerStatus play_create(Play* playToCreate) {
 }
 
 // Read all
-PlayControllerStatus play_find_all(Play** retrievedPlayArray, int* retrievedObjectCount) {
+PlayControllerStatus play_find_all(Play **retrievedPlayArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     PlayDaoStatus status = get_all_plays(db, retrievedPlayArray, retrievedObjectCount);
     db_close(db);
@@ -241,7 +241,7 @@ PlayControllerStatus play_delete(int64_t id_player, int64_t id_round) {
 }
 
 // Read all (by id_round)
-PlayControllerStatus play_find_all_by_id_round(Play** retrievedPlayArray, int64_t id_round, int* retrievedObjectCount) {
+PlayControllerStatus play_find_all_by_id_round(Play **retrievedPlayArray, int64_t id_round, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     PlayDaoStatus status = get_all_plays_by_round(db, retrievedPlayArray, id_round, retrievedObjectCount);
     db_close(db);
@@ -254,7 +254,7 @@ PlayControllerStatus play_find_all_by_id_round(Play** retrievedPlayArray, int64_
 }
 
 // Read all with player info
-PlayControllerStatus play_find_all_with_player_info(PlayWithPlayerNickname** retrievedPlayArray, int* retrievedObjectCount) {
+PlayControllerStatus play_find_all_with_player_info(PlayWithPlayerNickname **retrievedPlayArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     PlayDaoStatus status = get_all_plays_with_player_info(db, retrievedPlayArray, retrievedObjectCount);
     db_close(db);

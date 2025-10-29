@@ -24,7 +24,7 @@ typedef enum {
 
 // Funzioni CRUD concrete
 RoundDaoStatus get_round_by_id(sqlite3 *db, int64_t id_round, Round *out); 
-RoundDaoStatus get_all_rounds(sqlite3 *db, Round** out_array, int *out_count);
+RoundDaoStatus get_all_rounds(sqlite3 *db, Round **out_array, int *out_count);
 RoundDaoStatus update_round_by_id(sqlite3 *db, const Round *upd_round);
 RoundDaoStatus delete_round_by_id(sqlite3 *db, int64_t id_round);
 RoundDaoStatus insert_round(sqlite3 *db, Round *in_out_round);

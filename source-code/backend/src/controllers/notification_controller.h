@@ -16,10 +16,10 @@ typedef enum {
 } NotificationControllerStatus;
 
 
-NotificationControllerStatus notification_rematch_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO** out_dto);
-NotificationControllerStatus notification_new_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO** out_dto);
-NotificationControllerStatus notification_waiting_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO** out_dto);
-NotificationControllerStatus notification_finished_round(int64_t id_round, int64_t id_sender, int64_t id_receiver, const char *result, NotificationDTO** out_dto);
+NotificationControllerStatus notification_rematch_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO **out_dto);
+NotificationControllerStatus notification_new_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO **out_dto);
+NotificationControllerStatus notification_waiting_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO **out_dto);
+NotificationControllerStatus notification_finished_round(int64_t id_round, int64_t id_sender, int64_t id_receiver, const char *result, NotificationDTO **out_dto);
 
 // Funzione di utilità per messaggi di errore
 const char *return_notification_controller_status_to_string(NotificationControllerStatus status);

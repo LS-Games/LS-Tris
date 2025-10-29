@@ -128,7 +128,7 @@ static int get_current_turn(char *board) {
     return p1SymbolCounter <= p2SymbolCounter ? 1 : 2;
 }
 
-RoundControllerStatus round_get_public_info(int64_t id_round, RoundDTO** out_dto, int *out_count) {
+RoundControllerStatus round_get_public_info(int64_t id_round, RoundDTO **out_dto, int *out_count) {
 
     // Check if there's a round with this id_round
     Round retrievedRound;
@@ -334,7 +334,7 @@ RoundControllerStatus round_create(Round* roundToCreate) {
 }
 
 // Read all
-RoundControllerStatus round_find_all(Round** retrievedRoundArray, int* retrievedObjectCount) {
+RoundControllerStatus round_find_all(Round **retrievedRoundArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     RoundDaoStatus status = get_all_rounds(db, retrievedRoundArray, retrievedObjectCount);
     db_close(db);

@@ -8,7 +8,7 @@
 #include "../dao/sqlite/db_connection_sqlite.h"
 #include "../dao/sqlite/player_dao_sqlite.h"
 
-PlayerControllerStatus player_get_public_info(char *nickname, PlayerDTO** out_dto, int *out_count) {
+PlayerControllerStatus player_get_public_info(char *nickname, PlayerDTO **out_dto, int *out_count) {
 
     // Check if there's a player with this nickname
     Player retrievedPlayer;
@@ -116,7 +116,7 @@ PlayerControllerStatus player_create(Player* playerToCreate) {
 }
 
 // Read all
-PlayerControllerStatus player_find_all(Player** retrievedPlayerArray, int* retrievedObjectCount) {
+PlayerControllerStatus player_find_all(Player **retrievedPlayerArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     PlayerDaoStatus status = get_all_players(db, retrievedPlayerArray, retrievedObjectCount);
     db_close(db);
