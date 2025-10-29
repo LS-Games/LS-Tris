@@ -70,10 +70,12 @@ GameControllerStatus game_start(int64_t id_creator, int64_t* out_id_game) {
 
     // Create game
     GameControllerStatus status = game_create(&gameToStart);
-    if (status == GAME_CONTROLLER_OK)
-        *out_id_game = gameToStart.id_game;
+    if (status != GAME_CONTROLLER_OK)
+        return status;
 
-    return status;
+    *out_id_game = gameToStart.id_game;
+
+    return GAME_CONTROLLER_OK;
 }
 
 GameControllerStatus game_end(int64_t id_game, int64_t id_owner, int64_t* out_id_game) {
@@ -90,10 +92,12 @@ GameControllerStatus game_end(int64_t id_game, int64_t id_owner, int64_t* out_id
     retrievedGame.state = FINISHED_GAME;
 
     status = game_update(&retrievedGame);
-    if (status == GAME_CONTROLLER_OK)
-        *out_id_game = retrievedGame.id_game;
+    if (status != GAME_CONTROLLER_OK)
+        return status;
 
-    return status;
+    *out_id_game = retrievedGame.id_game;
+
+    return GAME_CONTROLLER_OK;
 }
 
 GameControllerStatus game_refuse_rematch(int64_t id_game, int64_t* out_id_game) {
@@ -107,10 +111,12 @@ GameControllerStatus game_refuse_rematch(int64_t id_game, int64_t* out_id_game) 
     retrievedGame.state = WAITING_GAME;
 
     status = game_update(&retrievedGame);
-    if (status == GAME_CONTROLLER_OK)
-        *out_id_game = retrievedGame.id_game;
+    if (status != GAME_CONTROLLER_OK)
+        return status;
 
-    return status;
+    *out_id_game = retrievedGame.id_game;
+
+    return GAME_CONTROLLER_OK;
 }
 
 GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAcceptingRematch, int64_t* out_id_game) {
@@ -132,7 +138,9 @@ GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAccep
     return GAME_CONTROLLER_OK;
 }
 
-GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner, int64_t* out_id_game) {
+// ===================== Controllers Helper Functions =====================
+
+GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner) {
 
     Game retrievedGame;
     GameControllerStatus status = game_find_one(id_game, &retrievedGame);
@@ -141,11 +149,7 @@ GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner, int
 
     retrievedGame.id_owner = id_newOwner;
 
-    status = game_update(&retrievedGame);
-    if (status == GAME_CONTROLLER_OK)
-        *out_id_game = retrievedGame.id_game;
-
-    return status;
+    return game_update(&retrievedGame);
 }
 
 // ===================== CRUD Operations =====================

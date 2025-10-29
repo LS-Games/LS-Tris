@@ -20,6 +20,9 @@ char* serialize_action_success(const char* action, const char* message, int64_t 
 char* serialize_action_error(const char* action, const char* error_message);
 char* serialize_players_to_json(const PlayerDTO* players, size_t count);
 char* serialize_games_to_json(const GameDTO* games, size_t count);
+char* serialize_rounds_to_json(const RoundDTO* rounds, size_t count);
+
+
 char* serialize_notification_to_json(NotificationDTO* in_notification);
 
 #endif

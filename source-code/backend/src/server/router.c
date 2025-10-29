@@ -48,6 +48,12 @@ void route_request(const char* json_body, int client_socket) {
     int64_t id_owner = extract_int_from_json(json_body, "id_owner");
     int64_t id_playerAcceptingRematch = extract_int_from_json(json_body, "id_playerAcceptingRematch");
 
+    // Round controller input
+    int64_t id_round = extract_int_from_json(json_body, "id_round");
+    int64_t id_player = extract_int_from_json(json_body, "id_player");
+    int row = extract_int_from_json(json_body, "row");
+    int col = extract_int_from_json(json_body, "col");
+
     // Notification controller input
     int64_t id_sender = extract_int_from_json(json_body, "id_sender");
     int64_t id_receiver = extract_int_from_json(json_body, "id_receiver");
@@ -66,6 +72,10 @@ void route_request(const char* json_body, int client_socket) {
     // Game controller output
     int64_t out_id_game = -1;
     GameDTO *out_games = NULL;
+
+    // Round controller output
+    int64_t out_id_round = -1;
+    RoundDTO *out_round = NULL;
 
     // Notification controller output
     NotificationDTO *out_notification = NULL;
@@ -155,6 +165,39 @@ void route_request(const char* json_body, int client_socket) {
             json_response = serialize_action_error(action, return_game_controller_status_to_string(gameStatus));
         }
 
+    } else 
+
+    // Round routes
+    if (strcmp(action, "round_get_public_info") == 0) {
+        RoundControllerStatus roundStatus = round_get_public_info(id_round, &out_round, &out_count);
+        if (roundStatus == ROUND_CONTROLLER_OK || roundStatus == ROUND_CONTROLLER_NOT_FOUND) {
+            json_response = serialize_rounds_to_json(out_round, out_count);
+        } else {
+            json_response = serialize_action_error(action, return_round_controller_status_to_string(roundStatus));
+        }
+
+    } else if (strcmp(action, "round_make_move") == 0) { // Sent by one of the players in the round
+        RoundControllerStatus roundStatus = round_make_move(id_round, id_player, row, col, &out_id_round);
+        if (roundStatus == ROUND_CONTROLLER_OK) {
+            json_response = serialize_action_success(action, NULL, out_id_round);
+        } else if (roundStatus == ROUND_CONTROLLER_STATE_VIOLATION) {
+            json_response = serialize_action_error(action, "Not an active round");
+        } else if (roundStatus == ROUND_CONTROLLER_FORBIDDEN) {
+            json_response = serialize_action_error(action, "Action not allowed");
+        } else if (roundStatus == ROUND_CONTROLLER_INVALID_INPUT) {
+            json_response = serialize_action_error(action, "Invalid input values");
+        } else {
+            json_response = serialize_action_error(action, return_round_controller_status_to_string(roundStatus));
+        }
+
+    } else if (strcmp(action, "round_end") == 0) { // Sent by one of the players int the round
+        RoundControllerStatus roundStatus = round_end(id_round, &out_id_round);
+        if (roundStatus == ROUND_CONTROLLER_OK) {
+            json_response = serialize_action_success(action, NULL, out_id_round);
+        } else {
+            json_response = serialize_action_error(action, return_round_controller_status_to_string(roundStatus));
+        }
+
     }
     
     
@@ -217,8 +260,10 @@ void route_request(const char* json_body, int client_socket) {
     if (status)             free(status);
     if (out_games)          free(out_games);
 
+    if (out_round)          free(out_round);
+
     if (result)             free(result);
     if (out_notification)   free(out_notification);
 
-    if (json_response)      free(json_response);    
+    if (json_response)      free(json_response);
 }

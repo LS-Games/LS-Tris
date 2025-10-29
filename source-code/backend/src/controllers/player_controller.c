@@ -59,10 +59,12 @@ PlayerControllerStatus player_signup(char* nickname, char* email, char* password
 
     // Create player
     PlayerControllerStatus status = player_create(&playerToSignup);
-    if (status == PLAYER_CONTROLLER_OK)
-        *out_id_player = playerToSignup.id_player;
+    if (status != PLAYER_CONTROLLER_OK)
+        return status;
 
-    return status;
+    *out_id_player = playerToSignup.id_player;
+
+    return PLAYER_CONTROLLER_OK;
 }
 
 PlayerControllerStatus player_signin(char* nickname, char* password, bool* signedIn, int64_t* out_id_player) {
