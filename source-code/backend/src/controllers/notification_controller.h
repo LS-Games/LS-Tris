@@ -17,6 +17,9 @@ typedef enum {
 
 
 NotificationControllerStatus notification_rematch_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO **out_dto);
+
+// ===================== Controllers Helper Functions =====================
+
 NotificationControllerStatus notification_new_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO **out_dto);
 NotificationControllerStatus notification_waiting_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO **out_dto);
 NotificationControllerStatus notification_finished_round(int64_t id_round, int64_t id_sender, int64_t id_receiver, const char *result, NotificationDTO **out_dto);
