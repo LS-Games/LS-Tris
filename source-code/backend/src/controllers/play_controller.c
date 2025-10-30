@@ -26,6 +26,7 @@ PlayControllerStatus plays_get_public_info(int64_t id_player, int64_t id_round, 
             (id_round == -1 || retrievedPlays[i].id_round == id_round)) {
 
             Play play = {
+                .id_player = retrievedPlays[i].id_player,
                 .id_round = retrievedPlays[i].id_round,
                 .player_number = retrievedPlays[i].player_number,
                 .result = retrievedPlays[i].result
@@ -48,6 +49,8 @@ PlayControllerStatus plays_get_public_info(int64_t id_player, int64_t id_round, 
     
     return PLAY_CONTROLLER_OK;
 }
+
+// ===================== Controllers Helper Functions =====================
 
 PlayControllerStatus play_add_round_plays(int64_t id_round, int64_t id_player_1, int64_t id_player_2) {
     

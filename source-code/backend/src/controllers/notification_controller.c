@@ -37,6 +37,8 @@ NotificationControllerStatus notification_rematch_game(int64_t id_game, int64_t 
     return NOTIFICATION_CONTROLLER_OK;
 }
 
+// ===================== Controllers Helper Functions =====================
+
 NotificationControllerStatus notification_new_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO **out_dto) {
 
     Game retrievedGame;

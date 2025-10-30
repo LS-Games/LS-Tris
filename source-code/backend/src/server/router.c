@@ -48,7 +48,7 @@ void route_request(const char* json_body, int client_socket) {
     char *status = extract_string_from_json(json_body, "status");
     int64_t id_creator = extract_int_from_json(json_body, "id_creator");
     int64_t id_owner = extract_int_from_json(json_body, "id_owner");
-    int64_t id_playerAcceptingRematch = extract_int_from_json(json_body, "id_playerAcceptingRematch");
+    int64_t id_player_accepting_rematch = extract_int_from_json(json_body, "id_player_accepting_rematch");
 
     // Round controller input
     int row = extract_int_from_json(json_body, "row");
@@ -56,12 +56,11 @@ void route_request(const char* json_body, int client_socket) {
 
     // Participation Request controller input
     char *state = extract_string_from_json(json_body, "state");
-    char *newState = extract_string_from_json(json_body, "newState");
+    char *new_state = extract_string_from_json(json_body, "new_state");
 
     // Notification controller input
     int64_t id_sender = extract_int_from_json(json_body, "id_sender");
     int64_t id_receiver = extract_int_from_json(json_body, "id_receiver");
-    char *result = NULL;
 
 
     /* === Result value === */
@@ -85,11 +84,15 @@ void route_request(const char* json_body, int client_socket) {
     int64_t out_id_participation_request = -1;
     ParticipationRequestDTO *out_participation_requests = NULL;
 
+    // Play controller output
+    PlayDTO *out_plays = NULL;
+
     // Notification controller output
     NotificationDTO *out_notification = NULL;
 
 
     /* === Router === */
+
     char *json_response = NULL;
 
     // Player routes
@@ -166,7 +169,7 @@ void route_request(const char* json_body, int client_socket) {
         }
 
     } else if (strcmp(action, "game_accept_rematch") == 0) { // Sent by the player who got the rematch notification
-        GameControllerStatus gameStatus = game_accept_rematch(id_game, id_playerAcceptingRematch, &out_id_game);
+        GameControllerStatus gameStatus = game_accept_rematch(id_game, id_player_accepting_rematch, &out_id_game);
         if (gameStatus == GAME_CONTROLLER_OK) {
             json_response = serialize_action_success(action, "Rematch accepted", out_id_game);
         } else {
@@ -228,7 +231,7 @@ void route_request(const char* json_body, int client_socket) {
         }
 
     } else if (strcmp(action, "participation_request_change_state") == 0) { // Sent by the game owner
-        ParticipationRequestControllerStatus participationRequestStatus = participation_request_change_state(id_participation_request, newState, &out_id_participation_request);
+        ParticipationRequestControllerStatus participationRequestStatus = participation_request_change_state(id_participation_request, new_state, &out_id_participation_request);
         if (participationRequestStatus == PARTICIPATION_REQUEST_CONTROLLER_OK) {
             json_response = serialize_action_success(action, "Participation request state changed", out_id_participation_request);
         } else if (participationRequestStatus == PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT) {
@@ -245,41 +248,27 @@ void route_request(const char* json_body, int client_socket) {
             json_response = serialize_action_error(action, return_participation_request_controller_status_to_string(participationRequestStatus));
         }
 
-    }
-    
-    
-    
-    
-    
-    
-    
-    
-    if (strcmp(action, "rematch_game") == 0) { // Notification routes
+    } else
 
-       if (notification_rematch_game(id_game, id_sender, id_receiver, &out_notification) == NOTIFICATION_CONTROLLER_OK) {
-            json_response = serialize_notification_to_json(out_notification);
-       }
-
-    } else if (strcmp(action, "new_game") == 0) {
-
-        if (notification_new_game(id_game, id_sender, id_receiver, &out_notification) == NOTIFICATION_CONTROLLER_OK) {
-            json_response = serialize_notification_to_json(out_notification);
+    // Play routes
+    if (strcmp(action, "plays_get_public_info") == 0) {
+        PlayControllerStatus playStatus = plays_get_public_info(id_player, id_round, &out_plays, &out_count);
+        if (playStatus == PLAY_CONTROLLER_OK || playStatus == PLAY_CONTROLLER_NOT_FOUND) {
+            json_response = serialize_plays_to_json(out_plays, out_count);
+        } else {
+            json_response = serialize_action_error(action, return_play_controller_status_to_string(playStatus));
         }
+
+    } else
     
-    } else if (strcmp(action, "waiting_game") == 0) {
-
-        if (notification_waiting_game(id_game, id_sender, id_receiver, &out_notification) == NOTIFICATION_CONTROLLER_OK) {
-            json_response = serialize_notification_to_json(out_notification);
-        }
-        
-
-    } else if (strcmp(action, "finished_round") == 0) {
-
-        int64_t id_round = extract_int_from_json(json_body, "id_round");
-        result = extract_string_from_json(json_body, "result");
-
-        if (notification_finished_round(id_round, id_sender, id_receiver, result, &out_notification) == NOTIFICATION_CONTROLLER_OK) {
-            json_response = serialize_notification_to_json(out_notification);
+    // Notification routes
+    if (strcmp(action, "notification_rematch_game") == 0) { // Sent by the game owner
+        NotificationControllerStatus notificationStatus = notification_rematch_game(id_game, id_sender, id_receiver, &out_notification);
+        if (notificationStatus == NOTIFICATION_CONTROLLER_OK) {
+            // TODO: Implement send out_notification
+            json_response = serialize_action_success(action, "Rematch invitation sent", out_id_participation_request);
+        } else {
+            json_response = serialize_action_error(action, return_participation_request_controller_status_to_string(notificationStatus));
         }
     }
 
@@ -321,13 +310,14 @@ void route_request(const char* json_body, int client_socket) {
 
     if (state)
         free(state);
-    if (newState)
-        free(newState);
+    if (new_state)
+        free(new_state);
     if (out_participation_requests)
         free(out_participation_requests);
-    
-    if (result)
-        free(result);
+
+    if (out_plays)
+        free(out_plays);
+
     if (out_notification)
         free(out_notification);
 
