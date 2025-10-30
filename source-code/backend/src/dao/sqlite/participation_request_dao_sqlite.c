@@ -138,7 +138,7 @@ ParticipationRequestDaoStatus get_all_participation_requests(sqlite3 *db, Partic
     }
 
     if (rc != SQLITE_DONE) {
-        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(p_request_array);
         sqlite3_finalize(st);
         return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
@@ -455,7 +455,7 @@ ParticipationRequestDaoStatus get_all_participation_requests_with_player_info(sq
     }
 
     if (rc != SQLITE_DONE) {
-        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(p_request_array);
         sqlite3_finalize(st);
         return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
@@ -539,7 +539,7 @@ ParticipationRequestDaoStatus get_all_pending_participation_request_by_id_game(s
     }
 
     if (rc != SQLITE_DONE) {
-        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(p_request_array);
         sqlite3_finalize(st);
         return PARTICIPATION_DAO_REQUEST_SQL_ERROR;

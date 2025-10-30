@@ -110,8 +110,10 @@ void route_request(const char* json_body, int client_socket) {
             json_response = serialize_action_success(action, "Player signed up", 0);
         } else if (playerStatus == PLAYER_CONTROLLER_INVALID_INPUT) {
             json_response = serialize_action_error(action, "Invalid input values");
-        } else if (playerStatus == PLAYER_CONTROLLER_STATE_VIOLATION) {
+        } else if (playerStatus == PLAYER_CONTROLLER_STATE_VIOLATION_NICKNAME) {
             json_response = serialize_action_error(action, "Nickname already used");
+        } else if (playerStatus == PLAYER_CONTROLLER_STATE_VIOLATION_EMAIL) {
+            json_response = serialize_action_error(action, "Email already used");
         } else {
             json_response = serialize_action_error(action, return_player_controller_status_to_string(playerStatus));
         }
@@ -268,18 +270,20 @@ void route_request(const char* json_body, int client_socket) {
             // TODO: Implement send out_notification
             json_response = serialize_action_success(action, "Rematch invitation sent", out_id_participation_request);
         } else {
-            json_response = serialize_action_error(action, return_participation_request_controller_status_to_string(notificationStatus));
+            json_response = serialize_action_error(action, return_notification_controller_status_to_string(notificationStatus));
         }
+
+    } else {
+        json_response = serialize_action_error(action, "Action not recognized");
     }
 
 
     /* === Send response === */
 
-    //DEBUG
-    LOG_INFO("\n\nRISPOSTA DEL ROUTER DEL SERVER: %c", json_response);
+    LOG_INFO("%s\n", "Server Router Response successfully built");
     if (json_response) {
         server_send(client_socket, json_response);
-        LOG_DEBUG("Client socket %d - Sent response: %s\n", client_socket, json_response);
+        LOG_DEBUG("Server Router Response: Client socket %d - Sent response: %s\n", client_socket, json_response);
     } else {
         LOG_WARN("%s\n", "JSON response is empty");
         return;

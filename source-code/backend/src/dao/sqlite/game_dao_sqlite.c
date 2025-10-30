@@ -137,7 +137,7 @@ GameDaoStatus get_all_games(sqlite3 *db, Game **out_array, int *out_count) {
     }
 
     if (rc != SQLITE_DONE) {
-        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(games_array);
         sqlite3_finalize(st);
         return GAME_DAO_SQL_ERROR;
@@ -450,7 +450,7 @@ GameDaoStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickname
     }
 
     if(rc != SQLITE_DONE) {
-        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(array);
         sqlite3_finalize(stmt);
         return GAME_DAO_SQL_ERROR;

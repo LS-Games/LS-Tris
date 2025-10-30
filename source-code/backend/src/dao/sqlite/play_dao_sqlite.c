@@ -138,7 +138,7 @@ PlayDaoStatus get_all_plays(sqlite3 *db, Play **out_array, int *out_count) {
     }
 
     if (rc != SQLITE_DONE) {
-        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(plays_array);
         sqlite3_finalize(st);
         return PLAY_DAO_SQL_ERROR;
@@ -425,7 +425,7 @@ PlayDaoStatus get_all_plays_by_round(sqlite3 *db, Play **out_array, int64_t id_r
     }
 
     if (rc != SQLITE_DONE) {
-        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(plays_array);
         sqlite3_finalize(st);
         return PLAY_DAO_SQL_ERROR;
@@ -512,7 +512,7 @@ PlayDaoStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickname
     }
 
     if (rc != SQLITE_DONE) {
-        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(plays_array);
         sqlite3_finalize(st);
         return PLAY_DAO_SQL_ERROR;

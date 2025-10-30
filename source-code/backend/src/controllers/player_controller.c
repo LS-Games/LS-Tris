@@ -44,7 +44,12 @@ PlayerControllerStatus player_signup(char *nickname, char *email, char *password
     // Check if there's already a player with this nickname
     Player retrievedPlayer;
     if (player_find_one_by_nickname(nickname, &retrievedPlayer) != PLAYER_CONTROLLER_NOT_FOUND) {
-        return PLAYER_CONTROLLER_STATE_VIOLATION;
+        return PLAYER_CONTROLLER_STATE_VIOLATION_NICKNAME;
+    }
+
+    // Check if there's already a player with this email
+    if (player_find_one_by_email(email, &retrievedPlayer) != PLAYER_CONTROLLER_NOT_FOUND) {
+        return PLAYER_CONTROLLER_STATE_VIOLATION_EMAIL;
     }
 
     // Build player to signup
@@ -83,15 +88,17 @@ PlayerControllerStatus player_signin(char *nickname, char *password, bool* signe
 
 const char *return_player_controller_status_to_string(PlayerControllerStatus status) {
     switch (status) {
-        case PLAYER_CONTROLLER_OK:               return "PLAYER_CONTROLLER_OK";
-        case PLAYER_CONTROLLER_INVALID_INPUT:    return "PLAYER_CONTROLLER_INVALID_INPUT";
-        case PLAYER_CONTROLLER_NOT_FOUND:        return "PLAYER_CONTROLLER_NOT_FOUND";
-        case PLAYER_CONTROLLER_STATE_VIOLATION:  return "PLAYER_CONTROLLER_STATE_VIOLATION";
-        case PLAYER_CONTROLLER_DATABASE_ERROR:   return "PLAYER_CONTROLLER_DATABASE_ERROR";
-        case PLAYER_CONTROLLER_CONFLICT:         return "PLAYER_CONTROLLER_CONFLICT";
-        // case PLAYER_CONTROLLER_FORBIDDEN:        return "PLAYER_CONTROLLER_FORBIDDEN";
-        case PLAYER_CONTROLLER_INTERNAL_ERROR:   return "PLAYER_CONTROLLER_INTERNAL_ERROR";
-        default:                                return "PLAYER_CONTROLLER_UNKNOWN";
+        case PLAYER_CONTROLLER_OK:                          return "PLAYER_CONTROLLER_OK";
+        case PLAYER_CONTROLLER_INVALID_INPUT:               return "PLAYER_CONTROLLER_INVALID_INPUT";
+        case PLAYER_CONTROLLER_NOT_FOUND:                   return "PLAYER_CONTROLLER_NOT_FOUND";
+        case PLAYER_CONTROLLER_STATE_VIOLATION:             return "PLAYER_CONTROLLER_STATE_VIOLATION";
+        case PLAYER_CONTROLLER_STATE_VIOLATION_NICKNAME:    return "PLAYER_CONTROLLER_STATE_VIOLATION_NICKNAME";
+        case PLAYER_CONTROLLER_STATE_VIOLATION_EMAIL:       return "PLAYER_CONTROLLER_STATE_VIOLATION_EMAIL";
+        case PLAYER_CONTROLLER_DATABASE_ERROR:              return "PLAYER_CONTROLLER_DATABASE_ERROR";
+        case PLAYER_CONTROLLER_CONFLICT:                    return "PLAYER_CONTROLLER_CONFLICT";
+        // case PLAYER_CONTROLLER_FORBIDDEN:                return "PLAYER_CONTROLLER_FORBIDDEN";
+        case PLAYER_CONTROLLER_INTERNAL_ERROR:              return "PLAYER_CONTROLLER_INTERNAL_ERROR";
+        default:                                            return "PLAYER_CONTROLLER_UNKNOWN";
     }
 }
 
@@ -165,6 +172,19 @@ PlayerControllerStatus player_delete(int64_t id_player) {
 PlayerControllerStatus player_find_one_by_nickname(const char *nickname, Player* retrievedPlayer) {
     sqlite3* db = db_open();
     PlayerDaoStatus status = get_player_by_nickname(db, nickname, retrievedPlayer);
+    db_close(db);
+    if (status != PLAYER_DAO_OK) {
+        LOG_WARN("%s\n", return_player_dao_status_to_string(status));
+        return status == PLAYER_DAO_NOT_FOUND ? PLAYER_CONTROLLER_NOT_FOUND : PLAYER_CONTROLLER_DATABASE_ERROR;
+    }
+
+    return PLAYER_CONTROLLER_OK;
+}
+
+// Read one (by email)
+PlayerControllerStatus player_find_one_by_email(const char *email, Player* retrievedPlayer) {
+    sqlite3* db = db_open();
+    PlayerDaoStatus status = get_player_by_email(db, email, retrievedPlayer);
     db_close(db);
     if (status != PLAYER_DAO_OK) {
         LOG_WARN("%s\n", return_player_dao_status_to_string(status));

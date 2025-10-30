@@ -74,10 +74,10 @@ void set_round_board_cell(char board[BOARD_MAX], int row, int col, char symbol) 
         if (0 <= col && col < BOARD_COLS) {
             board[BOARD_ROWS*row + col] = symbol;
         } else {
-            LOG_WARN("%s","Provided column not valid!\n");
+            LOG_WARN("%s\n","Provided column not valid!");
         }
     } else {
-        LOG_WARN("%s","Provided row not valid!\n");
+        LOG_WARN("%s\n","Provided row not valid!");
     }
 }
 
@@ -88,10 +88,10 @@ char get_round_board_cell(char board[BOARD_MAX], int row, int col) {
         if (0 <= col && col < BOARD_COLS) {
             cell = board[BOARD_ROWS*row + col];
         } else {
-            LOG_WARN("%s","Provided column not valid!\n");
+            LOG_WARN("%s\n","Provided column not valid!");
         }
     } else {
-        LOG_WARN("%s","Provided row not valid!\n");
+        LOG_WARN("%s\n","Provided row not valid!");
     }
 
     return cell;

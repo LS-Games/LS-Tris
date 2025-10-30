@@ -11,6 +11,7 @@
 #include "../dao/sqlite/round_dao_sqlite.h"
 
 // ==================== Private functions ====================
+
 static char find_horizontal_winner(char board[BOARD_MAX]);
 static char find_vertical_winner(char board[BOARD_MAX]);
 static char find_diagonal_winner(char board[BOARD_MAX]);

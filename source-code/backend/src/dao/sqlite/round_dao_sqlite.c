@@ -149,7 +149,7 @@ RoundDaoStatus get_all_rounds(sqlite3 *db, Round **out_array, int *out_count) {
     }
 
     if (rc != SQLITE_DONE) {
-        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(rounds_array);
         sqlite3_finalize(st);
         return ROUND_DAO_SQL_ERROR;

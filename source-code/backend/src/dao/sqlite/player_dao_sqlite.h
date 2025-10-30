@@ -32,6 +32,7 @@ PlayerDaoStatus delete_player_by_id(sqlite3 *db, int64_t id_player);
 PlayerDaoStatus insert_player(sqlite3 *db, Player *in_out_player);
 
 PlayerDaoStatus get_player_by_nickname(sqlite3 *db, const char *nickname, Player *out);
+PlayerDaoStatus get_player_by_email(sqlite3 *db, const char *email, Player *out);
 
 // Funzione di utilità per messaggi di errore
 const char *return_player_dao_status_to_string(PlayerDaoStatus status);
