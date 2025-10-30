@@ -1,6 +1,7 @@
 // Import the required modules
 import express from 'express';   // Express: lightweight web server for Node.js
 import net from 'net';           // 'net' is Node's built-in module for TCP sockets
+import { WebSocketServer } from 'ws';
 
 // Create an Express application instance
 const app = express();
@@ -105,4 +106,38 @@ app.post('/api/send', async (req, res) => {
 // Start the bridge HTTP server
 app.listen(3001, () => {
   console.log(`Bridge listening on port 3001 → forwarding to ${BACKEND_HOST}:${BACKEND_PORT}`);
+});
+
+
+
+// === WebSocket server (porta 3002) ===
+const wss = new WebSocketServer({ port: 3002 });
+
+wss.on('connection', (ws) => {
+  console.log('Frontend connected via WebSocket');
+
+  // When a message arrives from Angular
+  ws.on('message', async (msg) => {
+    try {
+      console.log('[BRIDGE] Message from frontend:', msg);
+
+      // Forward the message to the C backend (TCP)
+      const response = await sendToBackend(msg);
+      
+      console.log('[BRIDGE] Response from backend:', response);
+
+      //  Send a JSON response identical in shape to app.post()
+      ws.send(JSON.stringify({ backendResponse: response.trim() }));
+
+    } catch (err) {
+      console.error('WebSocket bridge error:', err);
+
+      ws.send(JSON.stringify({
+          error: 'Failed to communicate with backend'
+        })
+      );
+    }
+  });
+
+  ws.on('close', () => console.log('[BRIDGE] Frontend disconnected'));
 });

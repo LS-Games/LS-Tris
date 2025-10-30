@@ -78,7 +78,6 @@ export class SignupForm {
             } else if (backend_response.status == 'error') {
 
               this._notificationService.show('error', backend_response.error_message, 6000);
-
             }
     
           }

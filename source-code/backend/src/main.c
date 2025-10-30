@@ -5,7 +5,6 @@
 #include "../include/debug_log.h"
 #include "./server/server.h"
 
-#include "./json-parser/test_json-parser.h"
 #include "./server/router.h"
 
 #define SERVER_PORT 5050
