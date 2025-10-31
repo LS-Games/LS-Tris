@@ -1,143 +1,159 @@
-// Import the required modules
-import express from 'express';   // Express: lightweight web server for Node.js
-import net from 'net';           // 'net' is Node's built-in module for TCP sockets
+import express from 'express';
+import net from 'net';
 import { WebSocketServer } from 'ws';
 
-// Create an Express application instance
+// === Express app (HTTP for non-persistent actions) ======================
 const app = express();
+app.use(express.json());
 
-// Enable CORS for all routes
+// CORS
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*"); // allow all origins
+  res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
+  if (req.method === "OPTIONS") return res.sendStatus(200);
   next();
 });
 
-// This middleware automatically parses incoming JSON requests
-app.use(express.json());
+// === Backend connection details ========================================
+const BACKEND_HOST = process.env.TCP_HOST || 'localhost';
+const BACKEND_PORT = parseInt(process.env.TCP_PORT || '5050');
 
-// Environment variables (set in docker-compose or locally)
 
-// *!*!*!*!*! REMEMBER TO CHANGE localhost WITH backend that is the service name in docker compose *!*!*!*!*!
-// *!*!*!*!*! REMEMBER TO CHANGE bakcend port WITH the true backend port in backend dockercompose *!*!*!*!*!
+// =======================================================================
+// SECTION 1 — NON-PERSISTENT COMMUNICATION (HTTP)
+// Used for one-shot actions like signup or password reset
+// =======================================================================
 
-const BACKEND_HOST = process.env.TCP_HOST || 'localhost'; // default host = container named 'backend'
-const BACKEND_PORT = parseInt(process.env.TCP_PORT || '5050'); // default port = 8080
-
-// Helper function to communicate with the C backend via TCP
 function sendToBackend(message) {
   return new Promise((resolve, reject) => {
-    // Create a new TCP socket 
     const client = new net.Socket();
-
-    // We'll store the backend's response here
     let dataBuffer = '';
 
-    // When connection is successfully established
     client.connect(BACKEND_PORT, BACKEND_HOST, () => {
       console.log(`Connected to backend at ${BACKEND_HOST}:${BACKEND_PORT}`);
-      // Send the message to the backend as raw text
-      //We use '/n' at end because we want know if the json is complete
-      client.write(message);
-
-      //This client.end() is very important because if we don't do this after send a message
-      //The recv() function on backend may remain waiting for additional bytes 
-      //Whereas this way we signal him to stop waiting
-      client.end();
+      const msg = message.endsWith('\r\n\r\n') ? message : message + '\r\n\r\n';
+      client.write(msg);
     });
 
-    //client.on are a events listener
-    // When data is received from the backend
+    // Backend sends response, we resolve here
     client.on('data', (data) => {
-      // Convert the received Buffer into a string and append it to the buffer
       dataBuffer += data.toString();
-      // The C server closes the connection after replying, so we can safely close it here
-      client.destroy();
     });
 
-    // When the connection is closed (either by us or the server)
+    // Backend closes connection, we resolve only once
     client.on('close', () => {
-      
-      // Resolve the Promise with the full response string
-      resolve(dataBuffer);
+      if (dataBuffer.length > 0) {
+        resolve(dataBuffer);
+      } else {
+        reject(new Error('Backend closed connection without data'));
+      }
     });
 
-    // If an error occurs during the connection
-    client.on('error', (err) => {
-      console.error('TCP connection error:', err.message);
-      reject(err);
-    });
+    client.on('error', (err) => reject(err));
   });
 }
 
-// Express endpoint: receives messages from the frontend
+// HTTP endpoint (signup, etc.)
+// When arrive a HTTP rquest at /api/send executes this call back function
+// In req we have all information sent from frontend
 app.post('/api/send', async (req, res) => {
   try {
-    // Extract the 'message' field from the JSON body
     const message = req.body.message;
+    if (!message) return res.status(400).json({ error: 'Missing message field' });
 
-    // If the client didn't send any message, return HTTP 400
-    if (!message) {
-      return res.status(400).json({ error: 'Missing message field' });
-    }
-
-    console.log(`Forwarding to backend: ${message}`);
-
-    // Send message to backend through the TCP helper function
+    console.log(`Forwarding one-shot request to backend: ${message}`);
     const response = await sendToBackend(message);
+    console.log(`Backend responded: ${response}`);
 
-    //Capture and print the backend response
-    console.log(`Received from backend: ${response}`);
-
-    // Return the backend's response to the frontend in JSON format
+    //We send HTTP backend response to client 
     res.json({ backendResponse: response.trim() });
-
   } catch (err) {
-    // If something goes wrong (timeout, network, etc.)
     console.error('Bridge error:', err);
     res.status(500).json({ error: 'Failed to communicate with backend' });
   }
 });
 
-// Start the bridge HTTP server
 app.listen(3001, () => {
-  console.log(`Bridge listening on port 3001 → forwarding to ${BACKEND_HOST}:${BACKEND_PORT}`);
+  console.log(`HTTP Bridge listening on port ${BACKEND_PORT} (non-persitent session)`);
 });
 
 
+// =======================================================================
+// SECTION 2 — PERSISTENT COMMUNICATION (WebSocket)
+// Used for logged-in users that need real-time communication
+// =======================================================================
 
-// === WebSocket server (porta 3002) ===
+// Store active user connections: each WebSocket ↔ TCP socket pair
+const userConnections = new Map();
+
+// WebSocket server on port 3002
 const wss = new WebSocketServer({ port: 3002 });
 
 wss.on('connection', (ws) => {
   console.log('Frontend connected via WebSocket');
 
-  // When a message arrives from Angular
-  ws.on('message', async (msg) => {
-    try {
-      console.log('[BRIDGE] Message from frontend:', msg);
+  // Create a TCP socket to backend for this user
+  const client = new net.Socket();
+  userConnections.set(ws, client);
 
-      // Forward the message to the C backend (TCP)
-      const response = await sendToBackend(msg);
-      
-      console.log('[BRIDGE] Response from backend:', response);
+  //Client represents the TCP connection (with backend)
+  //ws represents the WebSocket connection (with frontend)
+  client.connect(BACKEND_PORT, BACKEND_HOST, () => {
+    console.log(`Connected persistent TCP → ${BACKEND_HOST}:${BACKEND_PORT}`);
 
-      //  Send a JSON response identical in shape to app.post()
-      ws.send(JSON.stringify({ backendResponse: response.trim() }));
+    //Print table connection 
+    console.log(`\n Numero di connessioni websocket aperte: ${userConnections.size}`);
+    console.log("\n=== CONNESSIONI ATTUALI ===\n");
 
-    } catch (err) {
-      console.error('WebSocket bridge error:', err);
+    const connectionsInfo = [];
 
-      ws.send(JSON.stringify({
-          error: 'Failed to communicate with backend'
-        })
-      );
+    for (const [ws, client] of userConnections) {
+      connectionsInfo.push({
+        WebSocketState: ws.readyState,
+        TCP: `${client.remoteAddress}:${client.remotePort}`
+      });
     }
+
+    console.table(connectionsInfo);
   });
 
-  ws.on('close', () => console.log('[BRIDGE] Frontend disconnected'));
+  // --- FRONTEND → BACKEND ------------------------------------------------
+  ws.on('message', (msg) => {
+    const message = msg.toString();
+    console.log(`[Frontend → Backend]: ${message}`);
+    const withDelim = message.endsWith('\r\n\r\n') ? message : message + '\r\n\r\n';
+    client.write(withDelim);
+  });
+
+  // --- BACKEND → FRONTEND ------------------------------------------------
+  client.on('data', (data) => {
+    const str = data.toString();
+    console.log(`[Backend → Frontend]: ${str}`);
+    ws.send(JSON.stringify({ backendResponse: str.trim() }));
+  });
+
+  // --- CONNECTION MANAGEMENT ---------------------------------------------
+  ws.on('close', () => {
+    console.log('Frontend disconnected — closing backend TCP');
+    client.end();
+    userConnections.delete(ws);
+
+  });
+
+  client.on('close', () => {
+    console.log('Backend closed connection — closing WebSocket');
+    //After the TCP connection with backend is closed, we olso close WebSocket connection with frontend
+    if (ws.readyState === ws.OPEN) ws.close();
+    userConnections.delete(ws);
+  });
+
+  client.on('error', (err) => {
+    console.error('TCP connection error:', err.message);
+    if (ws.readyState === ws.OPEN)
+      ws.send(JSON.stringify({ error: 'TCP connection error: ' + err.message }));
+  });
 });
+
+console.log(`WebSocket Bridge listening on port 3002 (persistent sessions)`);
+

@@ -3,8 +3,7 @@ import { DialogRef } from '@angular/cdk/dialog';
 import { RouterLink } from '@angular/router'; 
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Notification, NotificationService } from '../../core/services/notification';
-
+import { NotificationService } from '../../core/services/notification';
 @Component({
   selector: 'app-signup-form',
   imports: [RouterLink, ReactiveFormsModule],
@@ -13,13 +12,14 @@ import { Notification, NotificationService } from '../../core/services/notificat
 })
 export class SignupForm {
 
-  private readonly http = inject(HttpClient);
+  private readonly _http = inject(HttpClient);
 
   // When we created the dialog in header.ts, Angular automatically provided a DialogRef instance for this component.
   // To manage it we have to inject a DialogRef, after which we can create a function to close it, for example. 
   private readonly _dialogRef = inject(DialogRef<SignupForm>);
 
-  private readonly _notificationService = inject(NotificationService)
+  // This service allows us to rshow notification
+  private readonly _notificationService = inject(NotificationService);
 
   // Create a reactive form using FormBuilder
   private readonly _formBuilder = inject(FormBuilder);
@@ -54,7 +54,7 @@ export class SignupForm {
       //We use this http function to send payload to bridge
       //The http function return a Observable
       //We use '/n' at end because we want know if the json is complete
-      this.http.post('http://localhost:3001/api/send', { message: JSON.stringify(payload)})
+      this._http.post('http://localhost:3001/api/send', { message: JSON.stringify(payload)})
 
         //It is similar to .then()
         .subscribe({

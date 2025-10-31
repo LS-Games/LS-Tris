@@ -1,9 +1,9 @@
-import { Component, inject, OnDestroy } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Dialog, DialogRef } from '@angular/cdk/dialog';
-import { SignupForm } from '../signup-form/signup-form';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { AuthService } from '../../core/services/auth.service';
+import { SignupForm } from '../signup-form/signup-form';
 import { WebsocketService } from '../../core/services/websocket.service';
+import { NotificationService } from '../../core/services/notification';
 
 @Component({
   selector: 'app-login-form',
@@ -14,102 +14,107 @@ import { WebsocketService } from '../../core/services/websocket.service';
 export class LoginForm {
 
   // Reference to the current dialog (used to close it)
-  private readonly _dialogRef = inject(DialogRef<LoginForm>); 
+  private readonly _dialogRef = inject(DialogRef<LoginForm>);
 
-  // Used to open other dialogs (e.g. the signup form)
+  // Used to open the Signup form dialog
   private readonly _dialog = inject(Dialog);
 
-  // Angular FormBuilder service for building reactive forms
+  // Angular FormBuilder service used for creating reactive forms
   private readonly _formBuilder = inject(FormBuilder);
 
-  // Authentication service (for potential HTTP-based login)
-  private readonly _auth = inject(AuthService);
-
-  // Custom WebSocket service used to communicate with the bridge in real time
+  // Custom WebSocket service for real-time communication with the bridge
   private readonly _ws = inject(WebsocketService);
 
-  // Used to disable the button or show loading feedback during submission
+  // NotificationService allows us to show toast messages in the UI
+  private readonly _notificationService = inject(NotificationService);
+
+  // Used to show button loading or disable it after click
   buttonClicked = false;
 
-  // Holds the login form structure and its validation state
+  // Reactive form instance
   loginForm: FormGroup;
 
   constructor() {
-    // Create a reactive form using the FormBuilder
+    // Create and initialize the form structure with validators
     this.loginForm = this._formBuilder.group({
-      // First field: email — must be required and in valid email format
-      email: ['', [Validators.required, Validators.email]],
-
-      // Second field: password — required and must have at least 6 characters
+      nickname: ['', [Validators.required]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
-  // Function to close the dialog when user cancels or login is successful
+  // Close the login dialog
   close() {
-    this._dialogRef.close(); 
+    this._dialogRef.close();
   }
-  
-  // Function to navigate from login → signup dialog
+
+  // Switch from Login dialog → Signup dialog
   gotoSignIn() {
-    this._dialogRef.close(); // close the current dialog
-    this._dialog.open(SignupForm, { 
-      disableClose: true // prevent user from closing the signup dialog by clicking outside
+    this._dialogRef.close();
+    this._dialog.open(SignupForm, {
+      disableClose: true // Prevent user from closing it by clicking outside
     });
-  } 
+  }
 
-  // Called when the user submits the login form
+  // Called when user submits the login form
   onSubmit() {
-    this.buttonClicked = true; // mark that the login button was pressed
+    this.buttonClicked = true;
 
-    // Check if all form fields are valid before sending data
-    if (this.loginForm.valid) {
-      // Extract values from the reactive form
-      const { email, password } = this.loginForm.value;
-      console.log('Captured data:', email, password);
-
-      // Open a WebSocket connection to the bridge (Node.js server)
-      this._ws.connect('ws://localhost:3002');
-
-      // Wait briefly to ensure the connection is established
-      setTimeout(() => {
-
-        const payload = {
-          action: 'player_signin',  // tells the backend what kind of action this is
-          email: email,             // user’s email
-          password: password        // user’s password
-        };
-
-        // Send login credentials to the bridge through the WebSocket
-        this._ws.send(payload);
-
-      }, 500); // slight delay before sending to allow socket to open fully
+    // Check if all form fields are valid before proceeding
+    if (!this.loginForm.valid) {
+      this._notificationService.show('warning', 'Please fill in all required fields.');
+      return;
     }
 
-    // Listen for responses from backend
-      this._ws.onMessage((event: MessageEvent) => {
-        try {
-          const data = JSON.parse(event.data);
-          const backend = JSON.parse(data.backendResponse);
+    // Extract values from the form
+    const { nickname, password } = this.loginForm.value;
 
-          console.log('📩 Backend says:', backend);
+    // Open the WebSocket connection to the bridge (persistent)
+    this._ws.connect('ws://localhost:3002')
 
-          if (backend.status === 'success') {
-            alert('✅ Login successful!');
-            this.close();
-          } else {
-            alert('❌ Login failed.');
+    //We can use .then because the function return a promise
+      .then(() => {
+        console.log('Connected to WebSocket');
+
+        // Register the event listener for messages from backend
+        // We do this *before* sending to make sure we don't miss any response
+        this._ws.onMessage((event: MessageEvent) => {
+          try {
+            // Parse first-level JSON sent by the bridge
+            const wrapper = JSON.parse(event.data);
+
+            // Parse the backend response sent inside backendResponse
+            const backend = JSON.parse(wrapper.backendResponse);
+
+            console.log('Backend response:', backend);
+
+            // Check the response status and show the proper notification
+            if (backend.status === 'success') {
+              this._notificationService.show('success', backend.message, 6000);
+              this.close(); // Close dialog on successful login
+            } else if (backend.status === 'error') {
+              this._notificationService.show('error', backend.error_message, 6000);
+            }
+
+          } catch (err) {
+            console.error('Failed to parse backend response:', err);
           }
+        });
 
-        } catch (err) {
-          console.error('Failed to parse backend response:', err);
-        }
+        // Create the payload to send to backend via WebSocket
+        const payload = {
+          action: 'player_signin',
+          nickname,
+          password
+        };
+
+        // Send the payload to backend through the bridge
+        this._ws.send(payload);
+        console.log('Payload sent to backend:', payload);
+
+      })
+      .catch((err) => {
+        console.error('WebSocket connection failed:', err);
+        this._notificationService.show('error', 'Unable to connect to the server. Please try again later.');
       });
-  }
-
-  // Lifecycle hook: automatically called when the component is destroyed
-  // We use it to close the WebSocket connection cleanly
-  ngOnDestroy() {
-    this._ws.close();
   }
 }

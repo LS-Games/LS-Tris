@@ -1,6 +1,6 @@
 #ifndef ROUTER_H
 #define ROUTER_H
 
-void route_request(const char* json_body, int client_socket);
+void route_request(const char* json_body, int client_socket, int* persistence);
 
 #endif

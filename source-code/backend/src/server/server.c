@@ -7,9 +7,12 @@
 #include <errno.h>
 
 #include "../../include/debug_log.h"
+#include "./session_manager.h"
 
 #include "server.h"
 #include "router.h"
+
+SessionManager session_manager;
 
 // ==================== Private functions ====================
 
@@ -19,6 +22,7 @@ static void *handle_client(void *arg);
 
 // This function starts the server
 int start_server(int port) {
+    
     int server_fd;
     // This structure provides us with a way to describe a IPv4 (is provided by netinet.h library)
     struct sockaddr_in addr;
@@ -49,6 +53,10 @@ int start_server(int port) {
     }
 
     LOG_INFO("Server listens on port: %d... \n", port);
+
+
+    session_manager_init(&session_manager);
+    LOG_INFO("Session manager initialized. Ready to accept clients.\n");
 
     // Infinite loops continue to accept clients 
     while(1) {
@@ -101,7 +109,8 @@ static void *handle_client(void *arg) {
     char buffer[1024];
     ssize_t n;
     ssize_t total = 0 ;
-    char* accumulated = NULL;
+    char *accumulated = NULL;
+    int persistence = 0;
 
     // We have to use while because the TCP connection is a stream, we may receive fragmented message
     // recv return a 0 if the connection is interrupted, -1 in case of errors and n which are the bytes received 
@@ -126,19 +135,55 @@ static void *handle_client(void *arg) {
         total += n;
         accumulated[total] = '\0';
 
-        // NB: We're using recv and send functions instead of read and write because we're working with socket
+        char *terminator = strstr(accumulated, "\r\n\r\n");
+
+        LOG_INFO("Full message received, prima dell'if: %s\n", accumulated);
+
+        if (terminator != NULL) {
+            *terminator = '\0';  
+
+            LOG_INFO("Full message received: %s\n", accumulated);
+
+            route_request(accumulated, client_fd, &persistence);
+
+            free(accumulated);
+            accumulated = NULL;
+            total = 0;
+
+            //This is the case of SignIn action that's why we're closing the connection immediately
+            if (persistence == 0) {
+                LOG_INFO("Closing connection with fd=%d\n", client_fd);
+                close(client_fd);
+                return NULL;
+            }
+        }
     }
 
-    if (n == 0 && total > 0) {
-        LOG_INFO("Message was received correctly from backend server: %s\n", buffer);
-        route_request(accumulated, client_fd);
+    if (n == 0) {
+
+        /**
+         * When we receive n==0 it means that the connection has been closed 
+         * This is the case where the client:
+         * closes the browser windows -> the bridge captures the event and closes the conncetion with the backend
+         * the recv function receives 0 as value and call the manager function to delete the connection from the list
+         */
+
+        session_remove(&session_manager, client_fd);
+        LOG_INFO("Client fd=%d closed the connection\n", client_fd);
+        print_session_list(&session_manager);
+
+
+    } else if (n < 0) {
+        LOG_ERROR("recv() failed for fd=%d\n", client_fd);
     }
 
-    LOG_INFO("%s\n", "Client disconnected");
     free(accumulated);
     close(client_fd);
     return NULL;
 }
+
+// NB: We're using recv and send functions instead of read and write because we're working with socket
+
 
 int server_send(int client_socket, const char *data) {
 

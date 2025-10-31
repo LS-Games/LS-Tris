@@ -25,12 +25,12 @@ export class WebsocketService {
     this.socket = new WebSocket(url);
 
     this.socket.onopen = () => {
-      console.log('✅ Connected to WebSocket:', url);
+      console.log('Connected to WebSocket:', url);
       resolve();
     };
 
     this.socket.onerror = (error) => {
-      console.error('⚠️ WebSocket error:', error);
+      console.error('WebSocket error:', error);
       reject(error);
     };
   });
@@ -39,7 +39,7 @@ export class WebsocketService {
   /** Public method: register a message callback */
   onMessage(callback: (event: MessageEvent) => void): void {
     if (!this.socket) {
-      console.warn('⚠️ WebSocket not connected yet.');
+      console.warn('WebSocket not connected yet.');
       return;
     }
     this.socket.onmessage = callback;

@@ -7,6 +7,8 @@
 #include "server.h"
 #include "../json-parser/json-parser.h"
 
+#include "./session_manager.h"
+
 #include "../dto/game_dto.h"
 #include "../dto/notification_dto.h"
 #include "../dto/participation_request_dto.h"
@@ -21,11 +23,13 @@
 #include "../controllers/player_controller.h"
 #include "../controllers/round_controller.h"
 
-void route_request(const char* json_body, int client_socket) {
+void route_request(const char* json_body, int client_socket, int* persistence) {
 
     LOG_DEBUG("Received JSON: '%s'\n", json_body);
 
     char *action = extract_string_from_json(json_body, "action");
+
+    *persistence = 1; 
 
     if (!action) {
         LOG_WARN("%s\n", "Missing 'action' key in JSON");
@@ -118,12 +122,19 @@ void route_request(const char* json_body, int client_socket) {
             json_response = serialize_action_error(action, return_player_controller_status_to_string(playerStatus));
         }
 
+        *persistence = 0;
+
     } else if (strcmp(action, "player_signin") == 0) {
         PlayerControllerStatus playerStatus = player_signin(nickname, password, &out_signedIn, &out_id_player);
         if (playerStatus == PLAYER_CONTROLLER_OK) {
-            if (out_signedIn == true)
+            if (out_signedIn == true) {
                 json_response = serialize_action_success(action, "Player signed in", out_id_player);
-            else
+
+                //We add a session if the user loggin in succesfully
+                session_add(&session_manager, client_socket, id_player, nickname);
+                LOG_INFO("Id_Player: %d with nickname: %s has been added in session list", id_player, nickname);
+
+            } else
                 json_response = serialize_action_error(action, "Log in failed");
         } else if (playerStatus == PLAYER_CONTROLLER_INVALID_INPUT) {
             json_response = serialize_action_error(action, "Invalid input values");
