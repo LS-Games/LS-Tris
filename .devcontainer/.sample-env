@@ -10,12 +10,32 @@ COMPOSE_PROFILES=dev
 ## Ports
 
 ### Sets the port on wich we will access the apps
+
+#### Sets the backend port
 DEV_BACKEND_PORT=
+PROD_BACKEND_PORT=
+
+#### Sets the frontend port
 DEV_FRONTEND_PORT=
+PROD_FRONTEND_PORT=
 DEV_KARMA_PORT=
+
+#### Sets the bridge HTTP port
+DEV_BRIDGE_HTTP_PORT=
+PROD_BRIDGE_HTTP_PORT=
+
+### Sets the bridge WebSocket port
+DEV_BRIDGE_WS_PORT=
+PROD_BRIDGE_WS_PORT=
 
 
 ## Backend
 
 ### Sets the token necessary for SonarQube scanning
 SONAR_TOKEN=
+
+
+## Frontend
+
+### Sets the bridge address
+BRIDGE_ADDRESS=

@@ -6,7 +6,10 @@ import { WebSocketServer } from 'ws';
 const app = express();
 app.use(express.json());
 
-// CORS
+const HTTP_PORT = 3001;
+const WS_PORT = 3002;
+
+// Enable CORS for all routes
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -16,15 +19,17 @@ app.use((req, res, next) => {
 });
 
 // === Backend connection details ========================================
-const BACKEND_HOST = process.env.TCP_HOST || 'localhost';
-const BACKEND_PORT = parseInt(process.env.TCP_PORT || '5050');
+const BACKEND_HOST = process.env.TCP_BACKEND_ADDRESS || 'localhost'; // default host = 'localhost'
+const BACKEND_PORT = parseInt(process.env.TCP_BACKEND_PORT || '8080'); // default port = '8080'
 
+console.log(`Forwarding to backend: ${BACKEND_HOST}:${BACKEND_PORT}`);
 
 // =======================================================================
 // SECTION 1 — NON-PERSISTENT COMMUNICATION (HTTP)
 // Used for one-shot actions like signup or password reset
 // =======================================================================
 
+// Helper function to communicate with the C backend via TCP
 function sendToBackend(message) {
   return new Promise((resolve, reject) => {
     const client = new net.Socket();
@@ -74,8 +79,9 @@ app.post('/api/send', async (req, res) => {
   }
 });
 
-app.listen(3001, () => {
-  console.log(`HTTP Bridge listening on port ${BACKEND_PORT} (non-persitent session)`);
+// Start the bridge HTTP server
+app.listen(HTTP_PORT, () => {
+  console.log(`HTTP Bridge listening on port ${HTTP_PORT} (non-persitent session)`);
 });
 
 
@@ -87,8 +93,8 @@ app.listen(3001, () => {
 // Store active user connections: each WebSocket ↔ TCP socket pair
 const userConnections = new Map();
 
-// WebSocket server on port 3002
-const wss = new WebSocketServer({ port: 3002 });
+// WebSocket server port
+const wss = new WebSocketServer({ port: WS_PORT });
 
 wss.on('connection', (ws) => {
   console.log('Frontend connected via WebSocket');
