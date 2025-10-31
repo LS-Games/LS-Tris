@@ -32,11 +32,3 @@ RUN npm install -g typescript \
 
     ## Installa Angular
     && npm install -g @angular/cli
-
-# Dipendenze Bridge 
-    ## Imposta la directory di lavoro nel bridge 
-WORKDIR /workspaces/LS-Tris/source-code/bridge
-
-    ## Installa le dipendenze necessarie per il bridge
-    ## --omit=dev evita di installare pacchetti solo di sviluppo
-RUN npm install express@4.21.1 ws@8.16.0 --omit=dev

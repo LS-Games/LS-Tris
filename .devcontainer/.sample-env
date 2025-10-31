@@ -39,3 +39,9 @@ SONAR_TOKEN=
 
 ### Sets the bridge address
 BRIDGE_ADDRESS=
+
+
+## Bridge
+
+### Sets the tcp backend address
+TCP_BACKEND_ADDRESS=

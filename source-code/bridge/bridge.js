@@ -22,7 +22,7 @@ app.use((req, res, next) => {
 const BACKEND_HOST = process.env.TCP_BACKEND_ADDRESS || 'localhost'; // default host = 'localhost'
 const BACKEND_PORT = parseInt(process.env.TCP_BACKEND_PORT || '8080'); // default port = '8080'
 
-console.log(`Forwarding to backend: ${BACKEND_HOST}:${BACKEND_PORT}`);
+console.log(`Forwarding to backend on "${BACKEND_HOST}:${BACKEND_PORT}"`);
 
 // =======================================================================
 // SECTION 1 — NON-PERSISTENT COMMUNICATION (HTTP)
@@ -60,7 +60,7 @@ function sendToBackend(message) {
 }
 
 // HTTP endpoint (signup, etc.)
-// When arrive a HTTP rquest at /api/send executes this call back function
+// When arrive a HTTP request at /api/send executes this call back function
 // In req we have all information sent from frontend
 app.post('/api/send', async (req, res) => {
   try {
@@ -93,7 +93,7 @@ app.listen(HTTP_PORT, () => {
 // Store active user connections: each WebSocket ↔ TCP socket pair
 const userConnections = new Map();
 
-// WebSocket server port
+// Define the bridge WebSocket server
 const wss = new WebSocketServer({ port: WS_PORT });
 
 wss.on('connection', (ws) => {
@@ -161,5 +161,4 @@ wss.on('connection', (ws) => {
   });
 });
 
-console.log(`WebSocket Bridge listening on port 3002 (persistent sessions)`);
-
+console.log(`WebSocket Bridge listening on port ${WS_PORT} (persistent sessions)`);

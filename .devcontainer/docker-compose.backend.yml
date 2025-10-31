@@ -31,8 +31,8 @@ services:
     networks:
       - backend-network
     environment:
-      TCP_BACKEND_ADDRESS: backend
-      TCP_BACKEND_PORT: 5050
+      TCP_BACKEND_ADDRESS: ${TCP_BACKEND_ADDRESS:-backend} # The address inside the docker network
+      TCP_BACKEND_PORT: 5050 # The port inside the docker network
     
 networks:
   backend-network:

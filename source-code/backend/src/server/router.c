@@ -33,7 +33,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
 
     if (!action) {
         LOG_WARN("%s\n", "Missing 'action' key in JSON");
-        return;
+        action = "NULL";
     }
 
     /* === Extracted value === */
@@ -98,6 +98,10 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
     /* === Router === */
 
     char *json_response = NULL;
+
+    if (strcmp(action, "NULL") == 0) {
+        json_response = serialize_action_error(action, "Missing 'action' key");
+    } else
 
     // Player routes
     if (strcmp(action, "player_get_public_info") == 0) {
@@ -303,7 +307,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
 
     /* === Free dynamically allocated variables */
 
-    if (action)
+    if (action && (strcmp(action, "NULL") != 0))
         free(action); 
 
     if (nickname)
