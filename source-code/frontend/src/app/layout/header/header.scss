@@ -46,7 +46,7 @@
   font-weight: bold;
 }
 
-.nav-links-header a:hover { color: #ECA937; }
+.nav-links-header a:hover { transform: scale(1.1);}
 
 .logo img {
   max-width: clamp(60px, 10vw, 140px);
@@ -70,15 +70,13 @@
   cursor: pointer;
 }
 
-#logout-btn:hover { color: #ECA937; }
-
-
-
 .logo img:hover { transform: scale(1.15); }
 
 @media (min-width: 480px) {
-  .nav-links-header a:hover { transform: none }
+  .nav-links-header a:hover { transform: scale(1.1) }
   .logo img:hover { transform: none }
+  #logout-btn:hover { transform: scale(1.1); }
+
 }
 
 @media (min-width: 768px) {

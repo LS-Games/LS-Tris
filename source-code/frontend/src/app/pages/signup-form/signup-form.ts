@@ -73,11 +73,11 @@ export class SignupForm {
 
             if (backend_response.status == 'success') {
 
-              this._notificationService.show('success', backend_response.message, 6000);
+              this._notificationService.show('success', backend_response.message, 4000);
 
             } else if (backend_response.status == 'error') {
 
-              this._notificationService.show('error', backend_response.error_message, 6000);
+              this._notificationService.show('error', backend_response.error_message, 4000);
             }
     
           }

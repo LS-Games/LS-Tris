@@ -28,6 +28,8 @@ export class Home {
       disableClose: true
     });
 
+    
+
   }
 
   

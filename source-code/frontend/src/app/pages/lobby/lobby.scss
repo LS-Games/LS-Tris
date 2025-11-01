@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Bowlby+One+SC&display=swap');
+
 .lobby-container {
     position: relative;
     display: flex;
@@ -29,5 +31,15 @@
     line-height: 1;
     cursor: pointer;
     transition: color 0.2s ease;
+}
+
+.empty-message {
+    color: #fff;
+    font-family: 'Bowlby One SC', sans-serif;
+}
+
+.loading-message {
+    color: #fff;
+    font-family: 'Bowlby One SC', sans-serif;
 }
 

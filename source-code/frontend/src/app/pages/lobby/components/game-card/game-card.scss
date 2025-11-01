@@ -1,15 +1,17 @@
-p {
-    font-family: 'Bowlby One SC', sans-serif;
-    font-size: clamp(12px, 3vw, 20px);
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&display=swap');
+
+ p {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(8px, 3vw, 12px);
+    font-weight: bold;
 }
 
 .game-card-container {
-    background-color: gainsboro;
+    background-color: white;
     border-radius: 30px;
     padding: 8px;
     margin-bottom: 15px;
     border-bottom: 8px solid #e5a100; 
-
 }
 
 .info-game-card {
@@ -19,44 +21,51 @@ p {
 }
 
 .footer-game-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
 }
 
-#game-status[data-state="new"] {
+.game-status[data-state="new"] {
     background-color: blue;
     color: white;
     border-radius: 30px;
-    padding: 10px;
+    padding: 10px 16px;
+    box-shadow: 0 3px 0 #001a80; 
 }
 
-#game-status[data-state="active"] {
+.game-status[data-state="active"] {
     background-color: #118A0A;
     color: white;
     border-radius: 30px;
-    padding: 10px;
+    padding: 10px 16px;
+    box-shadow: 0 3px 0 #0b5e07; 
 }
 
-#game-status[data-state="waiting"] {
+.game-status[data-state="waiting"] {
     background-color: rgb(218, 177, 17);
     color: white;
     border-radius: 30px;
-    padding: 10px;
+    padding: 10px 16px;
+    box-shadow: 0 3px 0 #a88400; 
 }
 
-#game-status[data-state="finished"] {
+.game-status[data-state="finished"] {
     background-color: red;
     color: white;
     border-radius: 30px;
-    padding: 10px;
+    padding: 10px 16px;
+    box-shadow: 0 3px 0 #800000; 
 }
 
 
-#game-card-button {
+
+.game-card-button {
     background-color: #118A0A;
     color: white;
-    font-family: 'Bowlby One SC', sans-serif;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
     font-size: clamp(12px, 3vw, 20px);
     border-radius: 8px;
     border: none;
@@ -66,4 +75,15 @@ p {
     height: auto;         
     cursor: pointer;
 }
+
+.game-card-button {
+  box-shadow: 0 3px 0 #0b5e07;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: transform 0.1s ease;
+}
+.game-card-button:hover {
+  transform: translateY(-2px);
+}
+
 

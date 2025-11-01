@@ -1,15 +1,23 @@
 <div class="lobby-container">
     <span class="close-btn" (click)="close()">&times;</span>
+
     <div class="game-card-container">
-        @for (match of matches; track match.id) {
-            <app-game-card
-                [id]="match.id"
-                [creator]="match.creator"
-                [data]="match.data"
-                [owner]="match.owner"
-                [state]="match.state"
-                [current_streak]="match.current_streak">
-            </app-game-card>
-        }   
+        @if (loading) {
+            <p class="loading-message">Loading games...</p>
+        } @else if (games.length > 0) {
+            @for (game of games; track game.id) {
+                @if(game.state === 'new' || game.state === 'waiting') {
+                    <app-game-card
+                        [id]="game.id_game"
+                        [creator]="game.creator_nickname"
+                        [data]="game.created_at"
+                        [owner]="game.owner_nickname"
+                        [state]="game.state">
+                    </app-game-card>
+                }
+            }   
+        } @else {
+            <p class="empty-message">No games found.</p>
+        }
     </div>
 </div>

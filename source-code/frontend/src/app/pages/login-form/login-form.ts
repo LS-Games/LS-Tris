@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { SignupForm } from '../signup-form/signup-form';
 import { WebsocketService } from '../../core/services/websocket.service';
 import { NotificationService } from '../../core/services/notification';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login-form',
@@ -27,6 +28,9 @@ export class LoginForm {
 
   // NotificationService allows us to show toast messages in the UI
   private readonly _notificationService = inject(NotificationService);
+
+  // AuthService allows us to change the users's status to logged in
+  private readonly _authService = inject(AuthService);
 
   // Used to show button loading or disable it after click
   buttonClicked = false;
@@ -89,10 +93,12 @@ export class LoginForm {
 
             // Check the response status and show the proper notification
             if (backend.status === 'success') {
-              this._notificationService.show('success', backend.message, 6000);
+              this._notificationService.show('success', backend.message, 4000);
+              this._authService.login();
+
               this.close(); // Close dialog on successful login
             } else if (backend.status === 'error') {
-              this._notificationService.show('error', backend.error_message, 6000);
+              this._notificationService.show('error', backend.error_message, 4000);
             }
 
           } catch (err) {

@@ -1,9 +1,10 @@
 import { Component, Input } from '@angular/core';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-game-card',
   standalone: true,
-  imports: [],
+  imports: [DatePipe],
   templateUrl: './game-card.html',
   styleUrl: './game-card.scss'
 })

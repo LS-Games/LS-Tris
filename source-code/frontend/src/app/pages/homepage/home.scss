@@ -48,8 +48,7 @@ html, body { margin: 0; overflow-x: hidden; }
 }
 
 #homepage-title:hover {
-  transform: scale(1.03);
-  color: #ECA937;
+  transform: scale(1.1);
 }
 
 #homepage-button {
@@ -137,4 +136,14 @@ html, body { margin: 0; overflow-x: hidden; }
     flex-direction: column;     
     gap: 12px;
   }
+  
+  #homepage-button:hover { transform: scale(1.1); }
+
+  @media (min-width: 480px) {
+  #homepage-button:hover { transform: scale(1.1); }
+  #homepage-title:hover { transform: scale(1.1); }
+
+  }
+  
+  
 }
