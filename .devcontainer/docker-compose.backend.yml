@@ -12,27 +12,29 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports: # Maps <hostPort>:<containerPort>
-      - 55501:3000
+      - ${PROD_BACKEND_PORT:-55501}:5050
+    volumes:
+      - ../source-code/backend/db/data:/app/db/data # Mount <hostDir>:<containerDir>
     networks:
       - backend-network
-    command: sleep infinity # Overrides default command so things don't shut down after the process ends.
   
   bridge:
-    container_name: ls-tris_bridge
-    profiles: [prod]
+    container_name: ls-tris-bridge
+    profiles: [prod] # This service will be started only in these profiles
     build: 
       context: ../source-code/bridge
       dockerfile: Dockerfile 
     restart: unless-stopped
-    ports:
-      - 8080:3001
+    ports: # Maps <hostPort>:<containerPort>
+      - ${PROD_BRIDGE_HTTP_PORT:-55504}:3001
+      - ${PROD_BRIDGE_WS_PORT:-55505}:3002
     depends_on:
       - backend
     networks:
       - backend-network
     environment:
-      - TCP_HOST=backend #We use this environment variables in bridge.js (runtime variables)
-      - TCP_PORT=5050
+      TCP_BACKEND_ADDRESS: ${TCP_BACKEND_ADDRESS:-backend} # The address inside the docker network
+      TCP_BACKEND_PORT: 5050 # The port inside the docker network
     
 networks:
   backend-network:

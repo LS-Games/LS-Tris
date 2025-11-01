@@ -16,13 +16,20 @@ Nella configurazione di questa repository, sono stati creati tre diversi Docker 
 - [docker-compose.frontend.yml](.devcontainer/docker-compose.frontend.yml), che contiene tutti i servizi relativi al frontend;
 - [docker-compose.dev.yml](.devcontainer/docker-compose.dev.yml), che contiene tutti i servizi necessari solo nella fase di sviluppo del software (sia frontend che backend).
 
+**ATTENZIONE! I seguenti comandi sono pensati per un ambiente Host Linux, tuttavia è possibile facilmente tradurli in ambiente Host Windows sostituendo il carattere di fine linea `\` con `^`.**
+
 E' possibile avviare il Docker Compose nel seguente modo:
 
 1. Spostarsi nella directory `.devcontainer`
 1. Eseguire il comando:
 
     ```Bash
-    docker compose --profile <NomeProfilo> -f docker-compose.backend.yml -f docker-compose.frontend.yml -f docker-compose.dev.yml up -d
+    docker compose --profile <NomeProfilo> \
+        -f docker-compose.backend.yml \
+        -f docker-compose.frontend.yml \
+        -f docker-compose.dev.yml \
+        --project-name <NomeCompose> \
+        up -d
     ```
 
 NOTA! E' importante impostare i profili che si desidera attivare, poichè di default saranno avviati solo i container non associati ad alcun profilo.
@@ -31,20 +38,45 @@ E' stato predisposto un file [.sample-env](.devcontainer/.sample-env), da duplic
 
 ### Development Containers
 
-Per utilizzare i Development Containers è necessario avviare i Docker Compose files con il profilo `dev`:
+Per utilizzare i Development Containers è necessario spostarsi nella directory `.devcontainer` e avviare i Docker Compose files con il profilo `dev`:
 
 ```Bash
-docker compose --profile dev -f docker-compose.backend.yml -f docker-compose.frontend.yml -f docker-compose.dev.yml up -d
+docker compose --profile dev \
+    -f docker-compose.backend.yml \
+    -f docker-compose.frontend.yml \
+    -f docker-compose.dev.yml \
+    --project-name ls-tris-dev \
+    up -d
 ```
 
 ATTENZIONE! Se si sta avviando i Development Containers tramite [devcontainer.json](.devcontainer/devcontainer.json), è necessario impostare il profilo tramite la variabile d'ambiente `COMPOSE_PROFILES=dev`, già settata nel file [.sample-env](.devcontainer/.sample-env).
 
 ### Production Containers
 
-Per utilizzare i Production Containers è necessario avviare i Docker Compose files con il profilo `prod`:
+Per utilizzare i Production Containers è necessario spostarsi nella directory `.devcontainer` e avviare i Docker Compose files con il profilo `prod`:
 
 ```Bash
-docker compose --profile prod -f docker-compose.backend.yml -f docker-compose.frontend.yml -f docker-compose.dev.yml up -d
+docker compose --profile prod \
+    -f docker-compose.backend.yml \
+    -f docker-compose.frontend.yml \
+    -f docker-compose.dev.yml \
+    --project-name ls-tris-prod \
+    up -d
 ```
 
 ATTENZIONE! Ricordarsi che, di default, il profilo selezionato in [.sample-env](.devcontainer/.sample-env) è il profilo `dev`. Sarà necessario modificare i profili impostati nel file `.env` locale per evitare comportamenti inaspettati.
+
+## Fermare i Docker Container
+
+Per fermare i Docker Containers avviati tramite Docker Compose files, è necessario spostarsi nella directory `.devcontainer` ed eseguire il comando:
+
+```Bash
+docker compose --profile <NomeProfilo> \
+    -f docker-compose.backend.yml \
+    -f docker-compose.frontend.yml \
+    -f docker-compose.dev.yml \
+    --project-name <NomeCompose> \
+    down
+```
+
+Per brevità, non vengono riportati i singoli comandi per le due modalità di esecuzione. Tuttavia, sono stati utilizzati negli scripts definiti nell'apposita directory [scripts](./scripts/).

@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { ConfigService } from './config.service';
 
 /**
  * WebsocketService
@@ -11,6 +12,8 @@ import { Injectable } from '@angular/core';
   providedIn: 'root' // The service is a singleton and available globally in the app
 })
 export class WebsocketService {
+  // Inject environment variables
+  private readonly config = inject(ConfigService);
 
   // Holds the WebSocket instance. The "?" means it can be undefined until initialized.
   private socket?: WebSocket;
@@ -19,8 +22,9 @@ export class WebsocketService {
    * Opens a WebSocket connection to the specified URL.
    * If no URL is provided, it defaults to ws://localhost:3002.
    */
-  
-  connect(url: string = 'ws://localhost:3002'): Promise<void> {
+  private readonly address = this.config.get('BRIDGE_ADDRESS');
+  private readonly wsPort = this.config.get('BRIDGE_WS_PORT');
+  connect(url: string = `ws://${this.address}:${this.wsPort}`): Promise<void> {
   return new Promise((resolve, reject) => {
     this.socket = new WebSocket(url);
 
