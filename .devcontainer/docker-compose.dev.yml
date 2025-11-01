@@ -19,9 +19,9 @@ services:
 
     environment: # Defines the environment variables
       SONAR_TOKEN: ${SONAR_TOKEN}
-      NG_APP_BRIDGE_ADDRESS: ${BRIDGE_ADDRESS:-localhost} # The address from the user browser
-      NG_APP_BRIDGE_HTTP_PORT: ${DEV_BRIDGE_HTTP_PORT:-55514} # The port from the user browser
-      NG_APP_BRIDGE_WS_PORT: ${DEV_BRIDGE_WS_PORT:-55515} # The port from the user browser
+      BRIDGE_ADDRESS: ${BRIDGE_ADDRESS:-localhost} # The address from the user browser
+      BRIDGE_HTTP_PORT: ${DEV_BRIDGE_HTTP_PORT:-55514} # The port from the user browser
+      BRIDGE_WS_PORT: ${DEV_BRIDGE_WS_PORT:-55515} # The port from the user browser
       TCP_BACKEND_ADDRESS: ${TCP_BACKEND_ADDRESS:-localhost} # The address inside the docker network
       TCP_BACKEND_PORT: 5050 # The port inside the docker network
 

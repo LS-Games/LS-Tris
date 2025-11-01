@@ -1,14 +1,25 @@
 {
   "name": "ls-tris-frontend",
   "version": "1.0.0",
+  "type": "module",
   "description": "An Angular frontend for the LS-Tris game project",
   "scripts": {
     "ng": "ng",
+
+    "generate-env": "node scripts/generate-env.js",
+  
+    "prestart": "npm run generate-env",
+    "prestart:docker": "npm run generate-env",
+    "prebuild": "npm run generate-env",
+    "prebuild:prod": "npm run generate-env",
+
     "start": "ng serve",
     "start:docker": "ng serve --host 0.0.0.0 --poll 200",
-    "serve:prod": "npx http-server ./dist/frontend/browser -p 4200 -c-1",
+
     "build": "ng build",
     "build:prod": "ng build --configuration production",
+    "serve:prod": "npx http-server ./dist/frontend/browser -p 4200 -c-1",
+  
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

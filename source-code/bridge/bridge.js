@@ -81,7 +81,7 @@ app.post('/api/send', async (req, res) => {
 
 // Start the bridge HTTP server
 app.listen(HTTP_PORT, () => {
-  console.log(`HTTP Bridge listening on port ${HTTP_PORT} (non-persitent session)`);
+  console.log(`HTTP Bridge listening on internal port ${HTTP_PORT} (non-persitent session)`);
 });
 
 
@@ -161,4 +161,4 @@ wss.on('connection', (ws) => {
   });
 });
 
-console.log(`WebSocket Bridge listening on port ${WS_PORT} (persistent sessions)`);
+console.log(`WebSocket Bridge listening on internal port ${WS_PORT} (persistent sessions)`);

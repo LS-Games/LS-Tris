@@ -16,9 +16,9 @@ services:
     networks:
       - frontend-network
     environment:
-      NG_APP_BRIDGE_ADDRESS: ${BRIDGE_ADDRESS:-localhost} # The address from the user browser
-      NG_APP_BRIDGE_HTTP_PORT: ${PROD_BRIDGE_HTTP_PORT:-55504} # The port from the user browser
-      NG_APP_BRIDGE_WS_PORT: ${PROD_BRIDGE_WS_PORT:-55505} # The port from the user browser
+      BRIDGE_ADDRESS: ${BRIDGE_ADDRESS:-localhost} # The address from the user browser
+      BRIDGE_HTTP_PORT: ${PROD_BRIDGE_HTTP_PORT:-55504} # The port from the user browser
+      BRIDGE_WS_PORT: ${PROD_BRIDGE_WS_PORT:-55505} # The port from the user browser
 
 networks:
   frontend-network:

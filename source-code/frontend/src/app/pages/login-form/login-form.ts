@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { SignupForm } from '../signup-form/signup-form';
 import { WebsocketService } from '../../core/services/websocket.service';
 import { NotificationService } from '../../core/services/notification';
+import { ConfigService } from '../../core/services/config.service';
 
 @Component({
   selector: 'app-login-form',
@@ -12,6 +13,8 @@ import { NotificationService } from '../../core/services/notification';
   styleUrl: './login-form.scss'
 })
 export class LoginForm {
+  // Inject environment variables
+  private readonly config = inject(ConfigService);
 
   // Reference to the current dialog (used to close it)
   private readonly _dialogRef = inject(DialogRef<LoginForm>);
@@ -69,7 +72,9 @@ export class LoginForm {
     const { nickname, password } = this.loginForm.value;
 
     // Open the WebSocket connection to the bridge (persistent)
-    this._ws.connect('ws://localhost:3002')
+    const address = this.config.get('BRIDGE_ADDRESS');
+    const wsPort = this.config.get('BRIDGE_WS_PORT');
+    this._ws.connect(`ws://${address}:${wsPort}`)
 
     //We can use .then because the function return a promise
       .then(() => {

@@ -51,15 +51,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ## Clean della cache
     && apt-get clean
     
-# Copio il file eseguibile dal container build al nuovo container
-COPY --from=build /app/bin/ls-tris /usr/local/bin/ls-tris
+# Spostiamoci nella directory `/app` del container
+WORKDIR /app
 
-# Spostiamoci nella directory `/usr/local/bin` del container
-WORKDIR /usr/local/bin
+# Copio il file eseguibile dal container build al nuovo container
+COPY --from=build /app/bin/ls-tris /app/bin/ls-tris
+
+# Copio gli script SQL
+COPY db/scheme.sql db/populate_db.sql /app/db/
 
 # Dichiara di voler esporre la porta del server C
 # Avverte solo Docker che all'interno c'è un processo in ascolto sulla porta
 EXPOSE 5050
 
 ## Eseguo l'app
-CMD ["./ls-tris"] 
+CMD ["./bin/ls-tris"] 

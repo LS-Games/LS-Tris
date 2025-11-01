@@ -13,6 +13,8 @@ services:
     restart: unless-stopped
     ports: # Maps <hostPort>:<containerPort>
       - ${PROD_BACKEND_PORT:-55501}:5050
+    volumes:
+      - ../source-code/backend/db/data:/app/db/data # Mount <hostDir>:<containerDir>
     networks:
       - backend-network
   

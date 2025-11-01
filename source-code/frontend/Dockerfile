@@ -28,6 +28,13 @@ FROM nginx:1.27-alpine AS production
 # Copia la build Angular dal container build al path servito da NGINX
 COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
 
+# Copio il file template di env variables
+COPY --from=build /app/src/assets/env.template.js /usr/share/nginx/html/assets/env.template.js
+
+# Copio lo script `entrypoint.sh` e lo rendo un file eseguibile
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Copia la configurazione NGINX custom
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
@@ -36,4 +43,5 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 
 # Avvia la web app
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
