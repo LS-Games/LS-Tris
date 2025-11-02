@@ -23,7 +23,7 @@ static bool is_draw(char board[BOARD_MAX]);
 static bool is_valid_move(char board[BOARD_MAX], int row, int col);
 static int get_current_turn(char *board);
 static RoundControllerStatus round_start_helper(int64_t id_game, int64_t duration, Round* out_newRound);
-static RoundControllerStatus round_end_helper(Round* roundToEnd, PlayResult result);
+static RoundControllerStatus round_end_helper(Round* roundToEnd, int64_t id_playerEndingRound, PlayResult result);
 
 // ===========================================================
 
@@ -208,7 +208,7 @@ RoundControllerStatus round_make_move(int64_t id_round, int64_t id_playerMoving,
 
     // If match is over
     if (result != PLAY_RESULT_INVALID) {
-        return round_end_helper(&retrievedRound, result);
+        return round_end_helper(&retrievedRound, -1, result);
     }
 
     *out_id_round = retrievedRound.id_round;
@@ -216,7 +216,7 @@ RoundControllerStatus round_make_move(int64_t id_round, int64_t id_playerMoving,
     return ROUND_CONTROLLER_OK;
 }
 
-RoundControllerStatus round_end(int64_t id_round, int64_t* out_id_round) {
+RoundControllerStatus round_end(int64_t id_round, int64_t id_playerEndingRound, int64_t* out_id_round) {
     
     // Retrieve round to end
     Round retrievedRound;
@@ -224,7 +224,7 @@ RoundControllerStatus round_end(int64_t id_round, int64_t* out_id_round) {
     if (status != ROUND_CONTROLLER_OK)
         return status;
 
-    status = round_end_helper(&retrievedRound, DRAW);
+    status = round_end_helper(&retrievedRound, id_playerEndingRound, DRAW);
     if (status != ROUND_CONTROLLER_OK)
         return status;
 
@@ -233,7 +233,7 @@ RoundControllerStatus round_end(int64_t id_round, int64_t* out_id_round) {
     return ROUND_CONTROLLER_OK;
 }
 
-static RoundControllerStatus round_end_helper(Round* roundToEnd, PlayResult result) {
+static RoundControllerStatus round_end_helper(Round* roundToEnd, int64_t id_playerEndingRound, PlayResult result) {
     
     // Set round status
     roundToEnd->state = FINISHED_ROUND;
@@ -261,19 +261,43 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, PlayResult resu
         }
     }
 
+    // Update round
+    RoundControllerStatus status = round_update(roundToEnd);
+    if (status != ROUND_CONTROLLER_OK)
+        return status;
+
+    // If there's a win, update the player causing the round end
+    if (id_playerWinner != -1)
+        id_playerEndingRound = id_playerWinner;
+
     // Send notification
-    NotificationDTO *out_notification = NULL;
-    if (notification_finished_round(roundToEnd->id_game, id_playerWinner, play_result_to_string(result), &out_notification) != NOTIFICATION_CONTROLLER_OK)
+    NotificationDTO *out_notification_dto = NULL;
+    if (notification_finished_round(roundToEnd->id_game, id_playerEndingRound, play_result_to_string(result), &out_notification_dto) != NOTIFICATION_CONTROLLER_OK)
         return ROUND_CONTROLLER_INTERNAL_ERROR;
-    char *json_message = serialize_notification_to_json(NULL, out_notification);
-    if (send_server_broadcast_message(json_message, id_playerWinner) < 0 ) {
+    char *json_message = serialize_notification_to_json("server_round_end_notification", out_notification_dto);
+    if (send_server_broadcast_message(json_message, id_playerEndingRound) < 0 ) {
         return ROUND_CONTROLLER_INTERNAL_ERROR;
     }
     free(json_message);
-    free(out_notification);
+    free(out_notification_dto);
 
-    // Update round
-    return round_update(roundToEnd);
+    // Send updated round end
+    Play* retrievedPlayArray;
+    int retrievedPlayCount;
+    playStatus = play_find_all_by_id_round(&retrievedPlayArray, roundToEnd->id_round, &retrievedPlayCount);
+    if (playStatus != PLAY_CONTROLLER_OK || retrievedPlayCount <= 0)
+        return ROUND_CONTROLLER_INTERNAL_ERROR;
+    RoundDTO out_round_dto;
+    map_round_to_dto(roundToEnd, &out_round_dto);
+    json_message = serialize_rounds_to_json("server_updated_end_round", &out_round_dto, 1);
+    for (int i=0; i<retrievedPlayCount; i++) { // Send to all player except the player ending the round
+        if (retrievedPlayArray[i].id_player != id_playerEndingRound)
+            if (send_server_unicast_message(json_message, id_playerEndingRound, retrievedPlayArray[i].id_player) < 0 )
+                return ROUND_CONTROLLER_INTERNAL_ERROR;
+    }
+    free(json_message);
+
+    return ROUND_CONTROLLER_OK;
 }
 
 // ===================== Controllers Helper Functions =====================

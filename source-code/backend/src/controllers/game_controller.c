@@ -77,15 +77,15 @@ GameControllerStatus game_start(int64_t id_creator, int64_t* out_id_game) {
         return status;
 
     // Send notification
-    NotificationDTO *out_notification = NULL;
-    if (notification_new_game(gameToStart.id_game, id_creator, &out_notification) != NOTIFICATION_CONTROLLER_OK)
+    NotificationDTO *out_notification_dto = NULL;
+    if (notification_new_game(gameToStart.id_game, id_creator, &out_notification_dto) != NOTIFICATION_CONTROLLER_OK)
         return GAME_CONTROLLER_INTERNAL_ERROR;
-    char *json_message = serialize_notification_to_json(NULL, out_notification);
+    char *json_message = serialize_notification_to_json("server_game_start_notification", out_notification_dto);
     if (send_server_broadcast_message(json_message, id_creator) < 0 ) {
         return GAME_CONTROLLER_INTERNAL_ERROR;
     }
     free(json_message);
-    free(out_notification);
+    free(out_notification_dto);
 
     *out_id_game = gameToStart.id_game;
 
@@ -129,15 +129,15 @@ GameControllerStatus game_refuse_rematch(int64_t id_game, int64_t* out_id_game) 
         return status;
 
     // Send notification
-    NotificationDTO *out_notification = NULL;
-    if (notification_new_game(retrievedGame.id_game, retrievedGame.id_owner, &out_notification) != NOTIFICATION_CONTROLLER_OK)
+    NotificationDTO *out_notification_dto = NULL;
+    if (notification_waiting_game(retrievedGame.id_game, retrievedGame.id_owner, &out_notification_dto) != NOTIFICATION_CONTROLLER_OK)
         return GAME_CONTROLLER_INTERNAL_ERROR;
-    char *json_message = serialize_notification_to_json(NULL, out_notification);
+    char *json_message = serialize_notification_to_json("server_game_waiting_notification", out_notification_dto);
     if (send_server_broadcast_message(json_message, retrievedGame.id_owner) < 0 ) {
         return GAME_CONTROLLER_INTERNAL_ERROR;
     }
     free(json_message);
-    free(out_notification);
+    free(out_notification_dto);
 
     *out_id_game = retrievedGame.id_game;
 

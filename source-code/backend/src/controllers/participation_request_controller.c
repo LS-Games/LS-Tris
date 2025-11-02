@@ -6,6 +6,9 @@
 #include "participation_request_controller.h"
 #include "round_controller.h"
 #include "game_controller.h"
+#include "player_controller.h"
+#include "../json-parser/json-parser.h"
+#include "../server/server.h"
 #include "../dao/sqlite/db_connection_sqlite.h"
 #include "../dao/sqlite/participation_request_dao_sqlite.h"
 
@@ -67,12 +70,12 @@ ParticipationRequestControllerStatus participation_requests_get_public_info(char
     return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
 
-ParticipationRequestControllerStatus participation_request_send(int64_t id_game, int64_t id_player, int64_t* out_id_participation_request) {
+ParticipationRequestControllerStatus participation_request_send(int64_t id_game, int64_t id_sender, int64_t* out_id_participation_request) {
 
     // Build participation request to send
     ParticipationRequest participationRequestToSend = {
         .id_game = id_game,
-        .id_player = id_player,
+        .id_player = id_sender,
         .created_at = time(NULL),
         .state = PENDING
     };
@@ -81,6 +84,23 @@ ParticipationRequestControllerStatus participation_request_send(int64_t id_game,
     ParticipationRequestControllerStatus status = participation_request_create(&participationRequestToSend);
     if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
         return status;
+
+    // Send participation request
+    Game retrievedGame; // Retrieve game owner
+    if (game_find_one(participationRequestToSend.id_game, &retrievedGame) != GAME_CONTROLLER_OK) {
+        return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
+    }
+    Player retrievedPlayer; // Retrieve sender nickname
+    if (player_find_one(participationRequestToSend.id_player, &retrievedPlayer) != PLAYER_CONTROLLER_OK) {
+        return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
+    }
+    ParticipationRequestDTO out_participation_request_dto; // Build message
+    map_participation_request_to_dto(&participationRequestToSend, retrievedPlayer.nickname, &out_participation_request_dto);
+    char *json_message = serialize_participation_requests_to_json("server_new_participation_request", &out_participation_request_dto, 1);
+    if (send_server_unicast_message(json_message, id_sender, retrievedGame.id_owner) < 0 ) {
+        return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
+    }
+    free(json_message);
 
     *out_id_participation_request = participationRequestToSend.id_request;
 

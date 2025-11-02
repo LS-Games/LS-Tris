@@ -20,7 +20,7 @@ typedef enum {
 
 RoundControllerStatus round_get_public_info(int64_t id_round, RoundDTO **out_dto, int *out_count);
 RoundControllerStatus round_make_move(int64_t id_round, int64_t id_player, int row, int col, int64_t* out_id_round);
-RoundControllerStatus round_end(int64_t id_round, int64_t* out_id_round);
+RoundControllerStatus round_end(int64_t id_round, int64_t id_playerEndingRound, int64_t* out_id_round);
 
 // ===================== Controllers Helper Functions =====================
 

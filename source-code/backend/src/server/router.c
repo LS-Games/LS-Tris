@@ -56,6 +56,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
     // Round controller input
     int row = extract_int_from_json(json_body, "row");
     int col = extract_int_from_json(json_body, "col");
+    int64_t id_player_ending_round = extract_int_from_json(json_body, "id_player_ending_round");
 
     // Participation Request controller input
     char *state = extract_string_from_json(json_body, "state");
@@ -218,7 +219,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
         }
 
     } else if (strcmp(action, "round_end") == 0) { // Sent by one of the players in the round
-        RoundControllerStatus roundStatus = round_end(id_round, &out_id_round);
+        RoundControllerStatus roundStatus = round_end(id_round, id_player_ending_round, &out_id_round);
         if (roundStatus == ROUND_CONTROLLER_OK) {
             json_response = serialize_action_success(action, "Round closed", out_id_round);
         } else {
