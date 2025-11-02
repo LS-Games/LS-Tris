@@ -42,8 +42,8 @@ FROM debian:bookworm-slim
     ## Evita pacchetti raccomandati e risponde si a tutte le domande
 RUN apt-get update && apt-get install -y --no-install-recommends \
 
-    ## Installa SQLite
-    libsqlite3-0 \
+    ## Installa SQLite (e la CLI sqlite3)
+    sqlite3 libsqlite3-0 \
 
     ## Installa json-c
     libjson-c5 \
@@ -57,6 +57,10 @@ WORKDIR /app
 # Copio il file eseguibile dal container build al nuovo container
 COPY --from=build /app/bin/ls-tris /app/bin/ls-tris
 
+# Copio lo script `entrypoint.sh` e lo rendo un file eseguibile
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Copio gli script SQL
 COPY db/scheme.sql db/populate_db.sql /app/db/
 
@@ -65,4 +69,5 @@ COPY db/scheme.sql db/populate_db.sql /app/db/
 EXPOSE 5050
 
 ## Eseguo l'app
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["./bin/ls-tris"] 

@@ -14,6 +14,8 @@ const env = {
   BRIDGE_WS_PORT: process.env.BRIDGE_WS_PORT ?? '3002'
 };
 
+console.log(`Generating env.js...`);
+
 // Otteniamo il nome della directory attuale
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

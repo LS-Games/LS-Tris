@@ -2,11 +2,14 @@
 
 Repository dedicata al progetto di Laboratorio di Sistemi Operativi 2024/2025.
 
+ATTENZIONE! Sono stati predisposti degli script (sia [Script Bash](./scripts/linux/) che [Script CMD](./scripts/windows/)) per eseguire e rimuovere velocemente i containers definiti tramite Docker Compose.
+
 ## Indice
 
 * [Creazione dei Docker Containers](#creazione-dei-docker-containers)
-    + [Development Containers](#development-containers)
-    + [Production Containers](#production-containers)
+  + [Development Containers](#development-containers)
+  + [Production Containers](#production-containers)
+* [Rimozione dei Docker Container](#rimozione-dei-docker-container)
 
 ## Creazione dei Docker Containers
 
@@ -35,6 +38,8 @@ E' possibile avviare il Docker Compose nel seguente modo:
 NOTA! E' importante impostare i profili che si desidera attivare, poichè di default saranno avviati solo i container non associati ad alcun profilo.
 
 E' stato predisposto un file [.sample-env](.devcontainer/.sample-env), da duplicare e rinominare in `.env`, che contiene le variabili d'ambiente necessarie al corretto funzionamento dei Docker Containers.
+
+ATTENZIONE! Riferirsi anche ai README di [backend](./source-code/backend/) e [frontend](./source-code/frontend/) per informazioni supplementari (ad esempio, come generare un database iniziale per il backend).
 
 ### Development Containers
 
@@ -66,9 +71,9 @@ docker compose --profile prod \
 
 ATTENZIONE! Ricordarsi che, di default, il profilo selezionato in [.sample-env](.devcontainer/.sample-env) è il profilo `dev`. Sarà necessario modificare i profili impostati nel file `.env` locale per evitare comportamenti inaspettati.
 
-## Fermare i Docker Container
+## Rimozione dei Docker Container
 
-Per fermare i Docker Containers avviati tramite Docker Compose files, è necessario spostarsi nella directory `.devcontainer` ed eseguire il comando:
+Per rimuovere i Docker Containers avviati tramite Docker Compose files, è necessario spostarsi nella directory `.devcontainer` ed eseguire il comando:
 
 ```Bash
 docker compose --profile <NomeProfilo> \
@@ -79,4 +84,4 @@ docker compose --profile <NomeProfilo> \
     down
 ```
 
-Per brevità, non vengono riportati i singoli comandi per le due modalità di esecuzione. Tuttavia, sono stati utilizzati negli scripts definiti nell'apposita directory [scripts](./scripts/).
+Per brevità, non vengono riportati i singoli comandi per le due modalità di esecuzione. Tuttavia, sono stati utilizzati negli scripts definiti nell'apposita [directory](./scripts/).
