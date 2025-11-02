@@ -10,7 +10,7 @@ WORKDIR /app
 COPY package*.json ./
     ## Clean install delle dipendenze (ottimizzato per build riproducibili)
     ## Con --omit=dev non installiamo le dipendenze per lo sviluppo 
-RUN npm ci --omit=dev 
+RUN npm ci --omit=dev
 
 # Copio tutti i files dalla directory locale alla directory corrente all'interno del container
 COPY . .

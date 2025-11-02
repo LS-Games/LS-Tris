@@ -70,4 +70,4 @@ EXPOSE 5050
 
 ## Eseguo l'app
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["./bin/ls-tris"] 
+CMD ["./bin/ls-tris"]

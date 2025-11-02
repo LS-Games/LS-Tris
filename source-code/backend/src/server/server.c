@@ -7,9 +7,9 @@
 #include <errno.h>
 
 #include "../../include/debug_log.h"
-#include "./session_manager.h"
 
 #include "server.h"
+#include "session_manager.h"
 #include "router.h"
 
 SessionManager session_manager;
@@ -179,11 +179,9 @@ static void *handle_client(void *arg) {
     close(client_fd);
     return NULL;
 }
-
 // NB: We're using recv and send functions instead of read and write because we're working with socket
 
-
-int server_send(int client_socket, const char *data) {
+int send_server_response(int client_socket, const char *data) {
 
     if(client_socket < 0 || !data) {
         LOG_WARN("Invalid parameters: socket = %d, data = %p\n", client_socket, (void*)data);
@@ -198,4 +196,28 @@ int server_send(int client_socket, const char *data) {
     }
 
     return sent;
+}
+
+int send_server_broadcast_message(const char *message, int64_t id_sender) {
+    Session *senderSession = session_find_by_id_player(&session_manager, id_sender);
+    if (session_broadcast(&session_manager, message, senderSession->fd) < 0) {
+        LOG_WARN("Error in sending broadcast message from sender %" PRId64 "\n", id_sender);
+        return -1;
+    } else {
+        LOG_DEBUG("Sent message from sender %" PRId64 ": %s\n", id_sender, message);
+    }
+
+    return 0;
+}
+
+int send_server_unicast_message(const char *message, int64_t id_sender, int64_t id_receiver) {
+    Session *receiverSession = session_find_by_id_player(&session_manager, id_receiver);
+    if (session_unicast(&session_manager, message, receiverSession->fd) < 0) {
+        LOG_WARN("Error in sending unicast message from sender %" PRId64 " to receiver %" PRId64 "\n", id_sender, id_receiver);
+    } else {
+        return -1;
+        LOG_DEBUG("Sent message from sender %" PRId64 " to receiver %" PRId64 ": %s\n", id_sender, id_receiver, message);
+    }
+
+    return 0;
 }

@@ -5,9 +5,8 @@
 #include "../../include/debug_log.h"
 
 #include "server.h"
+#include "session_manager.h"
 #include "../json-parser/json-parser.h"
-
-#include "./session_manager.h"
 
 #include "../dto/game_dto.h"
 #include "../dto/notification_dto.h"
@@ -57,6 +56,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
     // Round controller input
     int row = extract_int_from_json(json_body, "row");
     int col = extract_int_from_json(json_body, "col");
+    int64_t id_player_ending_round = extract_int_from_json(json_body, "id_player_ending_round");
 
     // Participation Request controller input
     char *state = extract_string_from_json(json_body, "state");
@@ -107,7 +107,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
     if (strcmp(action, "player_get_public_info") == 0) {
         PlayerControllerStatus playerStatus = player_get_public_info(nickname, &out_player, &out_count);
         if (playerStatus == PLAYER_CONTROLLER_OK || playerStatus == PLAYER_CONTROLLER_NOT_FOUND) {
-            json_response = serialize_players_to_json(out_player, out_count);
+            json_response = serialize_players_to_json(action, out_player, out_count);
         } else {
             json_response = serialize_action_error(action, return_player_controller_status_to_string(playerStatus));
         }
@@ -115,7 +115,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
     } else if (strcmp(action, "player_signup") == 0) {
         PlayerControllerStatus playerStatus = player_signup(nickname, email, password);
         if (playerStatus == PLAYER_CONTROLLER_OK) {
-            json_response = serialize_action_success(action, "Player signed up", 0);
+            json_response = serialize_action_success(action, "Player signed up", -1);
         } else if (playerStatus == PLAYER_CONTROLLER_INVALID_INPUT) {
             json_response = serialize_action_error(action, "Invalid input values");
         } else if (playerStatus == PLAYER_CONTROLLER_STATE_VIOLATION_NICKNAME) {
@@ -134,7 +134,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
             if (out_signedIn == true) {
                 json_response = serialize_action_success(action, "Player signed in", out_id_player);
 
-                // We add a session if the user loggin in succesfully
+                // We add a session if the user logged in succesfully
                 session_add(&session_manager, client_socket, out_id_player, nickname);
                 LOG_INFO("Player \"%s\" (id_player %" PRId64 ") has been added in session list", nickname, out_id_player);
 
@@ -152,7 +152,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
     if (strcmp(action, "games_get_public_info") == 0) {
         GameControllerStatus gameStatus = games_get_public_info(status, &out_games, &out_count);
         if (gameStatus == GAME_CONTROLLER_OK || gameStatus == GAME_CONTROLLER_NOT_FOUND) {
-            json_response = serialize_games_to_json(out_games, out_count);
+            json_response = serialize_games_to_json(action, out_games, out_count);
         } else if (gameStatus == GAME_CONTROLLER_INVALID_INPUT) {
             json_response = serialize_action_error(action, "Invalid input values");
         } else {
@@ -199,7 +199,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
     if (strcmp(action, "round_get_public_info") == 0) {
         RoundControllerStatus roundStatus = round_get_public_info(id_round, &out_round, &out_count);
         if (roundStatus == ROUND_CONTROLLER_OK || roundStatus == ROUND_CONTROLLER_NOT_FOUND) {
-            json_response = serialize_rounds_to_json(out_round, out_count);
+            json_response = serialize_rounds_to_json(action, out_round, out_count);
         } else {
             json_response = serialize_action_error(action, return_round_controller_status_to_string(roundStatus));
         }
@@ -219,7 +219,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
         }
 
     } else if (strcmp(action, "round_end") == 0) { // Sent by one of the players in the round
-        RoundControllerStatus roundStatus = round_end(id_round, &out_id_round);
+        RoundControllerStatus roundStatus = round_end(id_round, id_player_ending_round, &out_id_round);
         if (roundStatus == ROUND_CONTROLLER_OK) {
             json_response = serialize_action_success(action, "Round closed", out_id_round);
         } else {
@@ -232,7 +232,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
     if (strcmp(action, "participation_requests_get_public_info") == 0) {
         ParticipationRequestControllerStatus participationRequestStatus = participation_requests_get_public_info(state, id_game, &out_participation_requests, &out_count);
         if (participationRequestStatus == PARTICIPATION_REQUEST_CONTROLLER_OK || participationRequestStatus == PARTICIPATION_REQUEST_CONTROLLER_NOT_FOUND) {
-            json_response = serialize_participation_requests_to_json(out_participation_requests, out_count);
+            json_response = serialize_participation_requests_to_json(action, out_participation_requests, out_count);
         } else if (participationRequestStatus == PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT) {
             json_response = serialize_action_error(action, "Invalid input values");
         } else {
@@ -271,7 +271,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
     if (strcmp(action, "plays_get_public_info") == 0) {
         PlayControllerStatus playStatus = plays_get_public_info(id_player, id_round, &out_plays, &out_count);
         if (playStatus == PLAY_CONTROLLER_OK || playStatus == PLAY_CONTROLLER_NOT_FOUND) {
-            json_response = serialize_plays_to_json(out_plays, out_count);
+            json_response = serialize_plays_to_json(action, out_plays, out_count);
         } else {
             json_response = serialize_action_error(action, return_play_controller_status_to_string(playStatus));
         }
@@ -282,8 +282,13 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
     if (strcmp(action, "notification_rematch_game") == 0) { // Sent by the game owner
         NotificationControllerStatus notificationStatus = notification_rematch_game(id_game, id_sender, id_receiver, &out_notification);
         if (notificationStatus == NOTIFICATION_CONTROLLER_OK) {
-            // TODO: Implement send out_notification
-            json_response = serialize_action_success(action, "Rematch invitation sent", out_id_participation_request);
+            char *json_message = serialize_notification_to_json(NULL, out_notification);
+            if (send_server_unicast_message(json_message, id_sender, id_receiver) < 0 ) {
+                json_response = serialize_action_error(action, "Could not send rematch invitation");
+            } else {
+                json_response = serialize_action_success(action, "Rematch invitation sent", -1);
+            }
+            free(json_message);
         } else {
             json_response = serialize_action_error(action, return_notification_controller_status_to_string(notificationStatus));
         }
@@ -295,10 +300,13 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
 
     /* === Send response === */
 
-    LOG_INFO("%s\n", "Server Router Response successfully built");
+    LOG_INFO("Server Router Response successfully built: %s\n", json_response);
     if (json_response) {
-        server_send(client_socket, json_response);
-        LOG_DEBUG("Server Router Response: Client socket %d - Sent response: %s\n", client_socket, json_response);
+        if (send_server_response(client_socket, json_response) < 0) {
+            LOG_WARN("Error sending the Server Router Response to Client socket %d\n", client_socket);
+        } else {
+            LOG_DEBUG("Server Router Response sent: Client socket %d - Response: %s\n", client_socket, json_response);
+        }
     } else {
         LOG_WARN("%s\n", "JSON response is empty");
         return;
