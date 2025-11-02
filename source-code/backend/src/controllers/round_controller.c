@@ -206,6 +206,22 @@ RoundControllerStatus round_make_move(int64_t id_round, int64_t id_playerMoving,
     if (status != ROUND_CONTROLLER_OK)
         return status;
 
+    // Send updated round move
+    Play* retrievedPlayArray;
+    int retrievedPlayCount;
+    playStatus = play_find_all_by_id_round(&retrievedPlayArray, retrievedRound.id_round, &retrievedPlayCount);
+    if (playStatus != PLAY_CONTROLLER_OK || retrievedPlayCount <= 0)
+        return ROUND_CONTROLLER_INTERNAL_ERROR;
+    RoundDTO out_round_dto;
+    map_round_to_dto(&retrievedRound, &out_round_dto);
+    const *json_message = serialize_rounds_to_json("server_updated_round_move", &out_round_dto, 1);
+    for (int i=0; i<retrievedPlayCount; i++) { // Send to all player except the player moving
+        if (retrievedPlayArray[i].id_player != id_playerMoving)
+            if (send_server_unicast_message(json_message, id_playerMoving, retrievedPlayArray[i].id_player) < 0 )
+                return ROUND_CONTROLLER_INTERNAL_ERROR;
+    }
+    free(json_message);
+
     // If match is over
     if (result != PLAY_RESULT_INVALID) {
         return round_end_helper(&retrievedRound, -1, result);
@@ -289,7 +305,7 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, int64_t id_play
         return ROUND_CONTROLLER_INTERNAL_ERROR;
     RoundDTO out_round_dto;
     map_round_to_dto(roundToEnd, &out_round_dto);
-    json_message = serialize_rounds_to_json("server_updated_end_round", &out_round_dto, 1);
+    json_message = serialize_rounds_to_json("server_updated_round_end", &out_round_dto, 1);
     for (int i=0; i<retrievedPlayCount; i++) { // Send to all player except the player ending the round
         if (retrievedPlayArray[i].id_player != id_playerEndingRound)
             if (send_server_unicast_message(json_message, id_playerEndingRound, retrievedPlayArray[i].id_player) < 0 )
