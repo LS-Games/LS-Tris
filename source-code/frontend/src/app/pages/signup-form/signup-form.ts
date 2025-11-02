@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { NotificationService } from '../../core/services/notification';
+import { ConfigService } from '../../core/services/config.service';
 @Component({
   selector: 'app-signup-form',
   imports: [RouterLink, ReactiveFormsModule],
@@ -11,6 +12,8 @@ import { NotificationService } from '../../core/services/notification';
   styleUrl: './signup-form.scss'
 })
 export class SignupForm {
+  // Inject environment variables
+  private readonly config = inject(ConfigService);
 
   private readonly _http = inject(HttpClient);
 
@@ -54,7 +57,9 @@ export class SignupForm {
       //We use this http function to send payload to bridge
       //The http function return a Observable
       //We use '/n' at end because we want know if the json is complete
-      this._http.post('http://localhost:3001/api/send', { message: JSON.stringify(payload)})
+      const address = this.config.get('BRIDGE_ADDRESS');
+      const httpPort = this.config.get('BRIDGE_HTTP_PORT');
+      this._http.post(`http://${address}:${httpPort}/api/send`, { message: JSON.stringify(payload)})
 
         //It is similar to .then()
         .subscribe({

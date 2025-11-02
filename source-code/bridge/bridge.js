@@ -6,7 +6,10 @@ import { WebSocketServer } from 'ws';
 const app = express();
 app.use(express.json());
 
-// CORS
+const HTTP_PORT = 3001;
+const WS_PORT = 3002;
+
+// Enable CORS for all routes
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -16,15 +19,17 @@ app.use((req, res, next) => {
 });
 
 // === Backend connection details ========================================
-const BACKEND_HOST = process.env.TCP_HOST || 'localhost';
-const BACKEND_PORT = parseInt(process.env.TCP_PORT || '5050');
+const BACKEND_HOST = process.env.TCP_BACKEND_ADDRESS || 'localhost'; // default host = 'localhost'
+const BACKEND_PORT = parseInt(process.env.TCP_BACKEND_PORT || '8080'); // default port = '8080'
 
+console.log(`Forwarding to backend on "${BACKEND_HOST}:${BACKEND_PORT}"`);
 
 // =======================================================================
 // SECTION 1 — NON-PERSISTENT COMMUNICATION (HTTP)
 // Used for one-shot actions like signup or password reset
 // =======================================================================
 
+// Helper function to communicate with the C backend via TCP
 function sendToBackend(message) {
   return new Promise((resolve, reject) => {
     const client = new net.Socket();
@@ -55,7 +60,7 @@ function sendToBackend(message) {
 }
 
 // HTTP endpoint (signup, etc.)
-// When arrive a HTTP rquest at /api/send executes this call back function
+// When arrive a HTTP request at /api/send executes this call back function
 // In req we have all information sent from frontend
 app.post('/api/send', async (req, res) => {
   try {
@@ -74,8 +79,9 @@ app.post('/api/send', async (req, res) => {
   }
 });
 
-app.listen(3001, () => {
-  console.log(`HTTP Bridge listening on port ${BACKEND_PORT} (non-persitent session)`);
+// Start the bridge HTTP server
+app.listen(HTTP_PORT, () => {
+  console.log(`HTTP Bridge listening on internal port ${HTTP_PORT} (non-persitent session)`);
 });
 
 
@@ -87,8 +93,8 @@ app.listen(3001, () => {
 // Store active user connections: each WebSocket ↔ TCP socket pair
 const userConnections = new Map();
 
-// WebSocket server on port 3002
-const wss = new WebSocketServer({ port: 3002 });
+// Define the bridge WebSocket server
+const wss = new WebSocketServer({ port: WS_PORT });
 
 wss.on('connection', (ws) => {
   console.log('Frontend connected via WebSocket');
@@ -155,5 +161,4 @@ wss.on('connection', (ws) => {
   });
 });
 
-console.log(`WebSocket Bridge listening on port 3002 (persistent sessions)`);
-
+console.log(`WebSocket Bridge listening on internal port ${WS_PORT} (persistent sessions)`);

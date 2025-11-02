@@ -19,12 +19,19 @@ services:
 
     environment: # Defines the environment variables
       SONAR_TOKEN: ${SONAR_TOKEN}
+      BRIDGE_ADDRESS: ${BRIDGE_ADDRESS:-localhost} # The address from the user browser
+      BRIDGE_HTTP_PORT: ${DEV_BRIDGE_HTTP_PORT:-55514} # The port from the user browser
+      BRIDGE_WS_PORT: ${DEV_BRIDGE_WS_PORT:-55515} # The port from the user browser
+      TCP_BACKEND_ADDRESS: ${TCP_BACKEND_ADDRESS:-localhost} # The address inside the docker network
+      TCP_BACKEND_PORT: 5050 # The port inside the docker network
 
     # List of the ports to be forwarded from the container (necessary if not using the "host" network)
     ports: # Maps <hostPort>:<containerPort>
-      - ${DEV_BACKEND_PORT:-55511}:3000 # Port used to access backend app. Default: 55511
-      - ${DEV_FRONTEND_PORT:-55512}:4200 # Port used to access frontend app. Default: 55512
-      - ${DEV_KARMA_PORT:-55513}:9876 # Port used to access frontend Karma's tests report. Default: 55513
+      - ${DEV_BACKEND_PORT:-55511}:5050 # Port used to access backend app (development mode). Default: 55511
+      - ${DEV_FRONTEND_PORT:-55512}:4200 # Port used to access frontend app (development mode). Default: 55512
+      - ${DEV_KARMA_PORT:-55513}:9876 # Port used to access frontend Karma's tests report (development mode). Default: 55513
+      - ${DEV_BRIDGE_HTTP_PORT:-55514}:3001 # Port used to access bridge app with HTTP (development mode). Default: 55514
+      - ${DEV_BRIDGE_WS_PORT:-55515}:3002 # Port used to access bridge app with WebSocket (development mode). Default: 55515
 
     volumes:
       # Update this to wherever you want VS Code to mount the folder of your project

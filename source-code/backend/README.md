@@ -1,5 +1,33 @@
 # Backend
 
+## Indice
+
+* [Dipendenze](#dipendenze)
+* [Scripts](#scripts)
+* [SQLite](#sqlite)
+  + [Creazione dello schema da terminale](#creazione-dello-schema-da-terminale)
+  + [Visualizzazione del database da terminale](#visualizzazione-del-database-da-terminale)
+  + [Popolazione del database da terminale](#popolazione-del-database-da-terminale)
+
+## Dipendenze
+
+Il backend è stato costruito con le seguenti dipendenze:
+
+- [SQLite](https://sqlite.org/);
+- [json-c](https://github.com/json-c/json-c/wiki).
+
+Il compilatore utilizzato è `gcc 14.2.0`.
+
+## Scripts
+
+Per compilare ed eseguire il backend, è stato predisposto un [Makefile](./Makefile). Gli script definiti sono i seguenti:
+
+- `make`, `make all` o `make debug` compila il progetto in modalità debug;
+- `make install` esegue `all` e installa l'eseguibile in `/usr/local/bin/`, impostando i permessi a `755`;
+- `make clean` elimina le directory `./bin/` e `./build`;
+- `make release` esegue `clean` e compila il progetto in modalità ottimizzata per la produzione;
+- `make run` esegue l'eseguibile in `./bin/`.
+
 ## SQLite
 
 ### Creazione dello schema da terminale

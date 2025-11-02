@@ -1,0 +1,5 @@
+globalThis.__env = {
+    BRIDGE_ADDRESS: "$BRIDGE_ADDRESS",
+    BRIDGE_HTTP_PORT: "$BRIDGE_HTTP_PORT",
+    BRIDGE_WS_PORT: "$BRIDGE_WS_PORT",
+};
