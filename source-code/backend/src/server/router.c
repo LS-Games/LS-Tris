@@ -136,7 +136,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
 
                 // We add a session if the user loggin in succesfully
                 session_add(&session_manager, client_socket, out_id_player, nickname);
-                LOG_INFO("Player \"%s\" (id_player %d) has been added in session list", nickname, out_id_player);
+                LOG_INFO("Player \"%s\" (id_player %" PRId64 ") has been added in session list", nickname, out_id_player);
 
             } else
                 json_response = serialize_action_error(action, "Log in failed");

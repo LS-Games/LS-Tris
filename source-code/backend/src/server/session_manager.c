@@ -1,12 +1,14 @@
-#include "session_manager.h"
-#include "../../include/debug_log.h"
 #include <string.h>
 #include <sys/socket.h> // per send()
+#include <inttypes.h>
+
+#include "session_manager.h"
+#include "../../include/debug_log.h"
 
 void session_manager_init(SessionManager *manager) {
 
     if (!manager) {
-        LOG_WARN("SessionManager pointer for init is NULL");
+        LOG_WARN("%s\n", "SessionManager pointer for init is NULL");
         return;
     }
 
@@ -21,14 +23,14 @@ void session_manager_init(SessionManager *manager) {
 void session_add(SessionManager *manager, int fd, int64_t player_id, const char *nickname) {
 
     if (!manager) {
-        LOG_WARN("SessionManager pointer is NULL");
+        LOG_WARN("%s\n", "SessionManager pointer is NULL");
         return;
     }
 
     pthread_mutex_lock(&manager->lock);
 
     if (manager->count >= MAX_SESSION) {
-        LOG_WARN("Cannot add session: session list full (%d active)", manager->count);
+        LOG_WARN("Cannot add session: session list full (%d active)\n", manager->count);
         pthread_mutex_unlock(&manager->lock);
         return;
     }
@@ -52,7 +54,7 @@ void session_add(SessionManager *manager, int fd, int64_t player_id, const char 
 void session_remove(SessionManager *manager, int fd) {
 
     if (!manager) {
-        LOG_WARN("SessionManager pointer is NULL");
+        LOG_WARN("%s\n", "SessionManager pointer is NULL");
         return;
     }
 
@@ -72,7 +74,7 @@ void session_remove(SessionManager *manager, int fd) {
 Session *session_find_by_fd(SessionManager *manager, int fd) {
 
     if (!manager) {
-        LOG_WARN("SessionManager pointer is NULL");
+        LOG_WARN("%s\n", "SessionManager pointer is NULL");
         return NULL;
     }
 
@@ -93,7 +95,7 @@ Session *session_find_by_fd(SessionManager *manager, int fd) {
 Session *session_find_by_nickname(SessionManager *manager, const char *nickname) {
 
     if (!manager) {
-        LOG_WARN("SessionManager pointer is NULL");
+        LOG_WARN("%s\n", "SessionManager pointer is NULL");
         return NULL;
     }
 
@@ -114,12 +116,12 @@ Session *session_find_by_nickname(SessionManager *manager, const char *nickname)
 void session_broadcast(SessionManager *manager, const char *message, int exclude_fd) {
 
     if (!manager) {
-        LOG_WARN("SessionManager pointer is NULL");
+        LOG_WARN("%s\n", "SessionManager pointer is NULL");
         return;
     }
 
     if (!message || strlen(message) == 0) {
-        LOG_WARN("Broadcast message is empty");
+        LOG_WARN("%s\n", "Broadcast message is empty");
         return;
     }
 
@@ -140,10 +142,10 @@ void print_session_list(SessionManager *manager) {
         return;
     }
 
-    LOG_INFO("Connection List:");
+    LOG_INFO("%s\n", "Connection List:");
     for(int i=0; i<MAX_SESSION; i++) {
         if(manager->list[i].active == 1) {
-            LOG_INFO(" %d) Player ID: %d,\t Nickname: %s,\t fd: %d,\t", i, manager->list[i].player_id, manager->list->nickname, manager->list[i].fd);
+            LOG_INFO(" %d) Player ID: %" PRId64 ",\t Nickname: %s,\t fd: %d,\t", i, manager->list[i].player_id, manager->list->nickname, manager->list[i].fd);
         }
     }
 

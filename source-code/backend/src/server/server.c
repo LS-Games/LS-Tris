@@ -56,7 +56,7 @@ int start_server(int port) {
 
 
     session_manager_init(&session_manager);
-    LOG_INFO("Session manager initialized. Ready to accept clients.\n");
+    LOG_INFO("%s\n", "Session manager initialized. Ready to accept clients.");
 
     // Infinite loops continue to accept clients 
     while(1) {
