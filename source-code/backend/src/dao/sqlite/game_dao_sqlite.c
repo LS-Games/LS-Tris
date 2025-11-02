@@ -319,15 +319,18 @@ GameDaoStatus delete_game_by_id(sqlite3 *db, int64_t id_game) {
 GameDaoStatus insert_game(sqlite3 *db, Game *in_out_game) {
 
     if (db == NULL || in_out_game == NULL) {
+        LOG_INFO("SONO QUI");
         return GAME_DAO_INVALID_INPUT;
     }
 
     if (in_out_game->id_creator <= 0 || in_out_game->id_owner <= 0 || in_out_game->created_at == 0) {
+        LOG_INFO("SONO QUI 1");
         return GAME_DAO_INVALID_INPUT;
     }
 
     if (in_out_game->state < NEW_GAME || in_out_game->state > FINISHED_GAME) {
         return GAME_DAO_INVALID_INPUT;
+        LOG_INFO("SONO QUI 2");
     }
 
     sqlite3_stmt *stmt = NULL;

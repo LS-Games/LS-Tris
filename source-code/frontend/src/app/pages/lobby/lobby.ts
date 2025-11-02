@@ -1,8 +1,10 @@
 import { Component, inject, afterNextRender, DestroyRef, NgZone } from '@angular/core';
-import { DialogRef } from '@angular/cdk/dialog';
+import { Dialog, DialogRef } from '@angular/cdk/dialog';
 import { WebsocketService } from '../../core/services/websocket.service';
 import { NotificationService } from '../../core/services/notification';
 import { GameCard } from '../lobby/components/game-card/game-card';
+import { RequestPage } from '../request-page/request-page';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-lobby',
@@ -11,16 +13,18 @@ import { GameCard } from '../lobby/components/game-card/game-card';
   templateUrl: './lobby.html',
   styleUrl: './lobby.scss',
 })
+
 export class Lobby {
 
+  private readonly _dialog = inject(Dialog)
   private readonly _dialogRef = inject(DialogRef<Lobby>);
   private readonly _ws = inject(WebsocketService);
   private readonly _notification = inject(NotificationService);
   private readonly _destroyRef = inject(DestroyRef); // replaces ngOnDestroy
   private readonly _zone = inject(NgZone);
+  private readonly _authService = inject(AuthService);
 
   loading = true;
-
   games: any[] = [];
 
   constructor() {
@@ -40,8 +44,6 @@ export class Lobby {
       // Step 2: define the listener
       const messageListener = (event: MessageEvent) => {
         try {
-
-          console.log("Sono nel listener")
           const data = JSON.parse(event.data);
           const backend = JSON.parse(data.backendResponse);
 
@@ -84,5 +86,15 @@ export class Lobby {
   /** Closes the dialog */
   close() {
     this._dialogRef.close();
+  }
+
+  //Logic to open game request page when create game button is clicked"
+  openRequestPage() {
+    this._dialog.open(RequestPage, {
+      disableClose: true
+    })
+
+    //We close the Lobby section 
+    this.close();
   }
 }

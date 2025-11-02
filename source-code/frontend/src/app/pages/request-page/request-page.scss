@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Bowlby+One+SC&display=swap');
 
-.lobby-container {
+.request-page-container {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -41,29 +41,5 @@
 .loading-message {
     color: #fff;
     font-family: 'Bowlby One SC', sans-serif;
-}
-
-.new-game-section {
-    display: flex;
-    justify-content: center;
-}
-
-.new-game-section a {
-    width: 100%;
-}
-
-.new-game-button {
-    background-color: #118A0A;
-    color: white;
-    font-family: sans-serif;
-    font-weight: bold;
-    width: 100%;
-    font-size: clamp(12px, 3vw, 20px);
-    border-radius: 8px;
-    border: none;
-    margin: 0 auto;
-    padding: 10px;   
-    height: auto;         
-    cursor: pointer;
 }
 

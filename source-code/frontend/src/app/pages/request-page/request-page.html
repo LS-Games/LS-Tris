@@ -1,10 +1,10 @@
-<div class="lobby-container">
+<div class="request-page-container">
     <span class="close-btn" (click)="close()">&times;</span>
 
-    <div class="game-card-container">
+    <div class="request-card-container">
         @if (loading) {
-            <p class="loading-message">Loading games...</p>
-        } @else if (games.length > 0) {
+            <p class="loading-message">Waiting for requests...</p>
+        <!-- } @else if (games.length > 0) {
             @for (game of games; track game.id) {
                 @if(game.state === 'new' || game.state === 'waiting') {
                     <app-game-card
@@ -15,12 +15,10 @@
                         [state]="game.state">
                     </app-game-card>
                 }
-            }   
-        } @else {
-            <p class="empty-message">No games found.</p>
+            } -->   
+        } 
+            @else { 
+            <p class="empty-message">Waiting for requests...</p>
         }
-    </div>
-    <div class="new-game-section">
-        <a (click)="openRequestPage()">><button class="new-game-button">CREATE GAME</button></a>
     </div>
 </div>

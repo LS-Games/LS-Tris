@@ -99,7 +99,9 @@ export class LoginForm {
             // Check the response status and show the proper notification
             if (backend.status === 'success') {
               this._notificationService.show('success', backend.message, 4000);
-              this._authService.login();
+              //We set id player using authService function
+              this._authService.id = backend.id; 
+              this._authService.login(); 
 
               this.close(); // Close dialog on successful login
             } else if (backend.status === 'error') {

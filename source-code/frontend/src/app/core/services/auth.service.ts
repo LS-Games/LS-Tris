@@ -11,19 +11,20 @@
 */ 
 
 import { Injectable, signal, computed, effect } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { of, Observable } from 'rxjs';
-
 @Injectable({ providedIn: 'root' }) // This means that there is only one global instance of this service available throughout the entire app 
 export class AuthService {
 
   private readonly _isLoggedIn = signal<boolean>(false); // It creates a private boolean signal that is false by default (the _ before the word remind us that it's private)
   readonly isLoggedIn = computed(() => this._isLoggedIn());  //We want the computed function to update itself when _isLoggedIn change, we use readonly because to change the state we use login() and logout() function
+  private _playerId = signal<number | null>(null);
 
-  constructor(private readonly _http: HttpClient) { 
+  constructor() { 
     // The constructor begins when the app creates the service
     const token = localStorage.getItem('token'); //We retrive the token which is located in the LocalStore of the Browser
     // this._isLoggedIn.set(!!token); //We use !! (double NOT) to convert it in boolean type, because token alone would be a string value 
+
+    const saved = localStorage.getItem('player_id');
+    if (saved) this._playerId.set(Number(saved));
 
     // The effect executes the functions instantly and each time that an inner signal changes (in this case when this.isLoggedIn() changes)
     effect(() => {
@@ -42,5 +43,18 @@ export class AuthService {
   }
   logout() {
     this._isLoggedIn.set(false);
+  }
+
+  get id() {
+    return this._playerId(); //To known the value in the signal variable we have to call it as function
+  }
+
+  set id(value: number | null) {
+    this._playerId.set(value);
+    if (value !== null) {
+      localStorage.setItem('player_id', String(value));
+    } else {
+      localStorage.removeItem('player_id');
+    }
   }
 }

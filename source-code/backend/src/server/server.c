@@ -137,8 +137,6 @@ static void *handle_client(void *arg) {
 
         char *terminator = strstr(accumulated, "\r\n\r\n");
 
-        LOG_INFO("Full message received, prima dell'if: %s\n", accumulated);
-
         if (terminator != NULL) {
             *terminator = '\0';  
 

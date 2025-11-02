@@ -1,8 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&display=swap');
-
  p {
-    font-family: 'Orbitron', sans-serif;
-    font-size: clamp(8px, 3vw, 12px);
+    font-family: sans-serif;
+    font-size: clamp(15px, 3vw, 20px);
     font-weight: bold;
 }
 
@@ -64,7 +62,7 @@
 .game-card-button {
     background-color: #118A0A;
     color: white;
-    font-family: 'Orbitron', sans-serif;
+    font-family: sans-serif;
     font-weight: bold;
     font-size: clamp(12px, 3vw, 20px);
     border-radius: 8px;
