@@ -7,6 +7,9 @@
 #include "round_controller.h"
 #include "game_controller.h"
 #include "play_controller.h"
+#include "notification_controller.h"
+#include "../json-parser/json-parser.h"
+#include "../server/server.h"
 #include "../dao/sqlite/db_connection_sqlite.h"
 #include "../dao/sqlite/round_dao_sqlite.h"
 
@@ -248,7 +251,7 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, PlayResult resu
     }
 
     // Update game owner
-    int64_t id_playerWinner;
+    int64_t id_playerWinner = -1;
     playStatus = play_find_round_winner(roundToEnd->id_round, &id_playerWinner);
     if (playStatus != PLAY_CONTROLLER_NOT_FOUND) {
         GameControllerStatus gameStatus = game_change_owner(roundToEnd->id_game, id_playerWinner);
@@ -257,6 +260,17 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, PlayResult resu
             return ROUND_CONTROLLER_INTERNAL_ERROR;
         }
     }
+
+    // Send notification
+    NotificationDTO *out_notification = NULL;
+    if (notification_finished_round(roundToEnd->id_game, id_playerWinner, play_result_to_string(result), &out_notification) != NOTIFICATION_CONTROLLER_OK)
+        return ROUND_CONTROLLER_INTERNAL_ERROR;
+    char *json_message = serialize_notification_to_json(NULL, out_notification);
+    if (send_server_broadcast_message(json_message, id_playerWinner) < 0 ) {
+        return ROUND_CONTROLLER_INTERNAL_ERROR;
+    }
+    free(json_message);
+    free(out_notification);
 
     // Update round
     return round_update(roundToEnd);

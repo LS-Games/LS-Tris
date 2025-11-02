@@ -5,6 +5,9 @@
 
 #include "game_controller.h"
 #include "round_controller.h"
+#include "notification_controller.h"
+#include "../json-parser/json-parser.h"
+#include "../server/server.h"
 #include "../dao/sqlite/db_connection_sqlite.h"
 #include "../dao/sqlite/game_dao_sqlite.h"
 
@@ -73,6 +76,17 @@ GameControllerStatus game_start(int64_t id_creator, int64_t* out_id_game) {
     if (status != GAME_CONTROLLER_OK)
         return status;
 
+    // Send notification
+    NotificationDTO *out_notification = NULL;
+    if (notification_new_game(gameToStart.id_game, id_creator, &out_notification) != NOTIFICATION_CONTROLLER_OK)
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    char *json_message = serialize_notification_to_json(NULL, out_notification);
+    if (send_server_broadcast_message(json_message, id_creator) < 0 ) {
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    }
+    free(json_message);
+    free(out_notification);
+
     *out_id_game = gameToStart.id_game;
 
     return GAME_CONTROLLER_OK;
@@ -113,6 +127,17 @@ GameControllerStatus game_refuse_rematch(int64_t id_game, int64_t* out_id_game) 
     status = game_update(&retrievedGame);
     if (status != GAME_CONTROLLER_OK)
         return status;
+
+    // Send notification
+    NotificationDTO *out_notification = NULL;
+    if (notification_new_game(retrievedGame.id_game, retrievedGame.id_owner, &out_notification) != NOTIFICATION_CONTROLLER_OK)
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    char *json_message = serialize_notification_to_json(NULL, out_notification);
+    if (send_server_broadcast_message(json_message, retrievedGame.id_owner) < 0 ) {
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    }
+    free(json_message);
+    free(out_notification);
 
     *out_id_game = retrievedGame.id_game;
 

@@ -96,7 +96,7 @@ char *serialize_action_success(const char *action, const char *message, int64_t 
 
     json_object_object_add(json_response, "status", json_object_new_string("success"));
 
-    if (id) {
+    if (id != -1) {
         json_object_object_add(json_response, "id", json_object_new_int64(id));
     }
     if (action) {
@@ -135,7 +135,7 @@ char *serialize_action_error(const char *action, const char *error_message) {
 }
 
 // Serialize: PlayerDTO
-char *serialize_players_to_json(const PlayerDTO* players, size_t count) {
+char *serialize_players_to_json(const char *action, const PlayerDTO* players, size_t count) {
     struct json_object *json_response = json_object_new_object();
     struct json_object *json_array = json_object_new_array();
 
@@ -151,6 +151,9 @@ char *serialize_players_to_json(const PlayerDTO* players, size_t count) {
         json_object_array_add(json_array, json_player);
     }
 
+    if (action) {
+        json_object_object_add(json_response, "action", json_object_new_string(action));
+    }
     json_object_object_add(json_response, "count", json_object_new_int64(count));
     json_object_object_add(json_response, "players", json_array);
 
@@ -163,7 +166,7 @@ char *serialize_players_to_json(const PlayerDTO* players, size_t count) {
 }
 
 // Serialize: GameDTO
-char *serialize_games_to_json(const GameDTO* games, size_t count) {
+char *serialize_games_to_json(const char *action, const GameDTO* games, size_t count) {
     struct json_object *json_response = json_object_new_object();
     struct json_object *json_array = json_object_new_array();
 
@@ -179,6 +182,9 @@ char *serialize_games_to_json(const GameDTO* games, size_t count) {
         json_object_array_add(json_array, json_game);
     }
 
+    if (action) {
+        json_object_object_add(json_response, "action", json_object_new_string(action));
+    }
     json_object_object_add(json_response, "count", json_object_new_int64(count));
     json_object_object_add(json_response, "games", json_array);
 
@@ -191,7 +197,7 @@ char *serialize_games_to_json(const GameDTO* games, size_t count) {
 }
 
 // Serialize: RoundDTO
-char *serialize_rounds_to_json(const RoundDTO* rounds, size_t count) {
+char *serialize_rounds_to_json(const char *action, const RoundDTO* rounds, size_t count) {
     struct json_object *json_response = json_object_new_object();
     struct json_object *json_array = json_object_new_array();
 
@@ -207,6 +213,9 @@ char *serialize_rounds_to_json(const RoundDTO* rounds, size_t count) {
         json_object_array_add(json_array, json_round);
     }
 
+    if (action) {
+        json_object_object_add(json_response, "action", json_object_new_string(action));
+    }
     json_object_object_add(json_response, "count", json_object_new_int64(count));
     json_object_object_add(json_response, "rounds", json_array);
 
@@ -220,7 +229,7 @@ char *serialize_rounds_to_json(const RoundDTO* rounds, size_t count) {
 
 
 // Serialize: ParticipationRequestDTO
-char *serialize_participation_requests_to_json(const ParticipationRequestDTO* participationRequests, size_t count) {
+char *serialize_participation_requests_to_json(const char *action, const ParticipationRequestDTO* participationRequests, size_t count) {
     struct json_object *json_response = json_object_new_object();
     struct json_object *json_array = json_object_new_array();
 
@@ -236,6 +245,9 @@ char *serialize_participation_requests_to_json(const ParticipationRequestDTO* pa
         json_object_array_add(json_array, json_request);
     }
 
+    if (action) {
+        json_object_object_add(json_response, "action", json_object_new_string(action));
+    }
     json_object_object_add(json_response, "count", json_object_new_int64(count));
     json_object_object_add(json_response, "participation_requests", json_array);
 
@@ -248,7 +260,7 @@ char *serialize_participation_requests_to_json(const ParticipationRequestDTO* pa
 }
 
 // Serialize: PlayDTO
-char *serialize_plays_to_json(const PlayDTO* plays, size_t count) {
+char *serialize_plays_to_json(const char *action, const PlayDTO* plays, size_t count) {
     struct json_object *json_response = json_object_new_object();
     struct json_object *json_array = json_object_new_array();
 
@@ -264,6 +276,9 @@ char *serialize_plays_to_json(const PlayDTO* plays, size_t count) {
         json_object_array_add(json_array, json_play);
     }
 
+    if (action) {
+        json_object_object_add(json_response, "action", json_object_new_string(action));
+    }
     json_object_object_add(json_response, "count", json_object_new_int64(count));
     json_object_object_add(json_response, "plays", json_array);
 
@@ -275,16 +290,27 @@ char *serialize_plays_to_json(const PlayDTO* plays, size_t count) {
     return result;
 }
 
-char *serialize_notification_to_json(NotificationDTO* in_notification) {
+char *serialize_notification_to_json(const char *action, NotificationDTO* in_notification) {
     if (!in_notification) return NULL;
 
     struct json_object *json_response = json_object_new_object();
 
-    json_object_object_add(json_response, "id_sender", json_object_new_int64(in_notification->id_playerSender));
-    json_object_object_add(json_response, "id_receiver", json_object_new_int64(in_notification->id_playerReceiver));
+    if (action) {
+        json_object_object_add(json_response, "action", json_object_new_string(action));
+    }
+    if (in_notification->id_playerSender != -1) {
+        json_object_object_add(json_response, "id_sender", json_object_new_int64(in_notification->id_playerSender));
+    }
+    if (in_notification->id_playerReceiver != -1) {
+        json_object_object_add(json_response, "id_receiver", json_object_new_int64(in_notification->id_playerReceiver));
+    }
+    if (in_notification->id_game != -1) {
+        json_object_object_add(json_response, "id_game", json_object_new_int64(in_notification->id_game));
+    }
+    if (in_notification->id_round != -1) {
+        json_object_object_add(json_response, "id_round", json_object_new_int64(in_notification->id_round));
+    }
     json_object_object_add(json_response, "message", json_object_new_string(in_notification->message));
-    json_object_object_add(json_response, "id_game", json_object_new_int64(in_notification->id_game));
-    json_object_object_add(json_response, "id_round", json_object_new_int64(in_notification->id_round));
 
     const char *json_str = json_object_to_json_string(json_response);
     char *result = malloc(strlen(json_str) + 1);

@@ -18,11 +18,11 @@ int extract_int_from_json(const char *json_str, const char *key);
 
 char *serialize_action_success(const char *action, const char *message, int64_t id);
 char *serialize_action_error(const char *action, const char *error_message);
-char *serialize_players_to_json(const PlayerDTO* players, size_t count);
-char *serialize_games_to_json(const GameDTO* games, size_t count);
-char *serialize_rounds_to_json(const RoundDTO* rounds, size_t count);
-char *serialize_participation_requests_to_json(const ParticipationRequestDTO* participationRequests, size_t count);
-char *serialize_plays_to_json(const PlayDTO* plays, size_t count);
-char *serialize_notification_to_json(NotificationDTO* in_notification);
+char *serialize_players_to_json(const char *action, const PlayerDTO* players, size_t count);
+char *serialize_games_to_json(const char *action, const GameDTO* games, size_t count);
+char *serialize_rounds_to_json(const char *action, const RoundDTO* rounds, size_t count);
+char *serialize_participation_requests_to_json(const char *action, const ParticipationRequestDTO* participationRequests, size_t count);
+char *serialize_plays_to_json(const char *action, const PlayDTO* plays, size_t count);
+char *serialize_notification_to_json(const char *action, NotificationDTO* in_notification);
 
 #endif

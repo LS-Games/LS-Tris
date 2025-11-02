@@ -1,10 +1,13 @@
 #ifndef SERVE_H
 #define SERVER_H
 
-#define PORT 55511
+#include <inttypes.h>
+
 #define MAX_CLIENTS 100
 
 int start_server(int port);
-int server_send(int client_socket, const char* data);
+int send_server_response(int client_socket, const char* data);
+int send_server_broadcast_message(const char *message, int64_t id_sender);
+int send_server_unicast_message(const char *message, int64_t id_sender, int64_t id_receiver);
 
 #endif
