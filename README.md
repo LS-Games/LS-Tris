@@ -23,7 +23,7 @@ Nella configurazione di questa repository, sono stati creati tre diversi Docker 
 
 E' possibile avviare il Docker Compose nel seguente modo:
 
-1. Spostarsi nella directory `.devcontainer`
+1. Spostarsi nella directory [.devcontainer](./.devcontainer)
 1. Eseguire il comando:
 
     ```Bash
@@ -39,11 +39,11 @@ NOTA! E' importante impostare i profili che si desidera attivare, poichè di def
 
 E' stato predisposto un file [.sample-env](.devcontainer/.sample-env), da duplicare e rinominare in `.env`, che contiene le variabili d'ambiente necessarie al corretto funzionamento dei Docker Containers.
 
-ATTENZIONE! Riferirsi anche ai README di [backend](./source-code/backend/) e [frontend](./source-code/frontend/) per informazioni supplementari (ad esempio, come generare un database iniziale per il backend).
+ATTENZIONE! Riferirsi anche ai README di [backend](./source-code/backend/), [bridge](./source-code/bridge/) e [frontend](./source-code/frontend/) per informazioni supplementari (ad esempio, come generare un database iniziale per il backend).
 
 ### Development Containers
 
-Per utilizzare i Development Containers è necessario spostarsi nella directory `.devcontainer` e avviare i Docker Compose files con il profilo `dev`:
+Per utilizzare i Development Containers è necessario spostarsi nella directory [.devcontainer](./.devcontainer) e avviare i Docker Compose files con il profilo `dev`:
 
 ```Bash
 docker compose --profile dev \
@@ -58,7 +58,7 @@ ATTENZIONE! Se si sta avviando i Development Containers tramite [devcontainer.js
 
 ### Production Containers
 
-Per utilizzare i Production Containers è necessario spostarsi nella directory `.devcontainer` e avviare i Docker Compose files con il profilo `prod`:
+Per utilizzare i Production Containers è necessario spostarsi nella directory [.devcontainer](./.devcontainer) e avviare i Docker Compose files con il profilo `prod`:
 
 ```Bash
 docker compose --profile prod \
@@ -73,7 +73,7 @@ ATTENZIONE! Ricordarsi che, di default, il profilo selezionato in [.sample-env](
 
 ## Rimozione dei Docker Container
 
-Per rimuovere i Docker Containers avviati tramite Docker Compose files, è necessario spostarsi nella directory `.devcontainer` ed eseguire il comando:
+Per rimuovere i Docker Containers avviati tramite Docker Compose files, è necessario spostarsi nella directory [.devcontainer](./.devcontainer) ed eseguire il comando:
 
 ```Bash
 docker compose --profile <NomeProfilo> \

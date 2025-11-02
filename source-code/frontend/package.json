@@ -11,16 +11,17 @@
     "prestart": "npm run generate-env",
     "prestart:docker": "npm run generate-env",
     "prebuild": "npm run generate-env",
+    "prewatch": "npm run generate-env",
     "prebuild:prod": "npm run generate-env",
 
     "start": "ng serve",
     "start:docker": "ng serve --host 0.0.0.0 --poll 200",
 
     "build": "ng build",
-    "build:prod": "ng build --configuration production",
-    "serve:prod": "npx http-server ./dist/frontend/browser -p 4200 -c-1",
-  
     "watch": "ng build --watch --configuration development",
+    "build:prod": "ng build --configuration production",
+    "serve": "npx http-server ./dist/frontend/browser -p 4200 -c-1",
+  
     "test": "ng test"
   },
   "prettier": {
