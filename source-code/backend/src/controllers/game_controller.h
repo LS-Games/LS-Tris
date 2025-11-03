@@ -24,6 +24,7 @@ GameControllerStatus game_start(int64_t id_creator, int64_t* out_id_game);
 GameControllerStatus game_end(int64_t id_game, int64_t id_owner, int64_t* out_id_game);
 GameControllerStatus game_refuse_rematch(int64_t id_game, int64_t* out_id_game);
 GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAcceptingRematch, int64_t* out_id_game);
+GameControllerStatus game_cancel(int64_t id_game, int64_t* out_id_game);
 
 // ===================== Controllers Helper Functions =====================
 

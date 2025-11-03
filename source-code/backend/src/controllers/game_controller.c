@@ -215,6 +215,16 @@ GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAccep
     return GAME_CONTROLLER_OK;
 }
 
+GameControllerStatus game_cancel(int64_t id_game, int64_t* out_id_game) {
+    GameControllerStatus status = game_delete(id_game);
+    if (status != GAME_CONTROLLER_OK)
+        return status;
+
+    *out_id_game = id_game;
+
+    return GAME_CONTROLLER_OK;
+}
+
 // ===================== Controllers Helper Functions =====================
 
 GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner) {
