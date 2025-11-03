@@ -193,6 +193,14 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
             json_response = serialize_action_error(action, return_game_controller_status_to_string(gameStatus));
         }
 
+    } else if (strcmp(action, "game_cancel") == 0) { // Sent by the game creator, accepted if the game has no round finished
+        GameControllerStatus gameStatus = game_cancel(id_game, &out_id_game);
+        if (gameStatus == GAME_CONTROLLER_OK) {
+            json_response = serialize_action_success(action, "Game canceled", out_id_game);
+        } else {
+            json_response = serialize_action_error(action, return_game_controller_status_to_string(gameStatus));
+        }
+
     } else 
 
     // Round routes
