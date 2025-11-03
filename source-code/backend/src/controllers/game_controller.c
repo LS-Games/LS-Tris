@@ -5,6 +5,7 @@
 
 #include "game_controller.h"
 #include "round_controller.h"
+#include "player_controller.h"
 #include "notification_controller.h"
 #include "../json-parser/json-parser.h"
 #include "../server/server.h"
@@ -87,6 +88,23 @@ GameControllerStatus game_start(int64_t id_creator, int64_t* out_id_game) {
     free(json_message);
     free(out_notification_dto);
 
+    // Send updated game
+    GameDTO out_game_dto;
+    Player retrievedCreator; // Retrieve creator nickname
+    if (player_find_one(gameToStart.id_creator, &retrievedCreator) != PLAYER_CONTROLLER_OK) {
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    }
+    Player retrievedOwner; // Retrieve owner nickname
+    if (player_find_one(gameToStart.id_owner, &retrievedOwner) != PLAYER_CONTROLLER_OK) {
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    }
+    map_game_to_dto(&gameToStart, retrievedCreator.nickname, retrievedOwner.nickname, &out_game_dto);
+    json_message = serialize_games_to_json("server_new_game", &out_game_dto, 1);
+    if (send_server_broadcast_message(json_message, gameToStart.id_owner) < 0 ) {
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    }
+    free(json_message);
+
     *out_id_game = gameToStart.id_game;
 
     return GAME_CONTROLLER_OK;
@@ -108,6 +126,23 @@ GameControllerStatus game_end(int64_t id_game, int64_t id_owner, int64_t* out_id
     status = game_update(&retrievedGame);
     if (status != GAME_CONTROLLER_OK)
         return status;
+
+    // Send updated game
+    GameDTO out_game_dto;
+    Player retrievedCreator; // Retrieve creator nickname
+    if (player_find_one(retrievedGame.id_creator, &retrievedCreator) != PLAYER_CONTROLLER_OK) {
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    }
+    Player retrievedOwner; // Retrieve owner nickname
+    if (player_find_one(retrievedGame.id_owner, &retrievedOwner) != PLAYER_CONTROLLER_OK) {
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    }
+    map_game_to_dto(&retrievedGame, retrievedCreator.nickname, retrievedOwner.nickname, &out_game_dto);
+    char *json_message = serialize_games_to_json("server_end_game", &out_game_dto, 1);
+    if (send_server_broadcast_message(json_message, retrievedGame.id_owner) < 0 ) {
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    }
+    free(json_message);
 
     *out_id_game = retrievedGame.id_game;
 
@@ -138,6 +173,23 @@ GameControllerStatus game_refuse_rematch(int64_t id_game, int64_t* out_id_game) 
     }
     free(json_message);
     free(out_notification_dto);
+
+    // Send updated game
+    GameDTO out_game_dto;
+    Player retrievedCreator; // Retrieve creator nickname
+    if (player_find_one(retrievedGame.id_creator, &retrievedCreator) != PLAYER_CONTROLLER_OK) {
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    }
+    Player retrievedOwner; // Retrieve owner nickname
+    if (player_find_one(retrievedGame.id_owner, &retrievedOwner) != PLAYER_CONTROLLER_OK) {
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    }
+    map_game_to_dto(&retrievedGame, retrievedCreator.nickname, retrievedOwner.nickname, &out_game_dto);
+    json_message = serialize_games_to_json("server_waiting_game", &out_game_dto, 1);
+    if (send_server_broadcast_message(json_message, retrievedGame.id_owner) < 0 ) {
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    }
+    free(json_message);
 
     *out_id_game = retrievedGame.id_game;
 

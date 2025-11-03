@@ -166,7 +166,28 @@ static ParticipationRequestControllerStatus participation_request_accept_helper(
     if (participationRequestStatus != PARTICIPATION_REQUEST_CONTROLLER_OK)
         return participationRequestStatus;
 
-    return participation_request_reject_all(retrievedPendingRequests, retrievedObjectCount);
+    ParticipationRequestControllerStatus status = participation_request_reject_all(retrievedPendingRequests, retrievedObjectCount);
+    if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
+        return status;
+
+    // Send updated game
+    GameDTO out_game_dto;
+    Player retrievedCreator; // Retrieve creator nickname
+    if (player_find_one(retrievedGame.id_creator, &retrievedCreator) != PLAYER_CONTROLLER_OK) {
+        return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
+    }
+    Player retrievedOwner; // Retrieve owner nickname
+    if (player_find_one(retrievedGame.id_owner, &retrievedOwner) != PLAYER_CONTROLLER_OK) {
+        return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
+    }
+    map_game_to_dto(&retrievedGame, retrievedCreator.nickname, retrievedOwner.nickname, &out_game_dto);
+    char *json_message = serialize_games_to_json("server_active_game", &out_game_dto, 1);
+    if (send_server_broadcast_message(json_message, retrievedGame.id_owner) < 0 ) {
+        return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
+    }
+    free(json_message);
+
+    return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
 
 static ParticipationRequestControllerStatus participation_request_reject_all(ParticipationRequest* pendingRequestsToReject, int retrievedObjectCount) {
