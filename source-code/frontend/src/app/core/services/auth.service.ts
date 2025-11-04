@@ -1,60 +1,96 @@
-/*
-  This service tracks the client login status and the number of invitations received. 
-  We use Angular Signals which are small reactive value boxes 
+import { Injectable, signal, computed, effect, inject } from '@angular/core';
+import { HttpService } from './http.service';
+import { WebsocketService } from './websocket.service';
+import { Subject } from 'rxjs';
 
-  Injectable -> It means that this class can be injected
-  signal -> It creates a signal that is a value which notifies the user when it changes
-  computed -> It creates a derived Signal that depends on other signals 
-  effect -> It executes a function each time the signals in that function change (collateral effects)
+interface BackendSigninResponse {
+  action: 'player_signin';
+  status: 'success' | 'error';
+  id?: number;
+  error_message?: string;
+}
 
-  Example: User login -> _isLogged set -> isLogged set -> effect() -> set token -> User logout -> _isLogged set -> isLogged set -> effect -> set token
-*/ 
-
-import { Injectable, signal, computed, effect } from '@angular/core';
-@Injectable({ providedIn: 'root' }) // This means that there is only one global instance of this service available throughout the entire app 
+@Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private readonly _isLoggedIn = signal<boolean>(false); // It creates a private boolean signal that is false by default (the _ before the word remind us that it's private)
-  readonly isLoggedIn = computed(() => this._isLoggedIn());  //We want the computed function to update itself when _isLoggedIn change, we use readonly because to change the state we use login() and logout() function
-  private _playerId = signal<number | null>(null);
+  private readonly _http = inject(HttpService);
+  private readonly _ws = inject(WebsocketService);
 
-  constructor() { 
-    // The constructor begins when the app creates the service
-    const token = localStorage.getItem('token'); //We retrive the token which is located in the LocalStore of the Browser
-    // this._isLoggedIn.set(!!token); //We use !! (double NOT) to convert it in boolean type, because token alone would be a string value 
+  private readonly _isLoggedIn = signal(false);
+  readonly isLoggedIn = computed(() => this._isLoggedIn());
+  private readonly _playerId = signal<number | null>(null);
+
+  /**
+   * We use Subject in this case becase we can notify our listeners which need
+   * to know if the login was succesfull 
+   */
+
+  private readonly loginSuccess$ = new Subject<number>();
+  private readonly loginError$ = new Subject<string>();
+
+  constructor() {
 
     const saved = localStorage.getItem('player_id');
     if (saved) this._playerId.set(Number(saved));
 
-    // The effect executes the functions instantly and each time that an inner signal changes (in this case when this.isLoggedIn() changes)
     effect(() => {
-      if (this.isLoggedIn()) localStorage.setItem('token', 'demo'); //If the user is logged in save "demo" in the "token" key (WE WILL SET THE REAL TOKEN LOGIC HERE)
-      else localStorage.removeItem('token'); //Else remove it
+      if (this.isLoggedIn()) localStorage.setItem('token', 'demo');
+      else localStorage.removeItem('token');
     });
   }
 
-  // login(email: string, password: string): Observable<{token: string}> {
-    //we're sending a POST request to the backend API with the user's email and password
-    // return this._http.post<{ token: string }>('https://api.example.com/login', { email, password })    
-  // }
-
-  login() {
-    this._isLoggedIn.set(true);
+  // --- SIGNUP (HTTP, no persistence) --- 
+  signup(nickname: string, email: string, password: string) {
+    const payload = { action: 'player_signup', nickname, email, password };
+    return this._http.send(payload);
   }
+
+  // --- SIGNIN (WebSocket, persistence) --- 
+signin(nickname: string, password: string) {
+  const payload = { action: 'player_signin', nickname, password };
+
+  this._ws.connect().then(() => {
+    this._ws.send(payload);
+
+    this._ws.onAction<BackendSigninResponse>('player_signin')
+      .subscribe((backend) => {
+        console.log('Received backend response for login:', backend);
+
+        if (backend.status === 'success' && backend.id) {
+          this._playerId.set(backend.id);
+          this._isLoggedIn.set(true);
+          this.loginSuccess$.next(backend.id);
+        } else {
+          this.loginError$.next(backend.error_message || 'Login failed');
+        }
+      });
+  });
+}
+
+
+  onLoginSuccess() {
+    return this.loginSuccess$.asObservable();
+  }
+
+  onLoginError() {
+    return this.loginError$.asObservable();
+  }
+
   logout() {
     this._isLoggedIn.set(false);
+    this._playerId.set(null);
+    localStorage.removeItem('player_id');
+    localStorage.removeItem('token');
+    this._ws.close();
   }
 
   get id() {
-    return this._playerId(); //To known the value in the signal variable we have to call it as function
+    return this._playerId();
   }
 
   set id(value: number | null) {
     this._playerId.set(value);
-    if (value !== null) {
-      localStorage.setItem('player_id', String(value));
-    } else {
-      localStorage.removeItem('player_id');
-    }
+    if (value !== null) localStorage.setItem('player_id', String(value));
+    else localStorage.removeItem('player_id');
   }
 }

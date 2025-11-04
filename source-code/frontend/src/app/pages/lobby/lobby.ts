@@ -1,10 +1,11 @@
-import { Component, inject, afterNextRender, DestroyRef, NgZone } from '@angular/core';
+import { Component, inject, afterNextRender, DestroyRef } from '@angular/core';
 import { Dialog, DialogRef } from '@angular/cdk/dialog';
 import { WebsocketService } from '../../core/services/websocket.service';
 import { NotificationService } from '../../core/services/notification';
 import { GameCard } from '../lobby/components/game-card/game-card';
 import { RequestPage } from '../request-page/request-page';
-import { AuthService } from '../../core/services/auth.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { GameService } from '../../core/services/game.service';
 
 @Component({
   selector: 'app-lobby',
@@ -21,8 +22,7 @@ export class Lobby {
   private readonly _ws = inject(WebsocketService);
   private readonly _notification = inject(NotificationService);
   private readonly _destroyRef = inject(DestroyRef); // replaces ngOnDestroy
-  private readonly _zone = inject(NgZone);
-  private readonly _authService = inject(AuthService);
+  private readonly _game = inject(GameService);
 
   loading = true;
   games: any[] = [];
@@ -34,52 +34,39 @@ export class Lobby {
      * Equivalent to ngOnInit(), but works in a functional and signal-friendly way.
      */
 
-
     afterNextRender(() => {
+      this._game
+        .getAllGame()
+          .pipe(takeUntilDestroyed(this._destroyRef))
+          .subscribe({
 
-      // Step 1: send the request to the backend
-      const payload = { action: 'games_get_public_info', status: 'all' };
-      this._ws.send(payload);
+            /**
+             * This next is different to Subject.next(), in this case next: is useful to 
+             * perform a specific action when a event occurs, while in the first case is used to 
+             * send a new value to the listeners
+             */
 
-      // Step 2: define the listener
-      const messageListener = (event: MessageEvent) => {
-        try {
-          const data = JSON.parse(event.data);
-          const backend = JSON.parse(data.backendResponse);
+            next : (backend) => {
+              if(backend.games && backend.count != 0) {
+                this.games = backend.games;
+                this.loading = false;
 
-          this._zone.run(() => {
-      
-            if(backend.games) {
-              this.games = backend.games || [];
+                if(backend.count == 0) {
+                  this._notification.show('info', 'There are no games available right now.')
+                }
+
+              } else {
+                  this._notification.show('error', backend.error_message || 'Failed to fetch games.');
+                  this.loading = false;
+              }
+            },
+
+            error: (err) => {
+              console.error('WebSocket error:', err);
               this.loading = false;
+              this._notification.show('error', 'An unexpected error occurred.');
             }
-
-            if (this.games.length === 0) {
-              this._notification.show('info', 'There are no games available right now.');
-            }
-
-          });
-
-        } catch (err) {
-          console.error('Failed to parse backend response:', err);
-          this.loading = false;
-        }
-      };
-
-      // Step 3: start listening
-      this._ws.onMessage(messageListener);
-
-      /**
-       * When the component is destroyed, Angular automatically runs this callback.
-       * This replaces ngOnDestroy() and ensures perfect cleanup.
-       * 
-       * Reset the listener, we can do it overwriting it with a function that does nothing 
-       * if we hadn't done this, it would have executed the function every time data arrived.  
-       */
-
-      this._destroyRef.onDestroy(() => {
-        this._ws.onMessage(() => {}); // reset the listener safely
-      });
+          })
     });
   }
 

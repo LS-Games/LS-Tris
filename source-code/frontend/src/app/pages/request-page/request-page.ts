@@ -1,8 +1,7 @@
-import { afterNextRender, Component, inject, DestroyRef, NgZone } from '@angular/core';
+import { afterNextRender, Component, inject, DestroyRef } from '@angular/core';
 import { DialogRef } from '@angular/cdk/dialog';
-import { AuthService } from '../../core/services/auth.service';
-import { WebsocketService } from '../../core/services/websocket.service';
-
+import { GameService } from '../../core/services/game.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 @Component({
   selector: 'app-request-page',
   standalone: true,
@@ -10,65 +9,49 @@ import { WebsocketService } from '../../core/services/websocket.service';
   templateUrl: './request-page.html',
   styleUrl: './request-page.scss'
 })
+
 export class RequestPage {
 
   private readonly _dialogRef = inject(DialogRef<RequestPage>);
-  private readonly _authService = inject(AuthService);
-  private readonly _ws = inject(WebsocketService);
-  private readonly _zone = inject(NgZone);
+
+  //DestroyRedf is a object that Angular provides to manage a life cycle of a component
   private readonly _destroyRef = inject(DestroyRef);
+  private readonly _game = inject(GameService);
 
   loading = true;
-  request :any[] = [];
-  id_game = -1;
-  
+  id_game: number | null = null;
+  error_message: string | null = null;
 
   constructor() {
-
     afterNextRender(() => {
 
-      const payload = { action: 'game_start', id_creator: `${this._authService.id}`};
-      this._ws.send(payload);
+      this._game.createGame();
 
-      const messageListener = (event: MessageEvent) => {
-        try {
-          const data = JSON.parse(event.data);
-          const backend = JSON. parse(data.backendResponse);
+      /**
+       * pipe() is a RxJS method to modify/filter the flow (we can use RxJs operatore before that they arrive to subscribe)
+       * takeUntilDestroyer() creates a trigger automatically which is connected to component destruction.
+       * With Subscribe() we subscribe ourself to the stream and every time that a new ID is issued, save that ID in the component variable
+       */
 
-          console.log(backend);
+      this._game.onGameCreated().pipe(takeUntilDestroyed(this._destroyRef)).subscribe((id) => {
+        this.id_game = id;
+        this.loading = false;
+        console.log('Game created succesfully with id: ', id);
+      });
 
-          this._zone.run(() => {
-            
-            if(backend.status === 'success') {
-              this.id_game = backend.id;
-
-            } else if(backend.status === 'error') {
-              this.id_game = -1;
-            }
-
-          })
-
-        } catch (err) {
-            console.error('Failed to parse backend response:', err);
-        }
-      };
-
-      this._ws.onMessage(messageListener);
-
-      this._destroyRef.onDestroy(() => {
-        this._ws.onMessage(() => {}); // reset the listener safely
+      this._game.onGameError().pipe(takeUntilDestroyed(this._destroyRef)).subscribe((err) => {
+        this.error_message = err;
+        this.loading = false;
+        console.log("Error about game creation");
       });
     });
   }
 
-  /**
-   * We have to do a method that deletes a game after than the creator has clsoed the 
-   * waiting section whitout starting a new game.
-   */
-  // closeGame() {} 
-
   close() {
     this._dialogRef.close();
 
+    if(this.id_game) {
+      this._game.deleteGame(this.id_game);
+    }
   }
 }
