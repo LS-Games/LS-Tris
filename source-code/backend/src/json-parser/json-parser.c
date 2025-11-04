@@ -151,6 +151,7 @@ char *serialize_players_to_json(const char *action, const PlayerDTO* players, si
         json_object_array_add(json_array, json_player);
     }
 
+    json_object_object_add(json_response, "status", json_object_new_string("success"));
     if (action) {
         json_object_object_add(json_response, "action", json_object_new_string(action));
     }
@@ -182,6 +183,7 @@ char *serialize_games_to_json(const char *action, const GameDTO* games, size_t c
         json_object_array_add(json_array, json_game);
     }
 
+    json_object_object_add(json_response, "status", json_object_new_string("success"));
     if (action) {
         json_object_object_add(json_response, "action", json_object_new_string(action));
     }
@@ -213,6 +215,7 @@ char *serialize_rounds_to_json(const char *action, const RoundDTO* rounds, size_
         json_object_array_add(json_array, json_round);
     }
 
+    json_object_object_add(json_response, "status", json_object_new_string("success"));
     if (action) {
         json_object_object_add(json_response, "action", json_object_new_string(action));
     }
@@ -245,6 +248,7 @@ char *serialize_participation_requests_to_json(const char *action, const Partici
         json_object_array_add(json_array, json_request);
     }
 
+    json_object_object_add(json_response, "status", json_object_new_string("success"));
     if (action) {
         json_object_object_add(json_response, "action", json_object_new_string(action));
     }
@@ -276,6 +280,7 @@ char *serialize_plays_to_json(const char *action, const PlayDTO* plays, size_t c
         json_object_array_add(json_array, json_play);
     }
 
+    json_object_object_add(json_response, "status", json_object_new_string("success"));
     if (action) {
         json_object_object_add(json_response, "action", json_object_new_string(action));
     }
@@ -295,6 +300,7 @@ char *serialize_notification_to_json(const char *action, NotificationDTO* in_not
 
     struct json_object *json_response = json_object_new_object();
 
+    json_object_object_add(json_response, "status", json_object_new_string("success"));
     if (action) {
         json_object_object_add(json_response, "action", json_object_new_string(action));
     }
