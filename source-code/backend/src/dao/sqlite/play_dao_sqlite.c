@@ -529,3 +529,75 @@ PlayDaoStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickname
         LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
         return PLAY_DAO_SQL_ERROR;
 }
+
+PlayDaoStatus get_plays_by_pk_with_player_info(sqlite3 *db, int64_t id_player, int64_t id_round, PlayWithPlayerNickname *out) {
+    
+    if (!db || !out || id_player <= 0 || id_round <= 0) {
+        return PLAY_DAO_INVALID_INPUT;
+    }
+
+    const char *sql =
+        "SELECT "
+        " y.id_player, "
+        " y.id_round, "
+        " y.result, "
+        " y.player_number, "
+        " p.nickname AS player_nickname "
+        "FROM Play y "
+        "JOIN Player p ON y.id_player = p.id_player "
+        "WHERE y.id_player = ?1 AND y.id_round = ?2;";
+
+    sqlite3_stmt *st = NULL;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
+    if (rc != SQLITE_OK) goto prepare_fail;
+
+    rc = sqlite3_bind_int64(st, 1, id_player);
+    if (rc != SQLITE_OK) goto bind_fail;
+
+    rc = sqlite3_bind_int64(st, 2, id_round);
+    if (rc != SQLITE_OK) goto bind_fail;
+
+    rc = sqlite3_step(st);
+
+    if (rc == SQLITE_ROW) {
+
+        out->id_player = sqlite3_column_int64(st, 0);
+        out->id_round = sqlite3_column_int64(st, 1);
+        const unsigned char *result = sqlite3_column_text(st, 2);
+        out->player_number = sqlite3_column_int(st, 3);
+        const unsigned char *player_nickname = sqlite3_column_text(st, 4);
+
+        snprintf(out->player_nickname, sizeof out->player_nickname, "%s", player_nickname ? (const char *)player_nickname : "");
+
+        if (result) {
+            out->result = string_to_play_result((const char *)result);
+        } else {
+            out->result = PLAY_RESULT_INVALID;
+        }
+
+        sqlite3_finalize(st);
+        return PLAY_DAO_OK;
+
+    }  else if (rc == SQLITE_DONE) {
+        sqlite3_finalize(st);
+        return PLAY_DAO_NOT_FOUND;
+        
+    } else {
+        goto step_fail;
+    }
+
+prepare_fail:
+    LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+    if (st) sqlite3_finalize(st);
+    return PLAY_DAO_SQL_ERROR;
+
+bind_fail:
+    LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+    if (st) sqlite3_finalize(st);
+    return PLAY_DAO_SQL_ERROR;
+
+step_fail:
+    LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+    if (st) sqlite3_finalize(st);
+    return PLAY_DAO_SQL_ERROR;
+}

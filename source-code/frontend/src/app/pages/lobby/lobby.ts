@@ -1,6 +1,5 @@
 import { Component, inject, afterNextRender, DestroyRef } from '@angular/core';
 import { Dialog, DialogRef } from '@angular/cdk/dialog';
-import { WebsocketService } from '../../core/services/websocket.service';
 import { NotificationService } from '../../core/services/notification';
 import { GameCard } from '../lobby/components/game-card/game-card';
 import { RequestPage } from '../request-page/request-page';
@@ -19,7 +18,6 @@ export class Lobby {
 
   private readonly _dialog = inject(Dialog)
   private readonly _dialogRef = inject(DialogRef<Lobby>);
-  private readonly _ws = inject(WebsocketService);
   private readonly _notification = inject(NotificationService);
   private readonly _destroyRef = inject(DestroyRef); // replaces ngOnDestroy
   private readonly _game = inject(GameService);
@@ -47,7 +45,7 @@ export class Lobby {
              */
 
             next : (backend) => {
-              if(backend.games && backend.count != 0) {
+              if(backend.status === 'success') {
                 this.games = backend.games;
                 this.loading = false;
 

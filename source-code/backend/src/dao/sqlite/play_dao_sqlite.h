@@ -30,6 +30,7 @@ PlayDaoStatus insert_play(sqlite3 *db, Play *in_out_play);
 
 PlayDaoStatus get_all_plays_by_round(sqlite3 *db, Play **out_array, int64_t id_round, int *out_count);
 PlayDaoStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickname **out_array, int *out_count);
+PlayDaoStatus get_plays_by_pk_with_player_info(sqlite3 *db, int64_t id_player, int64_t id_round, PlayWithPlayerNickname *out);
 
 // Funzione di utilità per messaggi di errore
 const char *return_play_dao_status_to_string(PlayDaoStatus status);

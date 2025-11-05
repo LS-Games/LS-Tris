@@ -17,7 +17,7 @@ interface BackendGamesListResponse {
     action: 'games_get_public_info';
     count?: number;
     status: 'success' | 'error';
-    games?: GameInfo[];
+    games: GameInfo[];
     error_message?: string;
 }
 
