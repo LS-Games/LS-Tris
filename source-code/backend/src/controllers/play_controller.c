@@ -246,7 +246,7 @@ PlayControllerStatus play_delete(int64_t id_player, int64_t id_round) {
 // Read all (by id_round)
 PlayControllerStatus play_find_all_by_id_round(Play **retrievedPlayArray, int64_t id_round, int* retrievedObjectCount) {
     sqlite3* db = db_open();
-    PlayDaoStatus status = get_all_plays_by_round(db, retrievedPlayArray, id_round, retrievedObjectCount);
+    PlayDaoStatus status = get_all_plays_by_round(db, id_round, retrievedPlayArray, retrievedObjectCount);
     db_close(db);
     if (status != PLAY_DAO_OK) {
         LOG_WARN("%s\n", return_play_dao_status_to_string(status));

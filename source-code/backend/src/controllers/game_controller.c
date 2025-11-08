@@ -64,7 +64,7 @@ GameControllerStatus games_get_public_info(char *status, GameDTO **out_dtos, int
 
 GameControllerStatus game_start(int64_t id_creator, int64_t* out_id_game) {
 
-    LOG_INFO("ID PLAYER: %d\n", id_creator);
+    LOG_INFO("ID PLAYER: %" PRId64 "\n", id_creator);
     // Build game to start
     Game gameToStart = {
         .id_creator = id_creator,

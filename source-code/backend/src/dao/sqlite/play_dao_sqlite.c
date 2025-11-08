@@ -359,7 +359,161 @@ PlayDaoStatus insert_play(sqlite3 *db, Play *in_out_play) {
         return PLAY_DAO_SQL_ERROR;
 }
 
-PlayDaoStatus get_all_plays_by_round(sqlite3 *db, Play **out_array, int64_t id_round, int *out_count) {
+PlayDaoStatus get_play_by_pk_with_player_info(sqlite3 *db, int64_t id_player, int64_t id_round, PlayWithPlayerNickname *out) {
+    
+    if (!db || !out || id_player <= 0 || id_round <= 0) {
+        return PLAY_DAO_INVALID_INPUT;
+    }
+
+    const char *sql =
+        "SELECT "
+        " y.id_player, "
+        " y.id_round, "
+        " y.result, "
+        " y.player_number, "
+        " p.nickname AS player_nickname "
+        "FROM Play y "
+        "JOIN Player p ON y.id_player = p.id_player "
+        "WHERE y.id_player = ?1 AND y.id_round = ?2;";
+
+    sqlite3_stmt *st = NULL;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
+    if (rc != SQLITE_OK) goto prepare_fail;
+
+    rc = sqlite3_bind_int64(st, 1, id_player);
+    if (rc != SQLITE_OK) goto bind_fail;
+
+    rc = sqlite3_bind_int64(st, 2, id_round);
+    if (rc != SQLITE_OK) goto bind_fail;
+
+    rc = sqlite3_step(st);
+
+    if (rc == SQLITE_ROW) {
+
+        out->id_player = sqlite3_column_int64(st, 0);
+        out->id_round = sqlite3_column_int64(st, 1);
+        const unsigned char *result = sqlite3_column_text(st, 2);
+        out->player_number = sqlite3_column_int(st, 3);
+        const unsigned char *player_nickname = sqlite3_column_text(st, 4);
+
+        snprintf(out->player_nickname, sizeof out->player_nickname, "%s", player_nickname ? (const char *)player_nickname : "");
+
+        if (result) {
+            out->result = string_to_play_result((const char *)result);
+        } else {
+            out->result = PLAY_RESULT_INVALID;
+        }
+
+        sqlite3_finalize(st);
+        return PLAY_DAO_OK;
+
+    }  else if (rc == SQLITE_DONE) {
+        sqlite3_finalize(st);
+        return PLAY_DAO_NOT_FOUND;
+        
+    } else {
+        goto step_fail;
+    }
+
+prepare_fail:
+    LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+    if (st) sqlite3_finalize(st);
+    return PLAY_DAO_SQL_ERROR;
+
+bind_fail:
+    LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+    if (st) sqlite3_finalize(st);
+    return PLAY_DAO_SQL_ERROR;
+
+step_fail:
+    LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+    if (st) sqlite3_finalize(st);
+    return PLAY_DAO_SQL_ERROR;
+}
+
+PlayDaoStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickname **out_array, int *out_count) {
+
+    if(db == NULL || out_array == NULL || out_count == NULL) { 
+        return PLAY_DAO_INVALID_INPUT;
+    }
+
+    *out_array = NULL;
+    *out_count = 0; 
+
+    const char *sql = "SELECT y.id_player, y.id_round, y.result, y.player_number, p.nickname AS player_nickname "
+                      "FROM Play y JOIN Player p ON y.id_player = p.id_player "
+                      "ORDER BY y.id_round ASC;"; 
+
+    sqlite3_stmt *st = NULL;
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
+    if (rc != SQLITE_OK) goto prepare_fail;
+
+    int cap = 16; 
+
+    PlayWithPlayerNickname *plays_array = malloc(sizeof(PlayWithPlayerNickname) * cap);
+
+    if (!plays_array) {
+        sqlite3_finalize(st);
+        return PLAY_DAO_MALLOC_ERROR;
+    }
+
+    int count = 0;
+
+    while((rc = sqlite3_step(st)) == SQLITE_ROW) {
+
+        if (count == cap) {
+            int new_cap = cap * 2;
+            PlayWithPlayerNickname *tmp = realloc(plays_array, sizeof(PlayWithPlayerNickname)* new_cap); 
+
+            if(!tmp) {
+                free(plays_array);
+                sqlite3_finalize(st);
+                return PLAY_DAO_MALLOC_ERROR;
+            }
+
+            plays_array = tmp; 
+            cap = new_cap;
+        }
+
+        PlayWithPlayerNickname play_with_player_nickname;
+
+        play_with_player_nickname.id_player = sqlite3_column_int64(st,0);
+        play_with_player_nickname.id_round = sqlite3_column_int64(st, 1);
+        unsigned const char *result = sqlite3_column_text(st, 2);
+        play_with_player_nickname.player_number = sqlite3_column_int(st , 3);
+        unsigned const char *player_nickname = sqlite3_column_text(st, 4);
+        snprintf(play_with_player_nickname.player_nickname, sizeof play_with_player_nickname.player_nickname, "%s", player_nickname ? (const char*) player_nickname : "");
+
+        if (result) {
+            play_with_player_nickname.result = string_to_play_result((const char*) result);
+        } else {
+            play_with_player_nickname.result = PLAY_RESULT_INVALID;
+        }
+
+        plays_array[count++] = play_with_player_nickname;
+    }
+
+    if (rc != SQLITE_DONE) {
+        LOG_ERROR("DATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        free(plays_array);
+        sqlite3_finalize(st);
+        return PLAY_DAO_SQL_ERROR;
+    }
+
+    *out_array = plays_array; 
+    *out_count = count;
+
+    sqlite3_finalize(st);
+
+    return PLAY_DAO_OK;
+
+    prepare_fail:
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PLAY_DAO_SQL_ERROR;
+}
+
+PlayDaoStatus get_all_plays_by_round(sqlite3 *db, int64_t id_round, Play **out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL || id_round <= 0) { 
         return PLAY_DAO_INVALID_INPUT;
@@ -446,158 +600,4 @@ PlayDaoStatus get_all_plays_by_round(sqlite3 *db, Play **out_array, int64_t id_r
         LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(st);
         return PLAY_DAO_SQL_ERROR;
-}
-
-PlayDaoStatus get_all_plays_with_player_info(sqlite3 *db, PlayWithPlayerNickname **out_array, int *out_count) {
-
-    if(db == NULL || out_array == NULL || out_count == NULL) { 
-        return PLAY_DAO_INVALID_INPUT;
-    }
-
-    *out_array = NULL;
-    *out_count = 0; 
-
-    const char *sql = "SELECT y.id_player, y.id_round, y.result, y.player_number, p.nickname AS player_nickname "
-                      "FROM Play y JOIN Player p ON y.id_player = p.id_player "
-                      "ORDER BY y.id_round ASC;"; 
-
-    sqlite3_stmt *st = NULL;
-
-    int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
-    if (rc != SQLITE_OK) goto prepare_fail;
-
-    int cap = 16; 
-
-    PlayWithPlayerNickname *plays_array = malloc(sizeof(PlayWithPlayerNickname) * cap);
-
-    if (!plays_array) {
-        sqlite3_finalize(st);
-        return PLAY_DAO_MALLOC_ERROR;
-    }
-
-    int count = 0;
-
-    while((rc = sqlite3_step(st)) == SQLITE_ROW) {
-
-        if (count == cap) {
-            int new_cap = cap * 2;
-            PlayWithPlayerNickname *tmp = realloc(plays_array, sizeof(PlayWithPlayerNickname)* new_cap); 
-
-            if(!tmp) {
-                free(plays_array);
-                sqlite3_finalize(st);
-                return PLAY_DAO_MALLOC_ERROR;
-            }
-
-            plays_array = tmp; 
-            cap = new_cap;
-        }
-
-        PlayWithPlayerNickname play_with_player_nickname;
-
-        play_with_player_nickname.id_player = sqlite3_column_int64(st,0);
-        play_with_player_nickname.id_round = sqlite3_column_int64(st, 1);
-        unsigned const char *result = sqlite3_column_text(st, 2);
-        play_with_player_nickname.player_number = sqlite3_column_int(st , 3);
-        unsigned const char *player_nickname = sqlite3_column_text(st, 4);
-        snprintf(play_with_player_nickname.player_nickname, sizeof play_with_player_nickname.player_nickname, "%s", player_nickname ? (const char*) player_nickname : "");
-
-        if (result) {
-            play_with_player_nickname.result = string_to_play_result((const char*) result);
-        } else {
-            play_with_player_nickname.result = PLAY_RESULT_INVALID;
-        }
-
-        plays_array[count++] = play_with_player_nickname;
-    }
-
-    if (rc != SQLITE_DONE) {
-        LOG_ERROR("DATABASE ERROR: %s\n", sqlite3_errmsg(db));
-        free(plays_array);
-        sqlite3_finalize(st);
-        return PLAY_DAO_SQL_ERROR;
-    }
-
-    *out_array = plays_array; 
-    *out_count = count;
-
-    sqlite3_finalize(st);
-
-    return PLAY_DAO_OK;
-
-    prepare_fail:
-        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-        return PLAY_DAO_SQL_ERROR;
-}
-
-PlayDaoStatus get_plays_by_pk_with_player_info(sqlite3 *db, int64_t id_player, int64_t id_round, PlayWithPlayerNickname *out) {
-    
-    if (!db || !out || id_player <= 0 || id_round <= 0) {
-        return PLAY_DAO_INVALID_INPUT;
-    }
-
-    const char *sql =
-        "SELECT "
-        " y.id_player, "
-        " y.id_round, "
-        " y.result, "
-        " y.player_number, "
-        " p.nickname AS player_nickname "
-        "FROM Play y "
-        "JOIN Player p ON y.id_player = p.id_player "
-        "WHERE y.id_player = ?1 AND y.id_round = ?2;";
-
-    sqlite3_stmt *st = NULL;
-    int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
-    if (rc != SQLITE_OK) goto prepare_fail;
-
-    rc = sqlite3_bind_int64(st, 1, id_player);
-    if (rc != SQLITE_OK) goto bind_fail;
-
-    rc = sqlite3_bind_int64(st, 2, id_round);
-    if (rc != SQLITE_OK) goto bind_fail;
-
-    rc = sqlite3_step(st);
-
-    if (rc == SQLITE_ROW) {
-
-        out->id_player = sqlite3_column_int64(st, 0);
-        out->id_round = sqlite3_column_int64(st, 1);
-        const unsigned char *result = sqlite3_column_text(st, 2);
-        out->player_number = sqlite3_column_int(st, 3);
-        const unsigned char *player_nickname = sqlite3_column_text(st, 4);
-
-        snprintf(out->player_nickname, sizeof out->player_nickname, "%s", player_nickname ? (const char *)player_nickname : "");
-
-        if (result) {
-            out->result = string_to_play_result((const char *)result);
-        } else {
-            out->result = PLAY_RESULT_INVALID;
-        }
-
-        sqlite3_finalize(st);
-        return PLAY_DAO_OK;
-
-    }  else if (rc == SQLITE_DONE) {
-        sqlite3_finalize(st);
-        return PLAY_DAO_NOT_FOUND;
-        
-    } else {
-        goto step_fail;
-    }
-
-prepare_fail:
-    LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
-    if (st) sqlite3_finalize(st);
-    return PLAY_DAO_SQL_ERROR;
-
-bind_fail:
-    LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
-    if (st) sqlite3_finalize(st);
-    return PLAY_DAO_SQL_ERROR;
-
-step_fail:
-    LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
-    if (st) sqlite3_finalize(st);
-    return PLAY_DAO_SQL_ERROR;
 }
