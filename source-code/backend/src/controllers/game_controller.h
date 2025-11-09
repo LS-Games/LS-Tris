@@ -38,6 +38,7 @@ GameControllerStatus game_find_one(int64_t id_game, Game* retrievedGame);
 GameControllerStatus game_update(Game* updatedGame);
 GameControllerStatus game_delete(int64_t id_game);
 
+GameControllerStatus game_find_one_with_player_info(int64_t id_game, GameWithPlayerNickname* retrievedGame);
 GameControllerStatus game_find_all_with_player_info(GameWithPlayerNickname **retrievedGameArray, int* retrievedObjectCount);
 
 // Funzione di utilità per messaggi di errore

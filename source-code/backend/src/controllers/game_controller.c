@@ -25,9 +25,9 @@ GameControllerStatus games_get_public_info(char *status, GameDTO **out_dtos, int
             return GAME_CONTROLLER_INVALID_INPUT;
     }
 
-    GameWithPlayerNickname* retrievedGames;
+    GameWithPlayerNickname* retrievedGamesWithPlayerInfo;
     int retrievedObjectCount;
-    if (game_find_all_with_player_info(&retrievedGames, &retrievedObjectCount) == GAME_CONTROLLER_NOT_FOUND) {
+    if (game_find_all_with_player_info(&retrievedGamesWithPlayerInfo, &retrievedObjectCount) == GAME_CONTROLLER_NOT_FOUND) {
         *out_dtos = NULL;
         *out_count = 0;
         return GAME_CONTROLLER_NOT_FOUND;
@@ -36,12 +36,12 @@ GameControllerStatus games_get_public_info(char *status, GameDTO **out_dtos, int
     GameDTO *dynamicDTOs = NULL;
     int filteredObjectCount = 0;
     for (int i = 0; i < retrievedObjectCount; i++) {
-        if (strcmp(status, "all") == 0 || retrievedGames[i].state == queryStatus) {
+        if (strcmp(status, "all") == 0 || retrievedGamesWithPlayerInfo[i].state == queryStatus) {
 
             Game game = {
-                .id_game = retrievedGames[i].id_game,
-                .state = retrievedGames[i].state,
-                .created_at = retrievedGames[i].created_at
+                .id_game = retrievedGamesWithPlayerInfo[i].id_game,
+                .state = retrievedGamesWithPlayerInfo[i].state,
+                .created_at = retrievedGamesWithPlayerInfo[i].created_at
             };
 
             dynamicDTOs = realloc(dynamicDTOs, (filteredObjectCount + 1) * sizeof(GameDTO));
@@ -50,7 +50,7 @@ GameControllerStatus games_get_public_info(char *status, GameDTO **out_dtos, int
                 return GAME_CONTROLLER_INTERNAL_ERROR;
             }
 
-            map_game_to_dto(&game, retrievedGames[i].creator, retrievedGames[i].owner, &(dynamicDTOs[filteredObjectCount]));
+            map_game_to_dto(&game, retrievedGamesWithPlayerInfo[i].creator, retrievedGamesWithPlayerInfo[i].owner, &(dynamicDTOs[filteredObjectCount]));
 
             filteredObjectCount = filteredObjectCount + 1;
         } 
@@ -91,15 +91,12 @@ GameControllerStatus game_start(int64_t id_creator, int64_t* out_id_game) {
 
     // Send updated game
     GameDTO out_game_dto;
-    Player retrievedCreator; // Retrieve creator nickname
-    if (player_find_one(gameToStart.id_creator, &retrievedCreator) != PLAYER_CONTROLLER_OK) {
-        return GAME_CONTROLLER_INTERNAL_ERROR;
+    GameWithPlayerNickname retrievedGameWithPlayerNickname; // Retrieve players nicknames
+    status = game_find_one_with_player_info(gameToStart.id_game, &retrievedGameWithPlayerNickname);
+    if (status != GAME_CONTROLLER_OK) {
+        return status;
     }
-    Player retrievedOwner; // Retrieve owner nickname
-    if (player_find_one(gameToStart.id_owner, &retrievedOwner) != PLAYER_CONTROLLER_OK) {
-        return GAME_CONTROLLER_INTERNAL_ERROR;
-    }
-    map_game_to_dto(&gameToStart, retrievedCreator.nickname, retrievedOwner.nickname, &out_game_dto);
+    map_game_to_dto(&gameToStart, retrievedGameWithPlayerNickname.creator, retrievedGameWithPlayerNickname.owner, &out_game_dto);
     json_message = serialize_games_to_json("server_new_game", &out_game_dto, 1);
     if (send_server_broadcast_message(json_message, gameToStart.id_owner) < 0 ) {
         return GAME_CONTROLLER_INTERNAL_ERROR;
@@ -130,15 +127,12 @@ GameControllerStatus game_end(int64_t id_game, int64_t id_owner, int64_t* out_id
 
     // Send updated game
     GameDTO out_game_dto;
-    Player retrievedCreator; // Retrieve creator nickname
-    if (player_find_one(retrievedGame.id_creator, &retrievedCreator) != PLAYER_CONTROLLER_OK) {
-        return GAME_CONTROLLER_INTERNAL_ERROR;
+    GameWithPlayerNickname retrievedGameWithPlayerNickname; // Retrieve players nicknames
+    status = game_find_one_with_player_info(retrievedGame.id_game, &retrievedGameWithPlayerNickname);
+    if (status != GAME_CONTROLLER_OK) {
+        return status;
     }
-    Player retrievedOwner; // Retrieve owner nickname
-    if (player_find_one(retrievedGame.id_owner, &retrievedOwner) != PLAYER_CONTROLLER_OK) {
-        return GAME_CONTROLLER_INTERNAL_ERROR;
-    }
-    map_game_to_dto(&retrievedGame, retrievedCreator.nickname, retrievedOwner.nickname, &out_game_dto);
+    map_game_to_dto(&retrievedGame, retrievedGameWithPlayerNickname.creator, retrievedGameWithPlayerNickname.owner, &out_game_dto);
     char *json_message = serialize_games_to_json("server_end_game", &out_game_dto, 1);
     if (send_server_broadcast_message(json_message, retrievedGame.id_owner) < 0 ) {
         return GAME_CONTROLLER_INTERNAL_ERROR;
@@ -177,15 +171,12 @@ GameControllerStatus game_refuse_rematch(int64_t id_game, int64_t* out_id_game) 
 
     // Send updated game
     GameDTO out_game_dto;
-    Player retrievedCreator; // Retrieve creator nickname
-    if (player_find_one(retrievedGame.id_creator, &retrievedCreator) != PLAYER_CONTROLLER_OK) {
-        return GAME_CONTROLLER_INTERNAL_ERROR;
+    GameWithPlayerNickname retrievedGameWithPlayerNickname; // Retrieve players nicknames
+    status = game_find_one_with_player_info(retrievedGame.id_game, &retrievedGameWithPlayerNickname);
+    if (status != GAME_CONTROLLER_OK) {
+        return status;
     }
-    Player retrievedOwner; // Retrieve owner nickname
-    if (player_find_one(retrievedGame.id_owner, &retrievedOwner) != PLAYER_CONTROLLER_OK) {
-        return GAME_CONTROLLER_INTERNAL_ERROR;
-    }
-    map_game_to_dto(&retrievedGame, retrievedCreator.nickname, retrievedOwner.nickname, &out_game_dto);
+    map_game_to_dto(&retrievedGame, retrievedGameWithPlayerNickname.creator, retrievedGameWithPlayerNickname.owner, &out_game_dto);
     json_message = serialize_games_to_json("server_waiting_game", &out_game_dto, 1);
     if (send_server_broadcast_message(json_message, retrievedGame.id_owner) < 0 ) {
         return GAME_CONTROLLER_INTERNAL_ERROR;
@@ -312,6 +303,19 @@ GameControllerStatus game_update(Game* updatedGame) {
 GameControllerStatus game_delete(int64_t id_game) {
     sqlite3* db = db_open();
     GameDaoStatus status = delete_game_by_id(db, id_game);
+    db_close(db);
+    if (status != GAME_DAO_OK) {
+        LOG_WARN("%s\n", return_game_dao_status_to_string(status));
+        return status == GAME_DAO_NOT_FOUND ? GAME_CONTROLLER_NOT_FOUND : GAME_CONTROLLER_DATABASE_ERROR;
+    }
+
+    return GAME_CONTROLLER_OK;
+}
+
+// Read one with player info
+GameControllerStatus game_find_one_with_player_info(int64_t id_game, GameWithPlayerNickname* retrievedGame) {
+    sqlite3* db = db_open();
+    GameDaoStatus status = get_game_by_id_with_player_info(db, id_game, retrievedGame);
     db_close(db);
     if (status != GAME_DAO_OK) {
         LOG_WARN("%s\n", return_game_dao_status_to_string(status));
