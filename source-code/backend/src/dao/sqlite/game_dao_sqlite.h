@@ -30,6 +30,7 @@ GameDaoStatus update_game_by_id(sqlite3 *db, const Game *upd_game);
 GameDaoStatus delete_game_by_id(sqlite3 *db, int64_t id_game);
 GameDaoStatus insert_game(sqlite3 *db, Game *in_out_game);
 
+GameDaoStatus get_game_by_id_with_player_info(sqlite3 *db, int64_t id_game, GameWithPlayerNickname *out);
 GameDaoStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickname **out_array, int *out_count);
 GameDaoStatus get_game_by_id_with_player_info(sqlite3 *db, int64_t id_game, GameWithPlayerNickname *out);
 

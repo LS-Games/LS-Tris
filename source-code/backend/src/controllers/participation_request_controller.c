@@ -31,9 +31,9 @@ ParticipationRequestControllerStatus participation_requests_get_public_info(char
             return PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT;
     }
 
-    ParticipationRequestWithPlayerNickname* retrievedParticipationRequests;
+    ParticipationRequestWithPlayerNickname* retrievedParticipationRequestsWithPlayerNickname;
     int retrievedObjectCount;
-    if (participation_request_find_all_with_player_info(&retrievedParticipationRequests, &retrievedObjectCount) == PARTICIPATION_REQUEST_CONTROLLER_NOT_FOUND) {
+    if (participation_request_find_all_with_player_info(&retrievedParticipationRequestsWithPlayerNickname, &retrievedObjectCount) == PARTICIPATION_REQUEST_CONTROLLER_NOT_FOUND) {
         *out_dtos = NULL;
         *out_count = 0;
         return PARTICIPATION_REQUEST_CONTROLLER_NOT_FOUND;
@@ -42,14 +42,14 @@ ParticipationRequestControllerStatus participation_requests_get_public_info(char
     ParticipationRequestDTO *dynamicDTOs = NULL;
     int filteredObjectCount = 0;
     for (int i = 0; i < retrievedObjectCount; i++) {
-        if ((strcmp(state, "all") == 0 || retrievedParticipationRequests[i].state == queryState) &&
-            (id_game == -1 || retrievedParticipationRequests[i].id_game == id_game)) {
+        if ((strcmp(state, "all") == 0 || retrievedParticipationRequestsWithPlayerNickname[i].state == queryState) &&
+            (id_game == -1 || retrievedParticipationRequestsWithPlayerNickname[i].id_game == id_game)) {
 
             ParticipationRequest participationRequest = {
-                .id_request = retrievedParticipationRequests[i].id_request,
-                .id_game = retrievedParticipationRequests[i].id_game,
-                .created_at = retrievedParticipationRequests[i].created_at,
-                .state = retrievedParticipationRequests[i].state
+                .id_request = retrievedParticipationRequestsWithPlayerNickname[i].id_request,
+                .id_game = retrievedParticipationRequestsWithPlayerNickname[i].id_game,
+                .created_at = retrievedParticipationRequestsWithPlayerNickname[i].created_at,
+                .state = retrievedParticipationRequestsWithPlayerNickname[i].state
             };
 
             dynamicDTOs = realloc(dynamicDTOs, (filteredObjectCount + 1) * sizeof(ParticipationRequestDTO));
@@ -58,7 +58,7 @@ ParticipationRequestControllerStatus participation_requests_get_public_info(char
                 return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
             }
 
-            map_participation_request_to_dto(&participationRequest, retrievedParticipationRequests[i].player_nickname, &(dynamicDTOs[filteredObjectCount]));
+            map_participation_request_to_dto(&participationRequest, retrievedParticipationRequestsWithPlayerNickname[i].player_nickname, &(dynamicDTOs[filteredObjectCount]));
         
             filteredObjectCount = filteredObjectCount + 1;
         }
@@ -166,21 +166,18 @@ static ParticipationRequestControllerStatus participation_request_accept_helper(
     if (participationRequestStatus != PARTICIPATION_REQUEST_CONTROLLER_OK)
         return participationRequestStatus;
 
-    ParticipationRequestControllerStatus status = participation_request_reject_all(retrievedPendingRequests, retrievedObjectCount);
-    if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
-        return status;
+    participationRequestStatus = participation_request_reject_all(retrievedPendingRequests, retrievedObjectCount);
+    if (participationRequestStatus != PARTICIPATION_REQUEST_CONTROLLER_OK)
+        return participationRequestStatus;
 
     // Send updated game
     GameDTO out_game_dto;
-    Player retrievedCreator; // Retrieve creator nickname
-    if (player_find_one(retrievedGame.id_creator, &retrievedCreator) != PLAYER_CONTROLLER_OK) {
+    GameWithPlayerNickname retrievedGameWithPlayerNickname; // Retrieve players nicknames
+    gameStatus = game_find_one_with_player_info(retrievedGame.id_game, &retrievedGameWithPlayerNickname);
+    if (gameStatus != GAME_CONTROLLER_OK) {
         return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
     }
-    Player retrievedOwner; // Retrieve owner nickname
-    if (player_find_one(retrievedGame.id_owner, &retrievedOwner) != PLAYER_CONTROLLER_OK) {
-        return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
-    }
-    map_game_to_dto(&retrievedGame, retrievedCreator.nickname, retrievedOwner.nickname, &out_game_dto);
+    map_game_to_dto(&retrievedGame, retrievedGameWithPlayerNickname.creator, retrievedGameWithPlayerNickname.owner, &out_game_dto);
     char *json_message = serialize_games_to_json("server_active_game", &out_game_dto, 1);
     if (send_server_broadcast_message(json_message, retrievedGame.id_owner) < 0 ) {
         return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
@@ -283,6 +280,19 @@ ParticipationRequestControllerStatus participation_request_update(ParticipationR
 ParticipationRequestControllerStatus participation_request_delete(int64_t id_participation_request) {
     sqlite3* db = db_open();
     ParticipationRequestDaoStatus status = delete_participation_request_by_id(db, id_participation_request);
+    db_close(db);
+    if (status != PARTICIPATION_DAO_REQUEST_OK) {
+        LOG_WARN("%s\n", return_participation_request_dao_status_to_string(status));
+        return status == PARTICIPATION_DAO_REQUEST_NOT_FOUND ? PARTICIPATION_REQUEST_CONTROLLER_NOT_FOUND : PARTICIPATION_REQUEST_CONTROLLER_DATABASE_ERROR;
+    }
+
+    return PARTICIPATION_REQUEST_CONTROLLER_OK;
+}
+
+// Read one with player info
+ParticipationRequestControllerStatus participation_request_find_one_with_player_info(int64_t id_participation_request, ParticipationRequestWithPlayerNickname* retrievedParticipationRequest) {
+    sqlite3* db = db_open();
+    ParticipationRequestDaoStatus status = get_participation_request_by_id_with_player_info(db, id_participation_request, retrievedParticipationRequest);
     db_close(db);
     if (status != PARTICIPATION_DAO_REQUEST_OK) {
         LOG_WARN("%s\n", return_participation_request_dao_status_to_string(status));
