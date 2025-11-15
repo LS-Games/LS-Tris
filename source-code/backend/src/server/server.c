@@ -183,6 +183,8 @@ static void *handle_client(void *arg) {
 
 int send_server_response(int client_socket, const char *data) {
 
+    LOG_DEBUG("CLIENT_SOCKET: %d", client_socket);
+
     if(client_socket < 0 || !data) {
         LOG_WARN("Invalid parameters: socket = %d, data = %p\n", client_socket, (void*)data);
         return -1;
@@ -199,8 +201,15 @@ int send_server_response(int client_socket, const char *data) {
 }
 
 int send_server_broadcast_message(const char *message, int64_t id_sender) {
-    Session *senderSession = session_find_by_id_player(&session_manager, id_sender);
-    if (session_broadcast(&session_manager, message, senderSession->fd) < 0) {
+
+    Session session_sender;
+
+    if(!(session_find_by_id_player(&session_manager, id_sender, &session_sender))) {
+        LOG_WARN("Session not found");
+        return -1;
+    }
+
+    if (session_broadcast(&session_manager, message, session_sender.fd) < 0) {
         LOG_WARN("Error in sending broadcast message from sender %" PRId64 "\n", id_sender);
         return -1;
     } else {
@@ -211,13 +220,14 @@ int send_server_broadcast_message(const char *message, int64_t id_sender) {
 }
 
 int send_server_unicast_message(const char *message, int64_t id_sender, int64_t id_receiver) {
-    Session *receiverSession = session_find_by_id_player(&session_manager, id_receiver);
-    if (session_unicast(&session_manager, message, receiverSession->fd) < 0) {
-        LOG_WARN("Error in sending unicast message from sender %" PRId64 " to receiver %" PRId64 "\n", id_sender, id_receiver);
-    } else {
+
+    Session receiverSession;  
+
+    if (!(session_find_by_id_player(&session_manager, id_receiver, &receiverSession))) {
+        LOG_WARN("Receiver session not found\n");
         return -1;
-        LOG_DEBUG("Sent message from sender %" PRId64 " to receiver %" PRId64 ": %s\n", id_sender, id_receiver, message);
     }
 
-    return 0;
+    int fd = receiverSession.fd; 
+    return session_unicast(&session_manager, message, fd);
 }

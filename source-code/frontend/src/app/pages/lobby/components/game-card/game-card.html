@@ -12,7 +12,7 @@
     <div class="footer-game-card">
         <p class="game-status" [attr.data-state]="state"> {{ state }}</p>
         @if (state == 'new' || state == 'waiting') {
-            <button class="game-card-button">INVIA</button>
+            <a (click)="sendGameRequest()"><button class="game-card-button">INVIA</button></a>
         }
     </div>
 </div>

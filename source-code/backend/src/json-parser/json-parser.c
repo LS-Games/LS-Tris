@@ -257,6 +257,7 @@ char *serialize_participation_requests_to_json(const char *action, const Partici
 
     const char *json_str = json_object_to_json_string(json_response);
     char *result = malloc(strlen(json_str) + 1);
+
     if (result) strcpy(result, json_str);
 
     json_object_put(json_response);
