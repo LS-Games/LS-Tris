@@ -10,6 +10,7 @@
         "cstdint": "c",
         "bitset": "c",
         "algorithm": "c",
-        "format": "c"
+        "format": "c",
+        "functional": "c"
     }
 }

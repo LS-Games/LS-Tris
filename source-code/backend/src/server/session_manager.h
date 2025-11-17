@@ -37,9 +37,9 @@ void session_remove(SessionManager *manager, int fd);
 
 // Find session
 
-Session *session_find_by_fd(SessionManager *manager, int fd);
+int session_find_by_fd(SessionManager *manager, int fd, Session *out);
 int session_find_by_id_player(SessionManager *manager, int64_t id_player, Session *out);
-Session *session_find_by_nickname(SessionManager *manager, const char* nickname);
+int session_find_by_nickname(SessionManager *manager, const char* nickname, Session *out);
 
 
 // Message sender

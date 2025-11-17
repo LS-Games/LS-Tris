@@ -80,12 +80,6 @@ ParticipationRequestControllerStatus participation_request_send(int64_t id_game,
         .state = PENDING
     };
 
-    // Create participation request
-    ParticipationRequestControllerStatus status = participation_request_create(&participationRequestToSend);
-    if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
-        return status;
-
-    // Send participation request
     Game retrievedGame; // Retrieve game owner
     if (game_find_one(participationRequestToSend.id_game, &retrievedGame) != GAME_CONTROLLER_OK) {
         return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
@@ -100,6 +94,15 @@ ParticipationRequestControllerStatus participation_request_send(int64_t id_game,
     if (send_server_unicast_message(json_message, id_sender, retrievedGame.id_owner) < 0 ) {
         return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
     }
+
+    /**
+     * Create participation request only if the session exists
+     * Because send_server_unicast_message returns an error if the session doesn't exists
+     */
+
+    ParticipationRequestControllerStatus status = participation_request_create(&participationRequestToSend);
+    if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
+        return status;
     free(json_message);
 
     *out_id_participation_request = participationRequestToSend.id_request;

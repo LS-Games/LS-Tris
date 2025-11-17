@@ -75,25 +75,27 @@ void session_remove(SessionManager *manager, int fd) {
     pthread_mutex_unlock(&manager->lock);
 }
 
-Session *session_find_by_fd(SessionManager *manager, int fd) {
+int session_find_by_fd(SessionManager *manager, int fd, Session *out) {
 
     if (!manager) {
         LOG_WARN("%s\n", "SessionManager pointer is NULL");
-        return NULL;
+        return 0;
     }
 
     pthread_mutex_lock(&manager->lock);
 
-    Session *result = NULL;
     for (int i = 0; i < MAX_SESSION; i++) {
         if (manager->list[i].fd == fd && manager->list[i].active) {
-            result = &manager->list[i];
-            break;
+
+            *out = manager->list[i];
+            pthread_mutex_unlock(&manager->lock);
+            return 1;
+
         }
     }
 
     pthread_mutex_unlock(&manager->lock);
-    return result;
+    return 0;
 }
 
 int session_find_by_id_player(SessionManager *manager, int64_t id_player, Session *out) {
@@ -119,25 +121,26 @@ int session_find_by_id_player(SessionManager *manager, int64_t id_player, Sessio
     return 0;
 }
 
-Session *session_find_by_nickname(SessionManager *manager, const char *nickname) {
+int session_find_by_nickname(SessionManager *manager, const char *nickname, Session *out) {
 
     if (!manager) {
         LOG_WARN("%s\n", "SessionManager pointer is NULL");
-        return NULL;
+        return 0;
     }
 
     pthread_mutex_lock(&manager->lock);
 
-    Session *result = NULL;
     for (int i = 0; i < MAX_SESSION; i++) {
         if (manager->list[i].active && strcmp(manager->list[i].nickname, nickname) == 0) {
-            result = &manager->list[i];
-            break;
+            
+            *out = manager->list[i];
+            pthread_mutex_unlock(&manager->lock);
+            return 1;
         }
     }
 
     pthread_mutex_unlock(&manager->lock);
-    return result;
+    return 0;
 }
 
 int session_broadcast(SessionManager *manager, const char *message, int sender_fd) {

@@ -248,7 +248,6 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
         }
 
     } else if (strcmp(action, "participation_request_send") == 0) {
-        LOG_DEBUG("~~~~~~~~ L'ACTION E' GIUSTA ~~~~~~~~ ");
         ParticipationRequestControllerStatus participationRequestStatus = participation_request_send(id_game, id_player, &out_id_participation_request);
         if (participationRequestStatus == PARTICIPATION_REQUEST_CONTROLLER_OK) {
             json_response = serialize_action_success(action, "Participation request sent", out_id_participation_request);
