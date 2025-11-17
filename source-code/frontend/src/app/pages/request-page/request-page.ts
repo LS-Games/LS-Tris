@@ -2,6 +2,8 @@ import { afterNextRender, Component, inject, DestroyRef } from '@angular/core';
 import { DialogRef } from '@angular/cdk/dialog';
 import { GameService } from '../../core/services/game.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+
 @Component({
   selector: 'app-request-page',
   standalone: true,
@@ -37,12 +39,14 @@ export class RequestPage {
         this.id_game = id;
         this.loading = false;
         console.log('Game created succesfully with id: ', id);
+
       });
 
       this._game.onGameError().pipe(takeUntilDestroyed(this._destroyRef)).subscribe((err) => {
         this.error_message = err;
         this.loading = false;
         console.log("Error about game creation");
+        this.close();
       });
     });
   }

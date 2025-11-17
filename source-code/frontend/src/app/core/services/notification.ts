@@ -5,7 +5,7 @@ export interface Notification {
   id: number;
   type: 'success' | 'error' | 'info' | 'warning';
   message: string;
-  duration?: number; // in ms
+  duration?: number; 
 }
 
 @Injectable({ providedIn: 'root'})
@@ -16,7 +16,7 @@ export class NotificationService {
   private notifications: Notification[] = [];
 
   //Reactive object that notifies us when it changes
-  private notificationsSubject = new BehaviorSubject<Notification[]>([]);
+  private readonly notificationsSubject = new BehaviorSubject<Notification[]>([]);
 
   //We use asObservable() because we want that the components watch only 
   //Only the service can changes data
