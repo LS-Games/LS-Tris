@@ -202,6 +202,8 @@ int send_server_response(int client_socket, const char *data) {
 
 int send_server_broadcast_message(const char *message, int64_t id_sender) {
 
+    LOG_DEBUG("ID_SENDER: %d", id_sender);
+
     Session session_sender;
 
     if(!(session_find_by_id_player(&session_manager, id_sender, &session_sender))) {

@@ -194,7 +194,8 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
         }
 
     } else if (strcmp(action, "game_cancel") == 0) { // Sent by the game creator, accepted if the game has no round finished
-        GameControllerStatus gameStatus = game_cancel(id_game, &out_id_game);
+        LOG_DEBUG("ID_GAME: %" PRId64 ", ID_OWNER: %" PRId64 "\n", id_game, id_owner);
+        GameControllerStatus gameStatus = game_cancel(id_game, id_owner, &out_id_game);
         if (gameStatus == GAME_CONTROLLER_OK) {
             json_response = serialize_action_success(action, "Game canceled", out_id_game);
         } else {

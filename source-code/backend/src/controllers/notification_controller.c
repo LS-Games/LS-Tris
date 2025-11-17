@@ -68,6 +68,35 @@ NotificationControllerStatus notification_new_game(int64_t id_game, int64_t id_s
     return NOTIFICATION_CONTROLLER_OK;
 }
 
+NotificationControllerStatus notification_game_cancel(int64_t id_game, int64_t id_sender, NotificationDTO **out_dto) {
+
+    Game retrievedGame;
+    GameControllerStatus status = game_find_one(id_game, &retrievedGame);
+    if (status != GAME_CONTROLLER_OK)
+        return NOTIFICATION_CONTROLLER_INTERNAL_ERROR;
+
+    if (id_sender != retrievedGame.id_creator) {
+        return NOTIFICATION_CONTROLLER_FORBIDDEN;
+    }
+
+    NotificationDTO *dynamicDTO = malloc(sizeof(NotificationDTO));
+
+    if (dynamicDTO == NULL) {
+        LOG_WARN("%s\n", "Memory not allocated");
+        return NOTIFICATION_CONTROLLER_INTERNAL_ERROR;
+    }
+
+    dynamicDTO->id_playerSender = id_sender;
+    dynamicDTO->id_playerReceiver = -1;
+    dynamicDTO->message = "A game has been canceled!";
+    dynamicDTO->id_game = id_game;
+    dynamicDTO->id_round = -1;
+
+    *out_dto = dynamicDTO;
+
+    return NOTIFICATION_CONTROLLER_OK;
+}
+
 NotificationControllerStatus notification_waiting_game(int64_t id_game, int64_t id_sender, NotificationDTO **out_dto) {
 
     Game retrievedGame;

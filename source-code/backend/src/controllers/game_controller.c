@@ -207,8 +207,23 @@ GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAccep
     return GAME_CONTROLLER_OK;
 }
 
-GameControllerStatus game_cancel(int64_t id_game, int64_t* out_id_game) {
+GameControllerStatus game_cancel(int64_t id_game, int64_t id_owner, int64_t* out_id_game) {
+
+    NotificationDTO *out_notification_dto = NULL;
+    if(notification_game_cancel(id_game, id_owner, &out_notification_dto) != NOTIFICATION_CONTROLLER_OK)
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    char *json_message = serialize_notification_to_json("server_game_cancel", out_notification_dto);
+    if (send_server_broadcast_message(json_message, id_owner) < 0 ) {
+        free(json_message);
+        free(out_notification_dto);
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    }
+
+    free(json_message);
+    free(out_notification_dto);
+
     GameControllerStatus status = game_delete(id_game);
+
     if (status != GAME_CONTROLLER_OK)
         return status;
 

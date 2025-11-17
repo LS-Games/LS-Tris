@@ -2,11 +2,15 @@
     <span class="close-btn" (click)="close()">&times;</span>
 
     <div class="game-card-container">
+
         @if (loading) {
             <p class="loading-message">Loading games...</p>
-        } @else if (games.length > 0) {
-            @for (game of games; track game.id) {
-                @if(game.state === 'new' || game.state === 'waiting') {
+        } 
+        @else if (games().length > 0) {
+
+            @for (game of games(); track game.id_game) {
+
+                @if (game.state === 'new' || game.state === 'waiting') {
                     <app-game-card
                         [id]="game.id_game"
                         [creator]="game.creator_nickname"
@@ -15,11 +19,16 @@
                         [state]="game.state">
                     </app-game-card>
                 }
-            }   
-        } @else {
+
+            }
+
+        } 
+        @else {
             <p class="empty-message">No games found.</p>
         }
+
     </div>
+
     <div class="new-game-section">
         <a (click)="openRequestPage()"><button class="new-game-button">CREATE GAME</button></a>
     </div>

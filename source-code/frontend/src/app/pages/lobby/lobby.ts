@@ -23,7 +23,7 @@ export class Lobby {
   private readonly _game = inject(GameService);
 
   loading = true;
-  games: any[] = [];
+  games = this._game.gamesSignal;
 
   constructor() {
 
@@ -46,7 +46,7 @@ export class Lobby {
 
             next : (backend) => {
               if(backend.status === 'success') {
-                this.games = backend.games;
+                this._game.setGames(backend.games);
                 this.loading = false;
 
                 if(backend.count == 0) {
