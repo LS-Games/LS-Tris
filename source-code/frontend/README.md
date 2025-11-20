@@ -25,8 +25,8 @@ Per eseguire il frontend, è stato predisposto un [package.json](./package.json)
 
 - `npm run generate-env` esegue uno script per generare dinamicamente un file di configurazione delle variabili d'ambiente;
 - `npm start` o `npm run start` esegue `generate-env` ed esegue il progetto in modalità sviluppo (variante `npm run start:docker` per sviluppo in ambiente Docker);
--  `npm run build` esegue `generate-env` e compila il progetto in modalità sviluppo;
-- `npm watch` esegue `generate-env`, compila il progetto in modalità sviluppo e resta in ascolto per ricompilare automaticamente al variare dei file;
+- `npm run build` esegue `generate-env` e compila il progetto in modalità sviluppo;
+- `npm run watch` esegue `generate-env`, compila il progetto in modalità sviluppo e resta in ascolto per ricompilare automaticamente al variare dei file;
 - `npm run build:prod` esegue `generate-env` e compila il progetto in modalità produzione;
 - `npm run serve` serve la build del progetto tramite `http-server` e disabilitando la cache;
 - `npm run test` esegue test unitari.
