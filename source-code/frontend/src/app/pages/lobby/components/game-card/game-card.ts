@@ -32,12 +32,10 @@ export class GameCard {
       return;
     }
     
+    this.rqst_service.startPending();
     this.rqst_service.requestParticipation(this.id, playerId);
+
   }
-
-
-
-
 }
 
 

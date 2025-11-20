@@ -1,7 +1,6 @@
 import { inject, Injectable, NgZone, signal } from "@angular/core";
 import { WebsocketService } from "./websocket.service";
 import { AuthService } from "./auth.service";
-import { Observable, Subject } from "rxjs";
 
 //We report the backend message structure about this service
 
@@ -9,7 +8,7 @@ interface GameInfo {
     id_game : number,
     creator_nickname : string,
     owner_nickname : string,
-    state : string;
+    state : string,
     created_at : string
 }
 

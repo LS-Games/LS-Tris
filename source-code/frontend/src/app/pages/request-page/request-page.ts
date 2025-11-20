@@ -4,11 +4,13 @@ import { GameService } from '../../core/services/game.service';
 import { WebsocketService } from '../../core/services/websocket.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../core/services/auth.service';
+import { RequestsService } from '../../core/services/requests.service';
+import { RequestCard } from './components/request-card/request-card';
 
 @Component({
   selector: 'app-request-page',
   standalone: true,
-  imports: [],
+  imports: [RequestCard],
   templateUrl: './request-page.html',
   styleUrl: './request-page.scss'
 })
@@ -19,9 +21,11 @@ export class RequestPage {
   private readonly _game = inject(GameService);
   private readonly _ws = inject(WebsocketService);
   private readonly _auth = inject(AuthService);
-
+  private readonly _rqst = inject(RequestsService);
 
   loading = true;
+  requests = this._rqst.requestsSignal;
+
   id_game?: number;
   error_message: string | null = null;
 
@@ -29,6 +33,7 @@ export class RequestPage {
 
     afterNextRender(() => {
 
+      //When a create game button in Lobby is clicked we open a request-page and we create a game
       this._game.createGame();
 
       this._ws.onAction<any>('game_start')

@@ -5,6 +5,7 @@ import { GameCard } from '../lobby/components/game-card/game-card';
 import { RequestPage } from '../request-page/request-page';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GameService } from '../../core/services/game.service';
+import { RequestsService } from '../../core/services/requests.service';
 
 @Component({
   selector: 'app-lobby',
@@ -21,9 +22,11 @@ export class Lobby {
   private readonly _notification = inject(NotificationService);
   private readonly _destroyRef = inject(DestroyRef); // replaces ngOnDestroy
   private readonly _game = inject(GameService);
+  private readonly _rqst_service = inject(RequestsService);
 
   loading = true;
   games = this._game.gamesSignal;
+  pending = this._rqst_service.pendingSignal;
 
   constructor() {
 
@@ -82,4 +85,9 @@ export class Lobby {
     //We close the Lobby section 
     this.close();
   }
+
+  closePending() {
+  this._rqst_service.endPending();
+}
+
 }

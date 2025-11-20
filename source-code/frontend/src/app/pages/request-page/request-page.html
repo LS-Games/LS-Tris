@@ -2,22 +2,21 @@
     <span class="close-btn" (click)="close()">&times;</span>
 
     <div class="request-card-container">
+
         @if (loading) {
             <p class="loading-message">Waiting for requests...</p>
-        <!-- } @else if (games.length > 0) {
-            @for (game of games; track game.id) {
-                @if(game.state === 'new' || game.state === 'waiting') {
-                    <app-game-card
-                        [id]="game.id_game"
-                        [creator]="game.creator_nickname"
-                        [data]="game.created_at"
-                        [owner]="game.owner_nickname"
-                        [state]="game.state">
-                    </app-game-card>
-                }
-            } -->   
         } 
-            @else { 
+
+        @else if (requests().length > 0) {
+
+            @for (request of requests(); track request.id_request) {
+                <app-request-card 
+                    [sender_nickname]="request.player_nickname"
+                    [data]="request.created_at">
+                </app-request-card>
+            }
+
+        } @else { 
             <p class="empty-message">Waiting for requests...</p>
         }
     </div>

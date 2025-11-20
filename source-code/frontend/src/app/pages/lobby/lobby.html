@@ -1,11 +1,25 @@
 <div class="lobby-container">
     <span class="close-btn" (click)="close()">&times;</span>
 
+@if (pending()) {
+  <div class="waiting-overlay">
+    <div class="waiting-box">
+
+      <button class="close-btn-waiting-box" (click)="closePending()">&times;</button>
+
+      <div class="loader"></div>
+      <p>In attesa che l’altro giocatore accetti…</p>
+    </div>
+  </div>
+}
+
+
     <div class="game-card-container">
 
         @if (loading) {
             <p class="loading-message">Loading games...</p>
         } 
+        
         @else if (games().length > 0) {
 
             @for (game of games(); track game.id_game) {
@@ -19,11 +33,9 @@
                         [state]="game.state">
                     </app-game-card>
                 }
-
             }
 
-        } 
-        @else {
+        } @else {
             <p class="empty-message">No games found.</p>
         }
 

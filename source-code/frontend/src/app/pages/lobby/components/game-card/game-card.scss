@@ -72,14 +72,12 @@
     padding: 10px;   
     height: auto;         
     cursor: pointer;
+    box-shadow: 0 3px 0 #0b5e07;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: transform 0.1s ease;
 }
 
-.game-card-button {
-  box-shadow: 0 3px 0 #0b5e07;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  transition: transform 0.1s ease;
-}
 .game-card-button:hover {
   transform: translateY(-2px);
 }
