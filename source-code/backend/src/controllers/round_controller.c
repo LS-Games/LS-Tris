@@ -217,7 +217,7 @@ RoundControllerStatus round_make_move(int64_t id_round, int64_t id_playerMoving,
     char *json_message = serialize_rounds_to_json("server_updated_round_move", &out_round_dto, 1);
     for (int i=0; i<retrievedPlayCount; i++) { // Send to all player except the player moving
         if (retrievedPlayArray[i].id_player != id_playerMoving)
-            if (send_server_unicast_message(json_message, id_playerMoving, retrievedPlayArray[i].id_player) < 0 )
+            if (send_server_unicast_message(json_message, retrievedPlayArray[i].id_player) < 0 )
                 return ROUND_CONTROLLER_INTERNAL_ERROR;
     }
     free(json_message);
@@ -308,7 +308,7 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, int64_t id_play
     json_message = serialize_rounds_to_json("server_updated_round_end", &out_round_dto, 1);
     for (int i=0; i<retrievedPlayCount; i++) { // Send to all player except the player ending the round
         if (retrievedPlayArray[i].id_player != id_playerEndingRound)
-            if (send_server_unicast_message(json_message, id_playerEndingRound, retrievedPlayArray[i].id_player) < 0 )
+            if (send_server_unicast_message(json_message, retrievedPlayArray[i].id_player) < 0 )
                 return ROUND_CONTROLLER_INTERNAL_ERROR;
     }
     free(json_message);

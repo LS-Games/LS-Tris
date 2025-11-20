@@ -26,7 +26,7 @@ ParticipationRequestDaoStatus get_participation_request_by_id(sqlite3 *db, int64
 
     const char *sql = 
         "SELECT id_request, id_player, id_game, unixepoch(created_at), state"
-        " FROM Participation_request WHERE id_request = ?1";
+        " FROM participation_request WHERE id_request = ?1";
 
     sqlite3_stmt *st = NULL;    
 

@@ -7,6 +7,7 @@
 #include "notification_controller.h"
 #include "game_controller.h"
 #include "round_controller.h"
+#include "participation_request_controller.h"
 
 NotificationControllerStatus notification_rematch_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO **out_dto) {
 
@@ -38,6 +39,49 @@ NotificationControllerStatus notification_rematch_game(int64_t id_game, int64_t 
 }
 
 // ===================== Controllers Helper Functions =====================
+
+// ===================== Notification Participation Request =====================
+
+NotificationControllerStatus notification_participation_request_cancel(int64_t id_request, int64_t id_sender, NotificationDTO **out_dto) {
+
+    ParticipationRequest retrievedParticipationRequest;
+
+    ParticipationRequestControllerStatus request_status = participation_request_find_one(id_request, &retrievedParticipationRequest);
+
+    if (request_status != PARTICIPATION_REQUEST_CONTROLLER_OK)
+        return NOTIFICATION_CONTROLLER_INTERNAL_ERROR;
+
+    if (id_sender != retrievedParticipationRequest.id_player) {
+        return NOTIFICATION_CONTROLLER_FORBIDDEN;
+    }
+
+    GameWithPlayerNickname retrievedGame;
+
+    GameControllerStatus game_status = game_find_one_with_player_info(retrievedParticipationRequest.id_game, &retrievedGame);
+
+    if (game_status != GAME_CONTROLLER_OK)
+        return NOTIFICATION_CONTROLLER_INTERNAL_ERROR;
+
+    NotificationDTO *dynamicDTO = malloc(sizeof(NotificationDTO));
+
+    if (dynamicDTO == NULL) {
+        LOG_WARN("%s\n", "Memory not allocated");
+        return NOTIFICATION_CONTROLLER_INTERNAL_ERROR;
+    }
+
+    dynamicDTO->id_playerSender = id_sender;
+    dynamicDTO->id_playerReceiver = retrievedGame.id_creator;
+    dynamicDTO->message = "A participation request has been canceled!";
+    dynamicDTO->id_request = retrievedParticipationRequest.id_request;
+    dynamicDTO->id_game = -1;
+    dynamicDTO->id_round = -1;
+
+    *out_dto = dynamicDTO;
+
+    return NOTIFICATION_CONTROLLER_OK;
+}
+
+// ===================== Notification Game =====================
 
 NotificationControllerStatus notification_new_game(int64_t id_game, int64_t id_sender, NotificationDTO **out_dto) {
 
@@ -89,8 +133,6 @@ NotificationControllerStatus notification_game_cancel(int64_t id_game, int64_t i
     dynamicDTO->id_playerSender = id_sender;
     dynamicDTO->id_playerReceiver = -1;
     dynamicDTO->message = "A game has been canceled!";
-    dynamicDTO->id_game = id_game;
-    dynamicDTO->id_round = -1;
 
     *out_dto = dynamicDTO;
 

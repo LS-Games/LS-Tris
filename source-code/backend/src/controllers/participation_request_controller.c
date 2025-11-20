@@ -7,6 +7,7 @@
 #include "round_controller.h"
 #include "game_controller.h"
 #include "player_controller.h"
+#include "notification_controller.h"
 #include "../json-parser/json-parser.h"
 #include "../server/server.h"
 #include "../dao/sqlite/db_connection_sqlite.h"
@@ -80,6 +81,10 @@ ParticipationRequestControllerStatus participation_request_send(int64_t id_game,
         .state = PENDING
     };
 
+    ParticipationRequestControllerStatus status = participation_request_create(&participationRequestToSend);
+    if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
+        return status;
+
     Game retrievedGame; // Retrieve game owner
     if (game_find_one(participationRequestToSend.id_game, &retrievedGame) != GAME_CONTROLLER_OK) {
         return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
@@ -91,7 +96,7 @@ ParticipationRequestControllerStatus participation_request_send(int64_t id_game,
     ParticipationRequestDTO out_participation_request_dto; // Build message
     map_participation_request_to_dto(&participationRequestToSend, retrievedPlayer.nickname, &out_participation_request_dto);
     char *json_message = serialize_participation_requests_to_json("server_new_participation_request", &out_participation_request_dto, 1);
-    if (send_server_unicast_message(json_message, id_sender, retrievedGame.id_owner) < 0 ) {
+    if (send_server_unicast_message(json_message, retrievedGame.id_owner) < 0 ) {
         return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
     }
 
@@ -100,11 +105,8 @@ ParticipationRequestControllerStatus participation_request_send(int64_t id_game,
      * Because send_server_unicast_message returns an error if the session doesn't exists
      */
 
-    ParticipationRequestControllerStatus status = participation_request_create(&participationRequestToSend);
-    if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
-        return status;
     free(json_message);
-
+    
     *out_id_participation_request = participationRequestToSend.id_request;
 
     return PARTICIPATION_REQUEST_CONTROLLER_OK;
@@ -201,7 +203,29 @@ static ParticipationRequestControllerStatus participation_request_reject_all(Par
     return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
 
-ParticipationRequestControllerStatus participation_request_cancel(int64_t id_participation_request, int64_t* out_id_participation_request) {
+ParticipationRequestControllerStatus participation_request_cancel(int64_t id_participation_request, int64_t id_sender, int64_t* out_id_participation_request) {
+
+    NotificationDTO *out_notification_dto = NULL;
+
+    if(notification_participation_request_cancel(id_participation_request, id_sender, &out_notification_dto) != NOTIFICATION_CONTROLLER_OK) {
+        LOG_WARN("ERRORE IN notification_participation_request_cancel");
+        return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
+    }
+
+    char *json_message = serialize_notification_to_json("server_participation_request_cancel", out_notification_dto);
+    LOG_DEBUG("%s", json_message);
+
+    if(out_notification_dto->id_playerReceiver > 0) {
+        if(send_server_unicast_message(json_message, out_notification_dto->id_playerReceiver) < 0) {
+            free(json_message);
+            free(out_notification_dto);
+            return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
+        }
+    }
+
+    free(json_message);
+    free(out_notification_dto);
+
     ParticipationRequestControllerStatus status = participation_request_delete(id_participation_request);
     if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
         return status;

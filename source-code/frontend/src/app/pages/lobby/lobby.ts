@@ -87,7 +87,11 @@ export class Lobby {
   }
 
   closePending() {
+  
   this._rqst_service.endPending();
-}
+  this._rqst_service.deleteMyParticipationRequest();
+  this.close();
+
+  }
 
 }

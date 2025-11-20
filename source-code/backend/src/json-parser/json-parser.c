@@ -297,6 +297,7 @@ char *serialize_plays_to_json(const char *action, const PlayDTO* plays, size_t c
 }
 
 char *serialize_notification_to_json(const char *action, NotificationDTO* in_notification) {
+
     if (!in_notification) return NULL;
 
     struct json_object *json_response = json_object_new_object();
@@ -317,6 +318,11 @@ char *serialize_notification_to_json(const char *action, NotificationDTO* in_not
     if (in_notification->id_round != -1) {
         json_object_object_add(json_response, "id_round", json_object_new_int64(in_notification->id_round));
     }
+
+    if (in_notification->id_request != -1) {
+        json_object_object_add(json_response, "id_request", json_object_new_int64(in_notification->id_request));
+    }
+    
     json_object_object_add(json_response, "message", json_object_new_string(in_notification->message));
 
     const char *json_str = json_object_to_json_string(json_response);
@@ -324,5 +330,6 @@ char *serialize_notification_to_json(const char *action, NotificationDTO* in_not
     if (result) strcpy(result, json_str);
 
     json_object_put(json_response); 
+
     return result;     
 }

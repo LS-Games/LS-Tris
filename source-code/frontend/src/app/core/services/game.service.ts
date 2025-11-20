@@ -55,11 +55,11 @@ export class GameService {
   deleteGame(id_game: number) {
 
     const payload = { 
-    action: 'game_cancel', 
-    id_game, 
-    id_owner: this._auth.id 
+        action: 'game_cancel', 
+        id_game, 
+        id_owner: this._auth.id 
     };
 
     this._ws.send(payload);
-    }
+  }
 }

@@ -221,7 +221,7 @@ int send_server_broadcast_message(const char *message, int64_t id_sender) {
     return 0;
 }
 
-int send_server_unicast_message(const char *message, int64_t id_sender, int64_t id_receiver) {
+int send_server_unicast_message(const char *message, int64_t id_receiver) {
 
     Session receiverSession;  
 

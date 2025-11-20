@@ -212,8 +212,6 @@ int session_unicast(SessionManager *manager, const char *message, int receiver_f
 
     pthread_mutex_unlock(&manager->lock);
 
-    LOG_DEBUG("*******FOUND FLAG: %d******", found);
-
     if (!found) {
         LOG_WARN("Unicast failed: receiver fd %d not found in active sessions\n", receiver_fd);
         return -1;

@@ -7,8 +7,10 @@ typedef struct NotificationDTO {
     int64_t id_playerSender;
     int64_t id_playerReceiver;
     char *message;
-    int64_t id_game;
-    int64_t id_round;
+    int64_t id_game;      
+    int64_t id_round;     
+    int64_t id_request;   
 } NotificationDTO;
+
 
 #endif

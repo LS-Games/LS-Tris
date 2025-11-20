@@ -1,18 +1,17 @@
 <div class="lobby-container">
     <span class="close-btn" (click)="close()">&times;</span>
 
-@if (pending()) {
-  <div class="waiting-overlay">
-    <div class="waiting-box">
+    @if (pending()) {
+    <div class="waiting-overlay">
+        <div class="waiting-box">
 
-      <button class="close-btn-waiting-box" (click)="closePending()">&times;</button>
+        <button class="close-btn-waiting-box" (click)="closePending()">&times;</button>
 
-      <div class="loader"></div>
-      <p>In attesa che l’altro giocatore accetti…</p>
+        <div class="loader"></div>
+        <p>In attesa che l’altro giocatore accetti…</p>
+        </div>
     </div>
-  </div>
-}
-
+    }
 
     <div class="game-card-container">
 

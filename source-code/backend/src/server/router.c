@@ -267,7 +267,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
         }
 
     } else if (strcmp(action, "participation_request_cancel") == 0) { // Sent by the participation request sender
-        ParticipationRequestControllerStatus participationRequestStatus = participation_request_cancel(id_participation_request, &out_id_participation_request);
+        ParticipationRequestControllerStatus participationRequestStatus = participation_request_cancel(id_participation_request, id_player, &out_id_participation_request);
         if (participationRequestStatus == PARTICIPATION_REQUEST_CONTROLLER_OK) {
             json_response = serialize_action_success(action, "Participation request canceled", out_id_participation_request);
         } else {
@@ -292,7 +292,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
         NotificationControllerStatus notificationStatus = notification_rematch_game(id_game, id_sender, id_receiver, &out_notification);
         if (notificationStatus == NOTIFICATION_CONTROLLER_OK) {
             char *json_message = serialize_notification_to_json(NULL, out_notification);
-            if (send_server_unicast_message(json_message, id_sender, id_receiver) < 0 ) {
+            if (send_server_unicast_message(json_message, id_receiver) < 0 ) {
                 json_response = serialize_action_error(action, "Could not send rematch invitation");
             } else {
                 json_response = serialize_action_success(action, "Rematch invitation sent", -1);
