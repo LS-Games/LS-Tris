@@ -10,6 +10,7 @@ typedef struct NotificationDTO {
     int64_t id_game;      
     int64_t id_round;     
     int64_t id_request;   
+    char *request_status;
 } NotificationDTO;
 
 

@@ -12,7 +12,8 @@
             @for (request of requests(); track request.id_request) {
                 <app-request-card 
                     [sender_nickname]="request.player_nickname"
-                    [data]="request.created_at">
+                    [data]="request.created_at"
+                    [id_request]="request.id_request">
                 </app-request-card>
             }
 

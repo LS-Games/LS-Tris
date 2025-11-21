@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { RequestsService } from '../../../../core/services/requests.service';
 
 @Component({
   selector: 'app-request-card',
@@ -10,7 +11,16 @@ import { DatePipe } from '@angular/common';
 
 export class RequestCard {
 
+  private readonly _rqst = inject(RequestsService);
+
   @Input() sender_nickname!:string;
   @Input() data!:string;
+  @Input() id_request!:number;
+
+  rejectParticipationRequest() {
+    this._rqst.rejectParticipationRequest(this.id_request);
+  }
   
 }
+
+

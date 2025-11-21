@@ -134,11 +134,33 @@ ParticipationRequestControllerStatus participation_request_change_state(int64_t 
             return status;
     }
 
+    NotificationDTO *out_notification_dto = NULL;
+
+    if(notification_participation_request_change(id_participation_request, retrievedParticipationRequest.id_player, &out_notification_dto) != NOTIFICATION_CONTROLLER_OK) {
+        LOG_WARN("ERRORE IN notification_participation_request_cancel");
+        return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
+    }
+
+    char *json_message = serialize_notification_to_json("server_participation_request_change", out_notification_dto);
+    LOG_DEBUG("%s", json_message);
+
+    if(out_notification_dto->id_playerReceiver > 0) {
+        if(send_server_unicast_message(json_message, out_notification_dto->id_playerReceiver) < 0) {
+            free(json_message);
+            free(out_notification_dto);
+            return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
+        }
+    }
+
+    free(json_message);
+    free(out_notification_dto);
+
     status = participation_request_update(&retrievedParticipationRequest);
     if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
         return status;
 
     *out_id_participation_request = retrievedParticipationRequest.id_request;
+
 
     return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }

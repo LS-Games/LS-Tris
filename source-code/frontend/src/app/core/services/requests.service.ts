@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from "@angular/core";
+import { inject, Injectable, numberAttribute, signal } from "@angular/core";
 import { WebsocketService } from "./websocket.service"; 
 import { AuthService } from "./auth.service";
 
@@ -45,22 +45,45 @@ export class RequestsService {
 
         this._ws.onAction<any>('server_participation_request_cancel')
             .subscribe(msg => {
-
                 console.log(msg);
                 const idToRemove = Number(msg.id_request);
 
                 this.requestsSignal.update(requests =>
                     requests.filter(r => {
-                        console.log("typeof r.id_request", typeof r.id_request, r.id_request);
-                        console.log("typeof idToRemove", typeof idToRemove, idToRemove);
-                        console.log("Uguali?", r.id_request === idToRemove);
-
                         return r.id_request !== idToRemove;
                     })
                 );
         });
-    }
 
+        this._ws.onAction<any>('participation_request_change_state')
+            .subscribe(msg => {
+
+                console.log(msg);
+
+                if(msg.status === 'success') {
+                    const idToRemove = Number(msg.id);
+
+                    console.log(`idToRemove: ${idToRemove}`);
+                    console.log(`r.id_request: ${msg.id}`);
+
+                    this.requestsSignal.update(requests =>
+                        requests.filter(r => {
+                            return r.id_request !== idToRemove;
+                        })
+                    );
+                }
+        });
+
+        this._ws.onAction<any>('server_participation_request_change')
+            .subscribe(msg => {
+
+                console.log(msg);
+
+                if(msg.status === 'success') {
+                    this.endPending();
+                }
+        });
+    }
 
     requestParticipation( id_game:number, id_player:number) {
         const msg = {
@@ -85,6 +108,17 @@ export class RequestsService {
             id_participation_request: this.pendingRequestId(),
             id_player: this._auth.id
         };
+
+        this._ws.send(payload);
+    }
+
+    rejectParticipationRequest(id_request:number) {
+
+        const payload = {
+            action: 'participation_request_change_state',
+            id_participation_request: id_request,
+            new_state: 'rejected' 
+        }
 
         this._ws.send(payload);
     }

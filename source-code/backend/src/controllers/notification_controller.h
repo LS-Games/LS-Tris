@@ -21,6 +21,7 @@ NotificationControllerStatus notification_rematch_game(int64_t id_game, int64_t 
 // ===================== Controllers Helper Functions =====================
 
 NotificationControllerStatus notification_participation_request_cancel(int64_t id_request, int64_t id_sender, NotificationDTO **out_dto);
+NotificationControllerStatus notification_participation_request_change(int64_t id_request, int64_t id_sender, NotificationDTO **out_dto);
 
 NotificationControllerStatus notification_new_game(int64_t id_game, int64_t id_sender, NotificationDTO **out_dto);
 NotificationControllerStatus notification_game_cancel(int64_t id_game, int64_t id_sender, NotificationDTO **out_dto);
