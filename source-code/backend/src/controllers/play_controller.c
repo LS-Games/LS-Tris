@@ -54,28 +54,30 @@ PlayControllerStatus plays_get_public_info(int64_t id_player, int64_t id_round, 
 
 PlayControllerStatus play_add_round_plays(int64_t id_round, int64_t id_player_1, int64_t id_player_2) {
     
-    // Build play of player 1
-    Play playToBuild_1 = {
-        .id_player = id_player_1,
-        .id_round = id_round,
-        .player_number = 1,
-        .result = PLAY_RESULT_INVALID
-    };
+    // // Build play of player 1
+    // Play playToBuild_1 = {
+    //     .id_player = id_player_1,
+    //     .id_round = id_round,
+    //     .player_number = 1,
+    //     .result = PLAY_RESULT_INVALID
+    // };
 
-    // Build play of player 2
-    Play playToBuild_2 = {
-        .id_player = id_player_2,
-        .id_round = id_round,
-        .player_number = 2,
-        .result = PLAY_RESULT_INVALID
-    };
+    // // Build play of player 2
+    // Play playToBuild_2 = {
+    //     .id_player = id_player_2,
+    //     .id_round = id_round,
+    //     .player_number = 2,
+    //     .result = PLAY_RESULT_INVALID
+    // };
     
-    // Create play
-    PlayControllerStatus status = play_create(&playToBuild_1);
-    if (status != PLAY_CONTROLLER_OK)
-        return status;
+    // // Create play
+    // PlayControllerStatus status = play_create(&playToBuild_1);
+    // if (status != PLAY_CONTROLLER_OK)
+    //     return status;
 
-    return play_create(&playToBuild_2);
+    // return play_create(&playToBuild_2);
+
+    return PLAY_CONTROLLER_OK;
 }
 
 // This function sets the plays of a round based on its result.

@@ -15,7 +15,7 @@
 
 // ==================== Private functions ====================
 
-static ParticipationRequestControllerStatus participation_request_accept_helper(int64_t id_gameToPlay, int64_t id_playerAccepted);
+static ParticipationRequestControllerStatus participation_request_accept_helper(ParticipationRequest *participation_request);
 
 // ===========================================================
 
@@ -128,7 +128,7 @@ ParticipationRequestControllerStatus participation_request_change_state(int64_t 
 
     // If the request is accepted, we should start a new round and reject all other requests
     if (retrievedParticipationRequest.state == ACCEPTED) {
-        status = participation_request_accept_helper(retrievedParticipationRequest.id_game, retrievedParticipationRequest.id_player);
+        status = participation_request_accept_helper(&retrievedParticipationRequest);
         if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
             return status;
     }
@@ -170,7 +170,10 @@ ParticipationRequestControllerStatus participation_request_change_state(int64_t 
     return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
 
-static ParticipationRequestControllerStatus participation_request_accept_helper(int64_t id_gameToPlay, int64_t id_playerAccepted) {
+static ParticipationRequestControllerStatus participation_request_accept_helper(ParticipationRequest *participation_request) {
+
+    int64_t id_gameToPlay = participation_request->id_game;
+    int64_t id_playerAccepted = participation_request->id_player;
 
     // Retrieve the participation request's game
     Game retrievedGame;
@@ -211,13 +214,48 @@ static ParticipationRequestControllerStatus participation_request_accept_helper(
     }
     map_game_to_dto(&retrievedGame, retrievedGameWithPlayerNickname.creator, retrievedGameWithPlayerNickname.owner, &out_game_dto);
     char *json_message = serialize_games_to_json("server_active_game", &out_game_dto, 1);
-    if (send_server_broadcast_message(json_message, retrievedGame.id_owner) < 0 ) {
+
+    //We notice the request sender 
+    if (send_server_unicast_message(json_message, id_playerAccepted) < 0 ) {
         return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
     }
+
+    /**
+     * This is NOT a best practice
+     * Without this, we have problems with the JSON received from the frontend because two JSONs are sent one after the other. 
+     * To be resolved by using limiters in the bridge and modifying the senders from the server.
+     */
+
+    usleep(1000);
+
+    //We notice the game owner
+    if (send_server_unicast_message(json_message, retrievedGame.id_owner) < 0 ) {
+        return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
+    }
+
     free(json_message);
 
     return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
+
+ParticipationRequestControllerStatus participation_request_accept(int64_t id_participation_request, int64_t id_owner) {
+
+    ParticipationRequest req;
+    ParticipationRequestControllerStatus status = participation_request_find_one(id_participation_request, &req);
+
+    if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
+        return status;
+
+    //Update accepted request
+    req.state = ACCEPTED;
+
+    status = participation_request_update(&req);
+    if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
+        return status;
+
+    return participation_request_accept_helper(&req);
+}
+
 
 ParticipationRequestControllerStatus participation_request_reject_all(ParticipationRequest* pendingRequestsToReject, int count) {
 
