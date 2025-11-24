@@ -56,10 +56,18 @@ export class RequestPage {
   }
 
   close() {
+
     this._dialogRef.close();
 
-    if (this.id_game !== undefined) {
-      this._game.deleteGame(this.id_game);
-    }
+    this._rqst.rejectAllParticipationRequests()
+
+    // if (this.id_game !== undefined) {
+    //   this._game.deleteGame(this.id_game);
+    // } 
+
+
   }
+
+
+
 }

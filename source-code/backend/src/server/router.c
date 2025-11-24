@@ -62,14 +62,15 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
     char *state = extract_string_from_json(json_body, "state");
     char *new_state = extract_string_from_json(json_body, "new_state");
 
+    int out_requests_count;
+    ParticipationRequest *requests = extract_requests_array_from_json(json_body, &out_requests_count);
+
     // Notification controller input
     int64_t id_sender = extract_int_from_json(json_body, "id_sender");
     int64_t id_receiver = extract_int_from_json(json_body, "id_receiver");
 
-
     /* === Result value === */
-
-    int out_count = 0;
+        int out_count = 0;
 
     // Player controller output
     bool out_signedIn = false;
@@ -270,6 +271,15 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
         ParticipationRequestControllerStatus participationRequestStatus = participation_request_cancel(id_participation_request, id_player, &out_id_participation_request);
         if (participationRequestStatus == PARTICIPATION_REQUEST_CONTROLLER_OK) {
             json_response = serialize_action_success(action, "Participation request canceled", out_id_participation_request);
+        } else {
+            json_response = serialize_action_error(action, return_participation_request_controller_status_to_string(participationRequestStatus));
+        }
+
+    } else if (strcmp(action, "participation_request_reject_all") == 0) { // Sent by the game owner
+
+        ParticipationRequestControllerStatus participationRequestStatus = participation_request_reject_all(requests, out_requests_count);
+        if (participationRequestStatus == PARTICIPATION_REQUEST_CONTROLLER_OK) {
+            json_response = serialize_action_success(action, "All Participation requests rejected", out_id_participation_request);
         } else {
             json_response = serialize_action_error(action, return_participation_request_controller_status_to_string(participationRequestStatus));
         }

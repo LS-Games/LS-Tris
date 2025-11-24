@@ -81,7 +81,7 @@ NotificationControllerStatus notification_participation_request_cancel(int64_t i
     return NOTIFICATION_CONTROLLER_OK;
 }
 
-NotificationControllerStatus notification_participation_request_change(int64_t id_request, int64_t id_sender, NotificationDTO **out_dto) {
+NotificationControllerStatus notification_participation_request_change(int64_t id_request, int64_t id_sender, int64_t id_receiver, char *status, NotificationDTO **out_dto) {
 
     NotificationDTO *dynamicDTO = malloc(sizeof(NotificationDTO));
 
@@ -91,17 +91,18 @@ NotificationControllerStatus notification_participation_request_change(int64_t i
     }
 
     dynamicDTO->id_playerSender = id_sender;
-    dynamicDTO->id_playerReceiver = id_sender;
-    dynamicDTO->message = "A participation request status has been changed in reject";
+    dynamicDTO->id_playerReceiver = id_receiver;
+    dynamicDTO->message = "A participation request status has been changed";
     dynamicDTO->id_request = id_request;
     dynamicDTO->id_game = -1;
     dynamicDTO->id_round = -1;
-    dynamicDTO->request_status = "rejected";
+    dynamicDTO->request_status = status;
 
     *out_dto = dynamicDTO;
 
     return NOTIFICATION_CONTROLLER_OK;
 }
+
 
 // ===================== Notification Game =====================
 

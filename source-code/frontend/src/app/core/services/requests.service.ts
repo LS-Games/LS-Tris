@@ -77,8 +77,6 @@ export class RequestsService {
         this._ws.onAction<any>('server_participation_request_change')
             .subscribe(msg => {
 
-                console.log(msg);
-
                 if(msg.status === 'success') {
                     this.endPending();
                 }
@@ -122,4 +120,16 @@ export class RequestsService {
 
         this._ws.send(payload);
     }
+
+    rejectAllParticipationRequests() {
+
+        const payload = {
+            action: 'participation_request_reject_all',
+            requests: this.requestsSignal()
+        }
+
+        this._ws.send(payload);
+    }
+
+    
 }

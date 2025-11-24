@@ -12,6 +12,7 @@
 
 char *extract_string_from_json(const char *json_str, const char *key);
 int extract_int_from_json(const char *json_str, const char *key);
+ParticipationRequest* extract_requests_array_from_json(const char *json_str, size_t *out_count);
 
 
 /* === Serialize functions === */

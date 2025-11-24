@@ -87,6 +87,47 @@ int extract_int_from_json(const char *json_str, const char *key) {
     return result;
 }
 
+ParticipationRequest* extract_requests_array_from_json(const char *json_str, size_t *out_count) {
+
+     if (!out_count) return NULL;
+
+    struct json_object *parsed_json = json_tokener_parse(json_str);
+    if (!parsed_json) return NULL;
+
+    struct json_object *requests_array;
+
+    if (!json_object_object_get_ex(parsed_json, "requests", &requests_array)) {
+        json_object_put(parsed_json);
+        *out_count = 0;
+        return NULL;
+    }
+
+    if (!json_object_is_type(requests_array, json_type_array)) {
+        json_object_put(parsed_json);
+        *out_count = 0;
+        return NULL;
+    }
+
+    int len = json_object_array_length(requests_array);
+    *out_count = len;
+
+    ParticipationRequest *buffer =
+        malloc(sizeof(ParticipationRequest) * len);
+
+    for (int i = 0; i < len; i++) {
+        struct json_object *item = json_object_array_get_idx(requests_array, i);
+
+        buffer[i].id_request = json_object_get_int64(json_object_object_get(item, "id_request"));
+        buffer[i].id_player  = json_object_get_int64(json_object_object_get(item, "id_player"));
+        buffer[i].id_game    = json_object_get_int64(json_object_object_get(item, "id_game"));
+
+        const char *state = json_object_get_string(json_object_object_get(item, "state"));
+        buffer[i].state = string_to_request_participation_status(state);
+    }
+
+    json_object_put(parsed_json);
+    return buffer;
+}
 
 /* === Serialize functions === */
 
