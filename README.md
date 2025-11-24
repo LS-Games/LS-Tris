@@ -19,7 +19,8 @@ Nella configurazione di questa repository, sono stati creati tre diversi Docker 
 - [docker-compose.frontend.yml](.devcontainer/docker-compose.frontend.yml), che contiene tutti i servizi relativi al frontend;
 - [docker-compose.dev.yml](.devcontainer/docker-compose.dev.yml), che contiene tutti i servizi necessari solo nella fase di sviluppo del software (sia frontend che backend).
 
-**ATTENZIONE! I seguenti comandi sono pensati per un ambiente Host Linux, tuttavia è possibile facilmente tradurli in ambiente Host Windows sostituendo il carattere di fine linea `\` con `^`.**
+**ATTENZIONE! I seguenti comandi sono pensati per un ambiente Host Linux, tuttavia è possibile facilmente tradurli in ambiente Host Windows sostituendo il carattere di fine linea `\` con `^`.
+NOTA! Usare `^` per cmd, `` ` `` per PowerShell.**
 
 E' possibile avviare il Docker Compose nel seguente modo:
 
