@@ -302,7 +302,7 @@ PlayDaoStatus insert_play(sqlite3 *db, Play *in_out_play) {
         return PLAY_DAO_INVALID_INPUT;
     }
 
-    if (in_out_play->id_player <= 0 || in_out_play->id_round <= 0 || in_out_play->result < WIN || in_out_play->result > DRAW) {
+    if (in_out_play->id_player <= 0 || in_out_play->id_round <= 0) {
         return PLAY_DAO_INVALID_INPUT;
     }
 
@@ -321,7 +321,9 @@ PlayDaoStatus insert_play(sqlite3 *db, Play *in_out_play) {
     rc = sqlite3_bind_int64(stmt, 2, in_out_play->id_round);
     if (rc != SQLITE_OK) goto bind_fail;
 
+    
     const char *p_st = play_result_to_string(in_out_play->result);
+    
     if(!p_st) {
         sqlite3_finalize(stmt);
         return PLAY_DAO_INVALID_INPUT;

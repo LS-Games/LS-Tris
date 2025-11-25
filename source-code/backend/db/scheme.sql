@@ -46,7 +46,7 @@ CREATE TABLE Participation_request (
     id_player           INTEGER NOT NULL,
     id_game             INTEGER NOT NULL, 
     created_at          TEXT NOT NULL,
-    state               TEXT NOT NULL CHECK (state IN ('pending', 'accepted', 'rejected', 'canceled')), 
+    state               TEXT NOT NULL,
     FOREIGN KEY (id_player) REFERENCES Player(id_player) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (id_game) REFERENCES Game(id_game) ON DELETE CASCADE ON UPDATE CASCADE
 );
