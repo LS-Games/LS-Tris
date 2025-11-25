@@ -1,10 +1,14 @@
 # Frontend
 
-Questo progetto è stato generato utilizzando [Angular CLI](https://github.com/angular/angular-cli) versione 20.0.4.
+Questo progetto è stato generato utilizzando [Angular CLI](https://github.com/angular/angular-cli) versione `20.0.4`.
+
+L'interprete utilizzato è `node 22.19.0`.
+
+Ogni comando si intende eseguito dalla root directory del progetto, [frontend](.).
 
 ## Indice
 
-* [Dipendenze](#dipendenze)
+* [Package Dependencies](#package-dependencies)
 * [Scripts](#scripts)
 * [Development server](#development-server)
 * [Code scaffolding](#code-scaffolding)
@@ -13,23 +17,27 @@ Questo progetto è stato generato utilizzando [Angular CLI](https://github.com/a
 * [Eseguire end-to-end tests](#eseguire-end-to-end-tests)
 * [Risorse aggiuntive](#risorse-aggiuntive)
 
-## Dipendenze
+## Package Dependencies
 
-Il frontend è stato costruito con le dipendenze definite nel `package.json`. Installarle tramite il comando `npm install`.
+Il frontend è stato costruito con le dipendenze definite nel `package.json`.
 
-L'interprete utilizzato è `node 22.19.0`.
+Una volta impostata la versione di node corretta (lo verifichiamo con `node --version`), installiamo le package dependencies con il comando:
+
+```bash
+npm install
+```
 
 ## Scripts
 
 Per eseguire il frontend, è stato predisposto un [package.json](./package.json). Gli script definiti sono i seguenti:
 
-- `npm run generate-env` esegue uno script per generare dinamicamente un file di configurazione delle variabili d'ambiente;
-- `npm start` o `npm run start` esegue `generate-env` ed esegue il progetto in modalità sviluppo (variante `npm run start:docker` per sviluppo in ambiente Docker);
-- `npm run build` esegue `generate-env` e compila il progetto in modalità sviluppo;
-- `npm run watch` esegue `generate-env`, compila il progetto in modalità sviluppo e resta in ascolto per ricompilare automaticamente al variare dei file;
-- `npm run build:prod` esegue `generate-env` e compila il progetto in modalità produzione;
-- `npm run serve` serve la build del progetto tramite `http-server` e disabilitando la cache;
-- `npm run test` esegue test unitari.
+* `npm run generate-env` esegue uno script per generare dinamicamente un file di configurazione delle variabili d'ambiente;
+* `npm start` o `npm run start` esegue `generate-env` ed esegue il progetto in modalità sviluppo (variante `npm run start:docker` per sviluppo in ambiente Docker);
+* `npm run build` esegue `generate-env` e compila il progetto in modalità sviluppo;
+* `npm run watch` esegue `generate-env`, compila il progetto in modalità sviluppo e resta in ascolto per ricompilare automaticamente al variare dei file;
+* `npm run build:prod` esegue `generate-env` e compila il progetto in modalità produzione;
+* `npm run serve` serve la build del progetto tramite `http-server` e disabilitando la cache;
+* `npm run test` esegue test unitari.
 
 ## Development server
 
