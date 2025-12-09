@@ -391,3 +391,80 @@ RoundDaoStatus insert_round(sqlite3 *db, Round *in_out_round) {
         sqlite3_finalize(stmt);
         return ROUND_DAO_SQL_ERROR;
 }
+
+RoundDaoStatus round_find_full_info(sqlite3 *db, int64_t id_round, RoundFullDTO *out) {
+    if (!db || !out) return ROUND_DAO_INVALID_INPUT;
+
+    const char *sql =
+        "SELECT "
+        "   r.id_round, r.id_game, r.state, r.duration, r.board, "
+        "   p1.id_player, pl1.player_number, p1.nickname, "
+        "   p2.id_player, pl2.player_number, p2.nickname "
+        "FROM Round r "
+        "JOIN Play pl1 ON pl1.id_round = r.id_round AND pl1.player_number = 1 "
+        "JOIN Player p1 ON p1.id_player = pl1.id_player "
+        "JOIN Play pl2 ON pl2.id_round = r.id_round AND pl2.player_number = 2 "
+        "JOIN Player p2 ON p2.id_player = pl2.id_player "
+        "WHERE r.id_round = ?1;";
+
+    sqlite3_stmt *stmt = NULL;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        LOG_ERROR("SQL prepare failed: %s\n", sqlite3_errmsg(db));
+        return ROUND_DAO_SQL_ERROR;
+    }
+
+    sqlite3_bind_int64(stmt, 1, id_round);
+
+    if (sqlite3_step(stmt) != SQLITE_ROW) {
+        sqlite3_finalize(stmt);
+        return ROUND_DAO_NOT_FOUND;
+    }
+
+    out->id_round = sqlite3_column_int64(stmt, 0);
+    out->id_game  = sqlite3_column_int64(stmt, 1);
+
+    const unsigned char *state = sqlite3_column_text(stmt, 2);
+    if (state)
+        strncpy(out->state, (const char*)state, sizeof(out->state) - 1);
+    else
+        out->state[0] = '\0';
+    out->state[sizeof(out->state) - 1] = '\0';
+
+    out->duration = sqlite3_column_int64(stmt, 3);
+
+    const unsigned char *board = sqlite3_column_text(stmt, 4);
+    if (board)
+        strncpy(out->board, (const char*)board, sizeof(out->board) - 1);
+    else
+        out->board[0] = '\0';
+    out->board[sizeof(out->board) - 1] = '\0';
+
+    out->id_player1 = sqlite3_column_int64(stmt, 5);
+    out->player_number_player1 = sqlite3_column_int(stmt, 6);
+
+    const unsigned char *nick1 = sqlite3_column_text(stmt, 7);
+    if (nick1)
+        strncpy(out->nickname_player1, (const char*)nick1, sizeof(out->nickname_player1) - 1);
+    else
+        out->nickname_player1[0] = '\0';
+    out->nickname_player1[sizeof(out->nickname_player1) - 1] = '\0';
+
+    out->id_player2 = sqlite3_column_int64(stmt, 8);
+    out->player_number_player2 = sqlite3_column_int(stmt, 9);
+
+    const unsigned char *nick2 = sqlite3_column_text(stmt, 10);
+    if (nick2)
+        strncpy(out->nickname_player2, (const char*)nick2, sizeof(out->nickname_player2) - 1);
+    else
+        out->nickname_player2[0] = '\0';
+    out->nickname_player2[sizeof(out->nickname_player2) - 1] = '\0';
+
+    sqlite3_finalize(stmt);
+    return ROUND_DAO_OK;
+}
+
+
+
+
+

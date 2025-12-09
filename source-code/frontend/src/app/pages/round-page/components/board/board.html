@@ -1,1 +1,23 @@
-<p>board works!</p>
+<div class="board">
+  @for (cell of board; track $index; let i = $index) {
+    <div
+      class="cell"
+      (click)="playMove(i)"
+      [class.x]="cell === 'X'" 
+      [class.o]="cell === 'O'"
+    >
+      {{ cell }}
+    </div>
+  }
+</div>
+
+@if (winner) {
+  <div class="game-status">
+    @if (winner !== 'draw') {
+      <p>🏆 Vincitore: <strong>{{ winner }}</strong></p>
+    } @else {
+      <p>🤝 Pareggio!</p>
+    }
+    <button class="restart-btn" (click)="restart()">Rigioca</button>
+  </div>
+}

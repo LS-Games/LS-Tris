@@ -170,7 +170,6 @@ int session_broadcast(SessionManager *manager, const char *message, int sender_f
 
 int session_unicast(SessionManager *manager, const char *message, int receiver_fd) {
 
-    LOG_DEBUG("\nENTRATO NELLA FUNZIONE session_unicast\n");
 
     if (!manager) {
         LOG_WARN("%s\n", "SessionManager pointer is NULL");

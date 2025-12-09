@@ -30,6 +30,7 @@ export class GameService {
 
         this._ws.onAction<any>('server_game_cancel')
         .subscribe(msg => {
+            console.log(msg);
             const idToRemove = msg.id_game;
             this.gamesSignal.update(games =>
             games.filter(g => g.id_game !== idToRemove)

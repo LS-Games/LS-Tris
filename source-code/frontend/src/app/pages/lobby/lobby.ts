@@ -1,4 +1,4 @@
-import { Component, inject, afterNextRender, DestroyRef } from '@angular/core';
+import { Component, inject, afterNextRender, DestroyRef, effect } from '@angular/core';
 import { Dialog, DialogRef } from '@angular/cdk/dialog';
 import { NotificationService } from '../../core/services/notification';
 import { GameCard } from '../lobby/components/game-card/game-card';
@@ -6,6 +6,8 @@ import { RequestPage } from '../request-page/request-page';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GameService } from '../../core/services/game.service';
 import { RequestsService } from '../../core/services/requests.service';
+import { RoundService } from '../../core/services/round.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-lobby',
@@ -23,12 +25,24 @@ export class Lobby {
   private readonly _destroyRef = inject(DestroyRef); // replaces ngOnDestroy
   private readonly _game = inject(GameService);
   private readonly _rqst_service = inject(RequestsService);
+  private readonly _round = inject(RoundService);
+  private readonly _router = inject(Router);
 
   loading = true;
   games = this._game.gamesSignal;
   pending = this._rqst_service.pendingSignal;
 
   constructor() {
+
+    effect(() => {
+      const gameId = this._round.gameId();
+      const roundId = this._round.roundId();
+
+      if (gameId !== null && roundId !== null) {
+        this._dialogRef.close();
+        this._router.navigate(['/round', gameId, roundId]);
+      }
+    });
 
     /**
      * afterNextRender() is executed after the component’s initial render.

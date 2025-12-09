@@ -1,27 +1,48 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, inject, Input, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Board } from '../round-page/components/board/board'
+import { BoardComponent } from '../round-page/components/board/board';
+import { RoundService } from '../../core/services/round.service';
 
 @Component({
   selector: 'app-round-page',
   standalone: true,
-  imports: [CommonModule, Board],
+  imports: [CommonModule, BoardComponent],
   templateUrl: './round-page.html',
   styleUrl: './round-page.scss'
 })
-
 export class RoundPage {
 
-  @Input() player1:string = '';
-  @Input() player2:string = '';
+  private readonly _round = inject(RoundService);
 
-  board:string[] = Array(9).fill('@');
-  currentPlayer: 'X' | 'O' = 'X' //Union type, it means that it can be only X or only O, the initial value is X
+  player1Nickname = this._round.player1Nickname;
+  player2Nickname = this._round.player2Nickname;
 
-  onMove(index: number) {
-    if (this.board[index] === '@') {
-      this.board[index] = this.currentPlayer;
-      this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
-    }
+  board = this._round.boardSignal;
+  currentPlayer = this._round.currentPlayerTurnSignal;
+  mySimbol = this._round.mySymbolSignal;
+  winner = this._round.winnerSignal;
+
+  constructor() {
+
+      effect(() => {
+        const winner = this.winner();
+        if (winner) {
+          console.log("Round finito:", winner);
+        }
+      });
   }
+
+  handleMove(index:number) {
+
+    if(this.winner()) return;
+
+    if(this.currentPlayer() !== this.mySimbol()) {
+      console.log("Non è il tuo turno");
+    }
+
+    if(this.board()[index] !== null) return;
+
+    this._round.makeMove(index);
+  }
+
 }

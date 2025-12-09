@@ -116,20 +116,14 @@ static bool is_valid_move(char board[BOARD_MAX], int row, int col) {
 }
 
 static int get_current_turn(char *board) {
-    int p1SymbolCounter = 0;
-    int p2SymbolCounter = 0;
-    
-    while (board) {
-        if (*board == P1_SYMBOL) {
-            p1SymbolCounter++;
-        } else if (*board == P2_SYMBOL) {
-            p2SymbolCounter++;
-        }
+    int p1 = 0, p2 = 0;
 
-        board++;
+    for (int i = 0; i < BOARD_MAX; i++) {
+        if (board[i] == P1_SYMBOL) p1++;
+        else if (board[i] == P2_SYMBOL) p2++;
     }
 
-    return p1SymbolCounter <= p2SymbolCounter ? 1 : 2;
+    return p1 <= p2 ? 1 : 2;
 }
 
 RoundControllerStatus round_get_public_info(int64_t id_round, RoundDTO **out_dto, int *out_count) {
@@ -152,13 +146,13 @@ RoundControllerStatus round_get_public_info(int64_t id_round, RoundDTO **out_dto
     map_round_to_dto(&retrievedRound, &(*dynamicDTO));
     
     *out_dto = dynamicDTO;
-    *out_count = 1;
+    *out_count = 1; 
 
     return ROUND_CONTROLLER_OK;
 }
 
 RoundControllerStatus round_make_move(int64_t id_round, int64_t id_playerMoving, int row, int col, int64_t* out_id_round) {
-    
+
     // Retrieve round
     Round retrievedRound;
     RoundControllerStatus roundStatus = round_find_one(id_round, &retrievedRound);
@@ -224,7 +218,11 @@ RoundControllerStatus round_make_move(int64_t id_round, int64_t id_playerMoving,
 
     // If match is over
     if (result != PLAY_RESULT_INVALID) {
-        return round_end_helper(&retrievedRound, -1, result);
+        RoundStatus endStatus = round_end_helper(&retrievedRound, -1, result);
+        *out_id_round = retrievedRound.id_round;
+
+        return ROUND_CONTROLLER_OK;
+
     }
 
     *out_id_round = retrievedRound.id_round;
@@ -318,13 +316,15 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, int64_t id_play
 
 // ===================== Controllers Helper Functions =====================
 
-RoundControllerStatus round_start(int64_t id_game, int64_t id_player1, int64_t id_player2, int64_t duration) {
+RoundControllerStatus round_start(int64_t id_game, int64_t id_player1, int64_t id_player2, int64_t duration, int64_t *out_new_round) {
 
     // Build the new round
     Round out_newRound;
     RoundControllerStatus roundStatus = round_start_helper(id_game, duration, &out_newRound);
     if (roundStatus != ROUND_CONTROLLER_OK)
         return roundStatus;
+
+    *out_new_round = out_newRound.id_round;
 
     // Add plays to round
     PlayControllerStatus playStatus = play_add_round_plays(out_newRound.id_round, id_player1, id_player2);
@@ -346,6 +346,7 @@ static RoundControllerStatus round_start_helper(int64_t id_game, int64_t duratio
         .duration = duration,
         .state = ACTIVE_ROUND,
     };
+    
     strcpy(roundToStart.board, emptyBoard);
 
     LOG_STRUCT_DEBUG(print_round_inline, &roundToStart);
@@ -353,6 +354,8 @@ static RoundControllerStatus round_start_helper(int64_t id_game, int64_t duratio
     RoundControllerStatus status = round_create(&roundToStart);
     if (status != ROUND_CONTROLLER_OK)
         return status;
+
+    LOG_DEBUG("AFTER INSERT: NEW ROUND ID = %" PRId64 "\n", roundToStart.id_round);
 
     *out_newRound = roundToStart;
 
@@ -385,6 +388,9 @@ RoundControllerStatus round_create(Round* roundToCreate) {
         return ROUND_CONTROLLER_DATABASE_ERROR;
     }
 
+    roundToCreate->id_round = sqlite3_last_insert_rowid(db);
+
+    db_close(db);
     return ROUND_CONTROLLER_OK;
 }
 
@@ -403,9 +409,16 @@ RoundControllerStatus round_find_all(Round **retrievedRoundArray, int* retrieved
 
 // Read one
 RoundControllerStatus round_find_one(int64_t id_round, Round* retrievedRound) {
+
     sqlite3* db = db_open();
     RoundDaoStatus status = get_round_by_id(db, id_round, retrievedRound);
     db_close(db);
+
+    if (status == ROUND_DAO_NOT_MODIFIED) {
+        LOG_INFO("No changes detected for round %d, skipping update.", retrievedRound->id_round);
+        return GAME_CONTROLLER_OK;   
+    }
+
     if (status != ROUND_DAO_OK) {
         LOG_WARN("%s\n", return_round_dao_status_to_string(status));
         return status == ROUND_DAO_NOT_FOUND ? ROUND_CONTROLLER_NOT_FOUND : ROUND_CONTROLLER_DATABASE_ERROR;
@@ -439,3 +452,16 @@ RoundControllerStatus round_delete(int64_t id_round) {
 
     return ROUND_CONTROLLER_OK;
 }
+
+RoundControllerStatus round_find_full_info_by_id_round(int64_t id_round, RoundFullDTO* retrievedFullRound) {
+    sqlite3* db = db_open();
+    RoundDaoStatus status = round_find_full_info(db, id_round, retrievedFullRound);
+    db_close(db);
+    if (status != ROUND_DAO_OK) {
+        LOG_WARN("%s\n", return_round_dao_status_to_string(status));
+        return status == ROUND_DAO_NOT_FOUND ? ROUND_CONTROLLER_NOT_FOUND : ROUND_CONTROLLER_DATABASE_ERROR;
+    }
+
+    return ROUND_CONTROLLER_OK;
+}
+

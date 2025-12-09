@@ -64,7 +64,6 @@ GameControllerStatus games_get_public_info(char *status, GameDTO **out_dtos, int
 
 GameControllerStatus game_start(int64_t id_creator, int64_t* out_id_game) {
 
-    LOG_INFO("ID PLAYER: %" PRId64 "\n", id_creator);
     // Build game to start
     Game gameToStart = {
         .id_creator = id_creator,
@@ -194,9 +193,11 @@ GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAccep
     GameControllerStatus gameStatus = game_find_one(id_game, &retrievedGame);
     if (gameStatus != GAME_CONTROLLER_OK)
         return gameStatus;
+
+    int64_t new_round_id;
     
     // Start the round
-    RoundControllerStatus roundStatus = round_start(retrievedGame.id_game, retrievedGame.id_owner, id_playerAcceptingRematch, 500);
+    RoundControllerStatus roundStatus = round_start(retrievedGame.id_game, retrievedGame.id_owner, id_playerAcceptingRematch, 500, &new_round_id);
     if (roundStatus != ROUND_CONTROLLER_OK) {
         LOG_WARN("%s\n", return_round_controller_status_to_string(roundStatus));
         return GAME_CONTROLLER_INTERNAL_ERROR;
@@ -236,12 +237,17 @@ GameControllerStatus game_cancel(int64_t id_game, int64_t id_owner, int64_t* out
 
 GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner) {
 
+    LOG_INFO("ID_GAME: %d", id_game);
+    LOG_INFO("ID_NEW_OWNER: %d", id_newOwner);
+
     Game retrievedGame;
     GameControllerStatus status = game_find_one(id_game, &retrievedGame);
     if (status != GAME_CONTROLLER_OK)
         return status;
 
     retrievedGame.id_owner = id_newOwner;
+
+    LOG_INFO("RETRIEVED GAME ID_OWNER: %d", retrievedGame.id_owner);
 
     return game_update(&retrievedGame);
 }
@@ -304,8 +310,15 @@ GameControllerStatus game_find_one(int64_t id_game, Game* retrievedGame) {
 // Update
 GameControllerStatus game_update(Game* updatedGame) {
     sqlite3* db = db_open();
+    LOG_INFO("UPDATE GAME_ID: %d", updatedGame->id_game);
     GameDaoStatus status = update_game_by_id(db, updatedGame);
     db_close(db);
+
+    if (status == GAME_DAO_NOT_MODIFIED) {
+        LOG_INFO("No changes detected for game %d, skipping update.", updatedGame->id_game);
+        return GAME_CONTROLLER_OK;     // <-- NON è un errore
+    }
+
     if (status != GAME_DAO_OK) {
         LOG_WARN("%s\n", return_game_dao_status_to_string(status));
         return GAME_CONTROLLER_DATABASE_ERROR;

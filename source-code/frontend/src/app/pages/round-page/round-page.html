@@ -1,8 +1,14 @@
-<div class="round-page-container">
-    <div class="challengers-name-container">
-        <p class="challengers-name" id="player1"> {{ player1 }} </p>
-        <p>VS</p>
-        <p class="challengers-name" id="player2"> {{ player2 }} </p>
-    </div>
-    <app-board [board]="board" (move)="onMove($event)"></app-board>
+<div class="game-page">
+  
+  <div class="game-summary">
+      <p class="round-players-nickname"> {{player1Nickname()}} </p>
+      <p class="round-players-nickname"> {{player2Nickname()}} </p>
+  </div>
+
+  <app-board
+    [board]="board()"
+    [winner]="winner()"
+    (move)="handleMove($event)"
+  ></app-board>
+
 </div>

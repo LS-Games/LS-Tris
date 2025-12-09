@@ -158,6 +158,13 @@ GameDaoStatus get_all_games(sqlite3 *db, Game **out_array, int *out_count) {
 
 GameDaoStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
 
+    LOG_DEBUG("UPDATE GAME: id=%ld id_creator=%ld id_owner=%ld state=%d created_at=%ld",
+          upd_game->id_game,
+          upd_game->id_creator,
+          upd_game->id_owner,
+          upd_game->state,
+          upd_game->created_at);
+
     if (db == NULL || upd_game == NULL || upd_game->id_game <= 0) {
         return GAME_DAO_INVALID_INPUT;
     }
@@ -166,6 +173,7 @@ GameDaoStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
     GameDaoStatus game_status = get_game_by_id(db, upd_game->id_game, &original_game);
 
     if (game_status != GAME_DAO_OK) {
+        LOG_WARN("get_game_by_id returned: %d", game_status);
         return game_status;
     }
 

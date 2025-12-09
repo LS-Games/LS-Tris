@@ -24,7 +24,7 @@ RoundControllerStatus round_end(int64_t id_round, int64_t id_playerEndingRound, 
 
 // ===================== Controllers Helper Functions =====================
 
-RoundControllerStatus round_start(int64_t id_game, int64_t id_player1, int64_t id_player2, int64_t duration);
+RoundControllerStatus round_start(int64_t id_game, int64_t id_player1, int64_t id_player2, int64_t duration, int64_t *out_new_round);
 
 // ===================== CRUD Operations =====================
 
@@ -33,6 +33,7 @@ RoundControllerStatus round_find_all(Round **retrievedRoundArray, int* retrieved
 RoundControllerStatus round_find_one(int64_t id_round, Round* retrievedRound);
 RoundControllerStatus round_update(Round* updatedRound);
 RoundControllerStatus round_delete(int64_t id_round);
+RoundControllerStatus round_find_full_info_by_id_round(int64_t id_round, RoundFullDTO *retrievedFullRound);
 
 // Funzione di utilità per messaggi di errore
 const char *return_round_controller_status_to_string(RoundControllerStatus status);

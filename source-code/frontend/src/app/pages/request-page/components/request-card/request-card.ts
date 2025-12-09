@@ -20,6 +20,10 @@ export class RequestCard {
   rejectParticipationRequest() {
     this._rqst.rejectParticipationRequest(this.id_request);
   }
+
+  acceptParticipationReqeust() {
+    this._rqst.acceptParticipationReqeust(this.id_request);
+  }
   
 }
 

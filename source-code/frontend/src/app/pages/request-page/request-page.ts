@@ -1,11 +1,12 @@
-import { afterNextRender, Component, inject, DestroyRef } from '@angular/core';
+import { afterNextRender, Component, inject, DestroyRef, effect } from '@angular/core';
 import { DialogRef } from '@angular/cdk/dialog';
 import { GameService } from '../../core/services/game.service';
 import { WebsocketService } from '../../core/services/websocket.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AuthService } from '../../core/services/auth.service';
 import { RequestsService } from '../../core/services/requests.service';
 import { RequestCard } from './components/request-card/request-card';
+import { Router } from '@angular/router';
+import { RoundService } from '../../core/services/round.service';
 
 @Component({
   selector: 'app-request-page',
@@ -20,8 +21,9 @@ export class RequestPage {
   private readonly _destroyRef = inject(DestroyRef);
   private readonly _game = inject(GameService);
   private readonly _ws = inject(WebsocketService);
-  private readonly _auth = inject(AuthService);
   private readonly _rqst = inject(RequestsService);
+  private readonly _round = inject(RoundService);
+  private readonly _router = inject(Router);
 
   loading = true;
   requests = this._rqst.requestsSignal;
@@ -30,6 +32,16 @@ export class RequestPage {
   error_message: string | null = null;
 
   constructor() {
+
+    effect(() => {
+      const gameId = this._round.gameId();
+      const roundId = this._round.roundId();
+
+      if (gameId !== null && roundId !== null) {
+        this._dialogRef.close();
+        this._router.navigate(['/round', gameId, roundId]);
+      }
+    });
 
     afterNextRender(() => {
 
@@ -50,24 +62,19 @@ export class RequestPage {
             console.error("Game creation error:", this.error_message);
             this.close();
           }
-
         });
     });
   }
 
   close() {
+    if (this.id_game === undefined) {
+      this._dialogRef.close();
+      return;
+    }
 
+    this._rqst.rejectAllParticipationRequests();
+    this._rqst.clearRequests();
+    this._game.deleteGame(this.id_game);
     this._dialogRef.close();
-
-    this._rqst.rejectAllParticipationRequests()
-
-    // if (this.id_game !== undefined) {
-    //   this._game.deleteGame(this.id_game);
-    // } 
-
-
   }
-
-
-
 }

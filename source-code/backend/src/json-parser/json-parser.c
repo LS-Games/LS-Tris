@@ -1,3 +1,20 @@
+
+/**
+ * The json parser library we used is json-c.
+ * GitHub repository: https://github.com/json-c/json-c 
+ * Reference: https://json-c.github.io/json-c/
+ * 
+ * You can verify the installed libjson-c version with the command: `dpkg -l | grep libjson-c`
+ * Our version is the json-c 16.0. 
+ * json-c 0.16 reference: https://json-c.github.io/json-c/json-c-0.16/doc/html/index.html
+ * Video tutorial: https://youtu.be/dQyXuFWylm4?si=KWfLu5QcM055VKwl
+*/
+
+#include <json-c/json.h> // Header to access all the functions that json-c offers
+#include <string.h>
+
+#include "json-parser.h"
+
 /**
  * The json parser library we used is json-c.
  * GitHub repository: https://github.com/json-c/json-c 
@@ -373,4 +390,69 @@ char *serialize_notification_to_json(const char *action, NotificationDTO* in_not
     json_object_put(json_response); 
 
     return result;     
+}
+
+char *serialize_round_full_to_json(const char *action, RoundFullDTO* in_round_full) {
+
+    if (!in_round_full || !action) return NULL;
+
+    json_object *root = json_object_new_object();
+    if (!root) return NULL;
+
+    json_object_object_add(root, "status", json_object_new_string("success"));
+    json_object_object_add(root, "action", json_object_new_string(action));
+
+    json_object *round_obj = json_object_new_object();
+
+    json_object_object_add(round_obj, "id_round",
+        json_object_new_int64(in_round_full->id_round));
+
+    json_object_object_add(round_obj, "id_game",
+        json_object_new_int64(in_round_full->id_game));
+
+    json_object_object_add(round_obj, "state",
+        json_object_new_string(in_round_full->state));
+
+    json_object_object_add(round_obj, "duration",
+        json_object_new_int64(in_round_full->duration));
+
+    json_object_object_add(round_obj, "board",
+        json_object_new_string(in_round_full->board));
+
+    json_object_object_add(round_obj, "id_player1",
+        json_object_new_int64(in_round_full->id_player1));
+    json_object_object_add(round_obj, "id_player2",
+        json_object_new_int64(in_round_full->id_player2));
+
+    json_object_object_add(round_obj, "nickname_player1",
+        json_object_new_string(in_round_full->nickname_player1));
+    json_object_object_add(round_obj, "nickname_player2",
+        json_object_new_string(in_round_full->nickname_player2));
+
+    json_object_object_add(round_obj, "player_number_player1",
+        json_object_new_int(in_round_full->player_number_player1));
+    json_object_object_add(round_obj, "player_number_player2",
+        json_object_new_int(in_round_full->player_number_player2));
+
+    json_object_object_add(root, "round", round_obj);
+
+    const char *json_str = json_object_to_json_string_ext(root, JSON_C_TO_STRING_PLAIN);
+    if (!json_str) {
+        json_object_put(root);
+        return NULL;
+    }
+
+    size_t len = strlen(json_str);
+
+    char *result = malloc(len + 1);
+    if (!result) {
+        json_object_put(root);
+        return NULL;
+    }
+
+    memcpy(result, json_str, len + 1);
+
+    json_object_put(root);
+
+    return result;
 }

@@ -16,6 +16,7 @@ export class RequestsService {
     private readonly _pendingSignal = signal(false);
     pendingSignal = this._pendingSignal.asReadonly();
 
+    activeGameId = signal<number | null>(null);
     pendingRequestId = signal<number | null>(null);
 
     private readonly _ws = inject(WebsocketService);
@@ -63,9 +64,6 @@ export class RequestsService {
                 if(msg.status === 'success') {
                     const idToRemove = Number(msg.id);
 
-                    console.log(`idToRemove: ${idToRemove}`);
-                    console.log(`r.id_request: ${msg.id}`);
-
                     this.requestsSignal.update(requests =>
                         requests.filter(r => {
                             return r.id_request !== idToRemove;
@@ -77,10 +75,28 @@ export class RequestsService {
         this._ws.onAction<any>('server_participation_request_change')
             .subscribe(msg => {
 
+                console.log(msg);
+
                 if(msg.status === 'success') {
                     this.endPending();
                 }
         });
+
+        this._ws.onAction<any>('server_active_game')
+            .subscribe(msg => {
+                console.log(msg);
+        });
+
+
+        // this._ws.onAction<any>('server_round_start')
+        //     .subscribe(msg => {
+        //         console.log(msg);
+
+        //         if(msg.status === 'success' && msg.games?.length > 0) {
+        //             console.log("Successo!")
+        //             this.activeGameId.set(msg.games[0].id_game);
+        //         }   
+        // });
     }
 
     requestParticipation( id_game:number, id_player:number) {
@@ -128,8 +144,24 @@ export class RequestsService {
             requests: this.requestsSignal()
         }
 
+        console.log(payload);
+
         this._ws.send(payload);
     }
 
-    
+    acceptParticipationReqeust(id_request:number) {
+
+        const payload = {
+            action: 'participation_request_change_state',
+            new_state: 'accepted',
+            id_participation_request: id_request,
+        }
+
+        this._ws.send(payload);
+
+    }
+
+    clearRequests() {
+        this.requestsSignal.set([]);
+    }
 }

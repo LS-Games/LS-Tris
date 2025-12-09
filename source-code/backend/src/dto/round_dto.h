@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "../entities/round_entity.h"
+#include "../dao/dto/round_join_player_join_play.h"
 
 #define ROUND_STATE_STR_MAX 16
 

@@ -230,6 +230,11 @@ int send_server_unicast_message(const char *message, int64_t id_receiver) {
         return -1;
     }
 
+    if(receiverSession.fd < 1) {
+        LOG_WARN("Session fd is negative");
+        return -1;
+    }
+
     int fd = receiverSession.fd; 
     return session_unicast(&session_manager, message, fd);
 }

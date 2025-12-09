@@ -118,6 +118,8 @@ PlayControllerStatus play_set_round_plays_result(int64_t id_round, PlayResult re
 
 PlayControllerStatus play_retrieve_round_current_player_number(int64_t id_round, int64_t id_currentPlayer, int* out_player_number) {
 
+    LOG_INFO("ID CURRENT PLAYER: %d", id_currentPlayer);
+
     // Retrieve plays of this round
     Play* retrievedPlayArray;
     int retrievedPlayCount;
@@ -131,8 +133,11 @@ PlayControllerStatus play_retrieve_round_current_player_number(int64_t id_round,
         if (retrievedPlayArray[i].id_player == id_currentPlayer)
             player_number = retrievedPlayArray[i].player_number;
     }
-    if (player_number == -1)
+    
+    if (player_number == -1) {
+        LOG_WARN("PLAYER NUMBER NOT VALID");
         return PLAY_CONTROLLER_INTERNAL_ERROR;
+    }
 
     *out_player_number = player_number;
 

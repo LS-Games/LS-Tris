@@ -129,6 +129,7 @@ NotificationControllerStatus notification_new_game(int64_t id_game, int64_t id_s
     dynamicDTO->message = "A new game has been created! Submit your request to participate!";
     dynamicDTO->id_game = id_game;
     dynamicDTO->id_round = -1;
+    dynamicDTO->id_request = -1;
 
     *out_dto = dynamicDTO;
 
@@ -153,8 +154,14 @@ NotificationControllerStatus notification_game_cancel(int64_t id_game, int64_t i
         return NOTIFICATION_CONTROLLER_INTERNAL_ERROR;
     }
 
-    dynamicDTO->id_playerSender = id_sender;
+    dynamicDTO->id_playerSender   = -1;
     dynamicDTO->id_playerReceiver = -1;
+    dynamicDTO->id_game           = -1;
+    dynamicDTO->id_round          = -1;
+    dynamicDTO->id_request        = -1;
+
+    dynamicDTO->id_playerSender = id_sender;
+    dynamicDTO->id_game = id_game; 
     dynamicDTO->message = "A game has been canceled!";
 
     *out_dto = dynamicDTO;

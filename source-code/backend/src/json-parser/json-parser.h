@@ -8,6 +8,7 @@
 #include "../dto/player_dto.h"
 #include "../dto/round_dto.h"
 
+
 /* === Extract functions === */
 
 char *extract_string_from_json(const char *json_str, const char *key);
@@ -25,5 +26,6 @@ char *serialize_rounds_to_json(const char *action, const RoundDTO* rounds, size_
 char *serialize_participation_requests_to_json(const char *action, const ParticipationRequestDTO* participationRequests, size_t count);
 char *serialize_plays_to_json(const char *action, const PlayDTO* plays, size_t count);
 char *serialize_notification_to_json(const char *action, NotificationDTO* in_notification);
+char *serialize_round_full_to_json(const char *action, RoundFullDTO* in_round_full);
 
 #endif
