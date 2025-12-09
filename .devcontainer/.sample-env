@@ -1,4 +1,4 @@
-# Development settings
+# Environment config
 
 
 ## Docker Compose
@@ -7,18 +7,14 @@
 COMPOSE_PROFILES=dev
 
 
-## Ports
-
-### Sets the port on wich we will access the apps
+## Backend
 
 #### Sets the backend port
 DEV_BACKEND_PORT=
 PROD_BACKEND_PORT=
 
-#### Sets the frontend port
-DEV_FRONTEND_PORT=
-PROD_FRONTEND_PORT=
-DEV_KARMA_PORT=
+
+## Bridge
 
 #### Sets the bridge HTTP port
 DEV_BRIDGE_HTTP_PORT=
@@ -28,20 +24,16 @@ PROD_BRIDGE_HTTP_PORT=
 DEV_BRIDGE_WS_PORT=
 PROD_BRIDGE_WS_PORT=
 
-
-## Backend
-
-### Sets the token necessary for SonarQube scanning
-SONAR_TOKEN=
+### Sets the tcp backend address
+TCP_BACKEND_ADDRESS=
 
 
 ## Frontend
 
+#### Sets the frontend port
+DEV_FRONTEND_PORT=
+PROD_FRONTEND_PORT=
+DEV_KARMA_PORT=
+
 ### Sets the bridge address
 BRIDGE_ADDRESS=
-
-
-## Bridge
-
-### Sets the tcp backend address
-TCP_BACKEND_ADDRESS=

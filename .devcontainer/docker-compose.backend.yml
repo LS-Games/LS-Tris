@@ -30,11 +30,11 @@ services:
       - ${PROD_BRIDGE_WS_PORT:-55505}:3002
     depends_on:
       - backend
-    networks:
-      - backend-network
     environment:
       TCP_BACKEND_ADDRESS: ${TCP_BACKEND_ADDRESS:-backend} # The address inside the docker network
       TCP_BACKEND_PORT: 5050 # The port inside the docker network
+    networks:
+      - backend-network
     
 networks:
   backend-network:
