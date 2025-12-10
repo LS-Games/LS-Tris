@@ -68,22 +68,21 @@ export class RoundService {
 
         this._ws.onAction<any>('server_updated_round_end')
             .subscribe(msg => {
-            const round = msg.rounds[0];
-            console.log("ROUND ENDED", round);
+                const round = msg.rounds[0];
+                console.log("ROUND ENDED", round);
 
-            this.roundId.set(round.id_round);
-            this.updateBoard(round.board);
+                this.roundId.set(round.id_round);
+                this.updateBoard(round.board);
 
-            this.winnerSignal.set(round.winner ?? null);
-        });
+                this.winnerSignal.set(round.winner ?? null);
+            });
 
         this._ws.onAction<any>('server_round_end_notification')
             .subscribe(msg => {
-            console.log("NOTIFICATION: ROUND ENDED", msg);
+                console.log("NOTIFICATION: ROUND ENDED", msg);
 
-            this.currentPlayerTurnSignal.set('X');
-        });
-
+                this.currentPlayerTurnSignal.set('X');
+            });
     }
 
     updateBoard(board:string) {
@@ -122,6 +121,10 @@ export class RoundService {
 
     makeMove(index:number) {
 
+        console.log("ROUND ID →", this.roundId());
+        console.log("GAME ID →", this.gameId());
+
+
         console.log(`MySimbolSignal: ${this.mySymbolSignal()} | currentPlayerSignal: ${this.currentPlayerTurnSignal()}`);
         if(this.mySymbolSignal() !== this.currentPlayerTurnSignal()) {
             console.warn("Non è il tuo turno");
@@ -145,7 +148,8 @@ export class RoundService {
             row: row,
             col: col
         }
-
+        
+        console.log(payload);
         this._ws.send(payload);
     }
 

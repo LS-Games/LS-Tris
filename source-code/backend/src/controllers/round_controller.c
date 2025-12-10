@@ -155,6 +155,7 @@ RoundControllerStatus round_make_move(int64_t id_round, int64_t id_playerMoving,
 
     // Retrieve round
     Round retrievedRound;
+    LOG_INFO("ROUND ID IN ROUND MAKE MOVE: %d", id_round);
     RoundControllerStatus roundStatus = round_find_one(id_round, &retrievedRound);
     if (roundStatus != ROUND_CONTROLLER_OK)
         return roundStatus;
@@ -218,6 +219,7 @@ RoundControllerStatus round_make_move(int64_t id_round, int64_t id_playerMoving,
 
     // If match is over
     if (result != PLAY_RESULT_INVALID) {
+        LOG_INFO("SONO ENTRATO IN MATCH OVER!");
         RoundStatus endStatus = round_end_helper(&retrievedRound, -1, result);
         *out_id_round = retrievedRound.id_round;
 
@@ -232,6 +234,7 @@ RoundControllerStatus round_make_move(int64_t id_round, int64_t id_playerMoving,
 
 RoundControllerStatus round_end(int64_t id_round, int64_t id_playerEndingRound, int64_t* out_id_round) {
     
+    LOG_INFO("ID_ROUND PASSATO IN ROUND_END: %d", id_round);
     // Retrieve round to end
     Round retrievedRound;
     RoundControllerStatus status = round_find_one(id_round, &retrievedRound);
@@ -248,6 +251,8 @@ RoundControllerStatus round_end(int64_t id_round, int64_t id_playerEndingRound, 
 }
 
 static RoundControllerStatus round_end_helper(Round* roundToEnd, int64_t id_playerEndingRound, PlayResult result) {
+    
+    LOG_INFO("ROUND ID IN ROUND_END_HELPER: %d", roundToEnd->id_round);
     
     // Set round status
     roundToEnd->state = FINISHED_ROUND;
@@ -284,9 +289,11 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, int64_t id_play
     if (id_playerWinner != -1)
         id_playerEndingRound = id_playerWinner;
 
+    LOG_INFO("PLAYER ENDING ROUND: %d", id_playerEndingRound);
+
     // Send notification
     NotificationDTO *out_notification_dto = NULL;
-    if (notification_finished_round(roundToEnd->id_game, id_playerEndingRound, play_result_to_string(result), &out_notification_dto) != NOTIFICATION_CONTROLLER_OK)
+    if (notification_finished_round(roundToEnd->id_round, id_playerEndingRound, play_result_to_string(result), &out_notification_dto) != NOTIFICATION_CONTROLLER_OK)
         return ROUND_CONTROLLER_INTERNAL_ERROR;
     char *json_message = serialize_notification_to_json("server_round_end_notification", out_notification_dto);
     if (send_server_broadcast_message(json_message, id_playerEndingRound) < 0 ) {
@@ -294,6 +301,8 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, int64_t id_play
     }
     free(json_message);
     free(out_notification_dto);
+
+    usleep(2000);
 
     // Send updated round end
     Play* retrievedPlayArray;
@@ -305,7 +314,7 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, int64_t id_play
     map_round_to_dto(roundToEnd, &out_round_dto);
     json_message = serialize_rounds_to_json("server_updated_round_end", &out_round_dto, 1);
     for (int i=0; i<retrievedPlayCount; i++) { // Send to all player except the player ending the round
-        if (retrievedPlayArray[i].id_player != id_playerEndingRound)
+        // if (retrievedPlayArray[i].id_player != id_playerEndingRound)
             if (send_server_unicast_message(json_message, retrievedPlayArray[i].id_player) < 0 )
                 return ROUND_CONTROLLER_INTERNAL_ERROR;
     }
@@ -410,9 +419,18 @@ RoundControllerStatus round_find_all(Round **retrievedRoundArray, int* retrieved
 // Read one
 RoundControllerStatus round_find_one(int64_t id_round, Round* retrievedRound) {
 
+    LOG_INFO("ROUND ID IN ROUND FIND ONE MOVE: %d", id_round);
+
+    if (id_round <= 0) {
+        LOG_WARN("round_make_move called with invalid id_round=%" PRId64, id_round);
+        return ROUND_CONTROLLER_INVALID_INPUT;
+    }
+
     sqlite3* db = db_open();
     RoundDaoStatus status = get_round_by_id(db, id_round, retrievedRound);
     db_close(db);
+
+    LOG_INFO("STATUS: %s\n", return_round_dao_status_to_string(status));
 
     if (status == ROUND_DAO_NOT_MODIFIED) {
         LOG_INFO("No changes detected for round %d, skipping update.", retrievedRound->id_round);

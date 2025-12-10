@@ -284,21 +284,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
             json_response = serialize_action_error(action, return_participation_request_controller_status_to_string(participationRequestStatus));
         }
 
-    } 
-    
-    // else if (strcmp(action, "participation_request_accept") == 0) {
-
-    //     ParticipationRequestControllerStatus participationRequestStatus = participation_request_accept(id_participation_request, id_player);
-
-    //     if (participationRequestStatus == PARTICIPATION_REQUEST_CONTROLLER_OK) {
-    //         json_response = serialize_action_success(action, "Participation request accepted", id_participation_request);
-    //     } else {
-    //         json_response = serialize_action_error(action, return_participation_request_controller_status_to_string(participationRequestStatus));
-    //     }
-
-    // } 
-    
-    else
+    } else
 
     // Play routes
     if (strcmp(action, "plays_get_public_info") == 0) {

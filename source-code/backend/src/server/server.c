@@ -183,8 +183,6 @@ static void *handle_client(void *arg) {
 
 int send_server_response(int client_socket, const char *data) {
 
-    LOG_DEBUG("CLIENT_SOCKET: %d", client_socket);
-
     if(client_socket < 0 || !data) {
         LOG_WARN("Invalid parameters: socket = %d, data = %p\n", client_socket, (void*)data);
         return -1;
@@ -201,8 +199,6 @@ int send_server_response(int client_socket, const char *data) {
 }
 
 int send_server_broadcast_message(const char *message, int64_t id_sender) {
-
-    LOG_DEBUG("ID_SENDER: %d", id_sender);
 
     Session session_sender;
 
