@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include "server.h"
 #include "session_manager.h"
 #include "../../include/debug_log.h"
 
@@ -157,19 +158,26 @@ int session_broadcast(SessionManager *manager, const char *message, int sender_f
 
     pthread_mutex_lock(&manager->lock);
 
+    int result = 0; // 0 = ok, -1 se almeno un invio fallisce
+
     for (int i = 0; i < MAX_SESSION; i++) {
         if (manager->list[i].active && manager->list[i].fd != sender_fd) {
-            send(manager->list[i].fd, message, strlen(message), 0);
+            int fd = manager->list[i].fd;
+
+            if (send_framed_json(fd, message) < 0) {
+                LOG_WARN("Broadcast send() failed for fd %d\n", fd);
+                result = -1;  // segniamo l'errore ma continuiamo con gli altri
+            }
         }
     }
 
     pthread_mutex_unlock(&manager->lock);
 
-    return 0;
+    return result;
 }
 
-int session_unicast(SessionManager *manager, const char *message, int receiver_fd) {
 
+int session_unicast(SessionManager *manager, const char *message, int receiver_fd) {
 
     if (!manager) {
         LOG_WARN("%s\n", "SessionManager pointer is NULL");
@@ -182,29 +190,32 @@ int session_unicast(SessionManager *manager, const char *message, int receiver_f
     }
 
     if (receiver_fd < 0) {
-        LOG_WARN("%s\n", "Receiver ID is not valid");
+        LOG_WARN("%s\n", "Receiver fd is not valid");
+        return -1;
     }
 
     pthread_mutex_lock(&manager->lock);
 
-    bool found = false;
-
-    if(manager->count == 0 ) {
+    if (manager->count == 0) {
         LOG_WARN("%s\n", "The session list is empty");
+        pthread_mutex_unlock(&manager->lock);
         return -1;
     }
 
-    for (int i = 0; i < MAX_SESSION; i++) {
+    bool found = false;
 
+    for (int i = 0; i < MAX_SESSION; i++) {
         if (manager->list[i].active && manager->list[i].fd == receiver_fd) {
             found = true;
-            ssize_t result = send(manager->list[i].fd, message, strlen(message), 0);
 
-            if (result < 0) {
+            int fd = manager->list[i].fd;
+
+            if (send_framed_json(fd, message) < 0) {
                 LOG_WARN("send() failed for fd %d\n", receiver_fd);
                 pthread_mutex_unlock(&manager->lock);
                 return -1;
             }
+
             break;
         }
     }

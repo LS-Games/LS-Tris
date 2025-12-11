@@ -55,12 +55,13 @@ int start_server(int port) {
     LOG_INFO("Server listens on port: %d... \n", port);
 
 
+    //Session Manager keeps track of the active sessions
     session_manager_init(&session_manager);
     LOG_INFO("%s\n", "Session manager initialized. Ready to accept clients.");
 
     // Infinite loops continue to accept clients 
     while(1) {
-        // For each iteration we will have a new address in the heap, in the handle_client function we reead
+        // For each iteration we will have a new address in the heap, in the handle_client function we read
         // this value and then we relase him using free()
         int *client_fd = malloc(sizeof(int));
 
@@ -93,110 +94,166 @@ int start_server(int port) {
     return 0;
 }
 
-// This functino named "function worker" handles a single client
-// @param *arg Corresponds to file descriptor that we will pass to it 
-// @return A void* because the thread POSIX standard wants this signature
+// Reads exactly that byte from the socket (or fails)
+// Returns: 1 = OK, 0 = connection closed, -1 = error
+static int recv_all(int fd, void *buf, size_t len) {
+
+    char *p = buf;
+    size_t remaining = len;
+
+    while (remaining > 0) {
+        ssize_t n = recv(fd, p, remaining, 0);
+        if (n < 0) {
+            if (errno == EINTR) continue;
+            return -1;
+        }
+        if (n == 0) {
+            // peer has closed the connection
+            return 0;
+        }
+
+        //Let's move forward in the buffer
+        p += n;
+        //We calculate the remainder
+        remaining -= n;
+    }
+
+    return 1;
+}
+
+// NB: We're using recv and send functions instead of read and write because we're working with socket
+
+// "worker function" that manages a single client 
 static void *handle_client(void *arg) {
 
-    // When we call accept() we dinamicaly allocate an int using malloc 
-    // We do a cast in a int pointer and then we dereference it to obtain the numerical value. 
-    int client_fd = *(int*)arg; 
+    int client_fd = *(int*)arg;
+    free(arg);
 
-    // We free up the allocated memory after saving it
-    free(arg); 
+    while (1) {
 
-    // The buffer is used for to store data arriving from client 
-    char buffer[1024];
-    ssize_t n;
-    ssize_t total = 0 ;
-    char *accumulated = NULL;
-    int persistence = 0;
+        //I read the 4-byte header (it contains the length of the JSON)
+        uint32_t len_net = 0;
 
-    // We have to use while because the TCP connection is a stream, we may receive fragmented message
-    // recv return a 0 if the connection is interrupted, -1 in case of errors and n which are the bytes received 
-    while((n = recv(client_fd, buffer, sizeof(buffer)-1, 0)) > 0) {
+        int r = recv_all(client_fd, &len_net, sizeof(len_net));
 
-        // We added the string terminator so we can use it as a string in C
-        buffer[n] = '\0';
-        
-        char *new_accum = realloc(accumulated, total + n + 1);
-
-        if (!new_accum) {
-            LOG_ERROR("%s\n", "Realloc error");
-            free(accumulated);
-            close(client_fd);
+        if (r == 0) {
+            // Il client ha chiuso la connessione
+            LOG_INFO("Client fd=%d closed the connection (while reading header)\n", client_fd);
+            break;
+        } else if (r < 0) {
+            LOG_ERROR("recv_all() failed on header for fd=%d\n", client_fd);
             break;
         }
 
-        accumulated = new_accum;
+        uint32_t len = ntohl(len_net);
 
-        // Start from total value and copy what's inside buffer which has length n
-        memcpy(&accumulated[total], buffer, n);
-        total += n;
-        accumulated[total] = '\0';
+        if (len == 0) {
+            LOG_WARN("Received empty frame from fd=%d\n", client_fd);
+            continue; // ignoro, ma tengo aperta la connessione
+        }
 
-        char *terminator = strstr(accumulated, "\r\n\r\n");
+        // (opzionale) limite massimo per sicurezza, es. 1MB
+        if (len > 1024 * 1024) {
+            LOG_WARN("Frame too large (%u bytes) from fd=%d\n", len, client_fd);
+            break;
+        }
 
-        if (terminator != NULL) {
-            *terminator = '\0';  
+        // 2) Alloco il buffer per il JSON
+        char *json_body = malloc(len + 1);
+        if (!json_body) {
+            LOG_ERROR("malloc() failed for JSON body (len=%u) fd=%d\n", len, client_fd);
+            break;
+        }
 
-            LOG_INFO("Full message received: %s\n", accumulated);
+        // 3) Leggo il corpo JSON
+        r = recv_all(client_fd, json_body, len);
+        if (r == 0) {
+            LOG_INFO("Client fd=%d closed the connection (while reading body)\n", client_fd);
+            free(json_body);
+            break;
+        } else if (r < 0) {
+            LOG_ERROR("recv_all() failed on body for fd=%d\n", client_fd);
+            free(json_body);
+            break;
+        }
 
-            route_request(accumulated, client_fd, &persistence);
+        // Termino la stringa
+        json_body[len] = '\0';
 
-            free(accumulated);
-            accumulated = NULL;
-            total = 0;
+        LOG_INFO("Full message received: %s\n", json_body);
 
-            //This is the case of SignIn action that's why we're closing the connection immediately
-            if (persistence == 0) {
-                LOG_INFO("Closing connection with fd=%d\n", client_fd);
-                close(client_fd);
-                return NULL;
-            }
+        int persistence = 1; // di default la teniamo aperta
+        route_request(json_body, client_fd, &persistence);
+
+        free(json_body);
+
+        // Se la route ci dice che è una connessione non persistente, chiudiamo
+        if (persistence == 0) {
+            LOG_INFO("Closing connection with fd=%d (non-persistent)\n", client_fd);
+            break;
         }
     }
 
-    if (n == 0) {
+    // Rimuovo la sessione se esiste
+    session_remove(&session_manager, client_fd);
+    LOG_INFO("Client fd=%d closed the connection\n", client_fd);
+    print_session_list(&session_manager);
 
-        /**
-         * When we receive n==0 it means that the connection has been closed 
-         * This is the case where the client:
-         * closes the browser windows -> the bridge captures the event and closes the conncetion with the backend
-         * the recv function receives 0 as value and call the manager function to delete the connection from the list
-         */
-
-        session_remove(&session_manager, client_fd);
-        LOG_INFO("Client fd=%d closed the connection\n", client_fd);
-        print_session_list(&session_manager);
-
-
-    } else if (n < 0) {
-        LOG_ERROR("recv() failed for fd=%d\n", client_fd);
-    }
-
-    free(accumulated);
     close(client_fd);
     return NULL;
 }
-// NB: We're using recv and send functions instead of read and write because we're working with socket
+
+static int send_all(int fd, const void *buf, size_t len) {
+    const char *p = buf;
+    while (len > 0) {
+        ssize_t n = send(fd, p, len, 0);
+        if (n < 0) {
+            if (errno == EINTR) continue; // ritenta se segnale
+            return -1;
+        }
+        if (n == 0) return -1; // connessione chiusa
+        p   += n;
+        len -= n;
+    }
+    return 0;
+}
+
+int send_framed_json(int fd, const char *json) {
+
+    if (!json) return -1;
+    uint32_t len = (uint32_t)strlen(json);
+    uint32_t len_net = htonl(len);
+
+    if (send_all(fd, &len_net, sizeof(len_net)) < 0) {
+        LOG_ERROR("Failed to send length header to fd=%d\n", fd);
+        return -1;
+    }
+
+    if (send_all(fd, json, len) < 0) {
+        LOG_ERROR("Failed to send JSON body to fd=%d\n", fd);
+        return -1;
+    }
+    return 0;
+}
+
 
 int send_server_response(int client_socket, const char *data) {
 
     if(client_socket < 0 || !data) {
-        LOG_WARN("Invalid parameters: socket = %d, data = %p\n", client_socket, (void*)data);
+        LOG_WARN("Invalid parameters: socket = %d, data = %p\n",
+                 client_socket, (void*)data);
         return -1;
     }
 
-    ssize_t sent = send(client_socket, data, strlen(data), 0);
-
-    if (sent < 0) {
-        LOG_ERROR("Failed to send data to client socket %d\n", client_socket);
+    if (send_framed_json(client_socket, data) < 0) {
+        LOG_ERROR("Failed to send framed JSON to client socket %d\n", client_socket);
         return -1;
     }
 
-    return sent;
+    return 0;
 }
+
+
 
 int send_server_broadcast_message(const char *message, int64_t id_sender) {
 

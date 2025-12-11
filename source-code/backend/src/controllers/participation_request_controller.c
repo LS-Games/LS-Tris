@@ -177,8 +177,6 @@ ParticipationRequestControllerStatus participation_request_change_state(int64_t 
 
         LOG_INFO("ID OWNER: %d", game.id_owner);
 
-        usleep(2000); 
-
         // Accepted player
         if (send_server_unicast_message(json_player, req.id_player) < 0) {
             free(json_owner);

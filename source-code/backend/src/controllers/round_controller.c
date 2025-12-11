@@ -302,8 +302,6 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, int64_t id_play
     free(json_message);
     free(out_notification_dto);
 
-    usleep(2000);
-
     // Send updated round end
     Play* retrievedPlayArray;
     int retrievedPlayCount;

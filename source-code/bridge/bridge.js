@@ -24,43 +24,94 @@ const BACKEND_PORT = parseInt(process.env.TCP_BACKEND_PORT || '8080'); // defaul
 
 console.log(`Forwarding to backend on "${BACKEND_HOST}:${BACKEND_PORT}"`);
 
+// === Framing helpers (length-prefixed JSON over TCP) ===================
+
+/**
+ * Builds a TCP frame: [4 bytes length (big endian)] + [JSON UTF-8 bytes]
+ */
+function buildFrame(jsonStr) {
+  const body = Buffer.from(jsonStr, 'utf8');
+  const header = Buffer.alloc(4);
+  header.writeUInt32BE(body.length, 0);
+  return Buffer.concat([header, body]);
+}
+
+/**
+ * Parses framed data from a buffer.
+ * Consumes as many complete frames as possible and returns:
+ *  { frames: string[], rest: Buffer }
+ */
+function parseFrames(buffer) {
+  const frames = [];
+  let offset = 0;
+
+  while (buffer.length - offset >= 4) {
+    const len = buffer.readUInt32BE(offset);
+    if (buffer.length - offset < 4 + len) break; // incomplete frame
+
+    const jsonBuf = buffer.slice(offset + 4, offset + 4 + len);
+    frames.push(jsonBuf.toString('utf8'));
+
+    offset += 4 + len;
+  }
+
+  const rest = buffer.slice(offset);
+  return { frames, rest };
+}
+
 // =======================================================================
 // SECTION 1 — NON-PERSISTENT COMMUNICATION (HTTP)
 // Used for one-shot actions like signup or password reset
 // =======================================================================
 
-// Helper function to communicate with the C backend via TCP
+// Helper function to communicate with the C backend via TCP (framed JSON)
 function sendToBackend(message) {
   return new Promise((resolve, reject) => {
     const client = new net.Socket();
-    let dataBuffer = '';
+    let buffer = Buffer.alloc(0);
+    let resolved = false;
 
     client.connect(BACKEND_PORT, BACKEND_HOST, () => {
       console.log(`Connected to backend at ${BACKEND_HOST}:${BACKEND_PORT}`);
-      const msg = message.endsWith('\r\n\r\n') ? message : message + '\r\n\r\n';
-      client.write(msg);
+
+      // message is already a JSON string
+      const frame = buildFrame(message);
+      client.write(frame);
     });
 
-    // Backend sends response, we resolve here
     client.on('data', (data) => {
-      dataBuffer += data.toString();
-    });
+      buffer = Buffer.concat([buffer, data]);
+      const parsed = parseFrames(buffer);
+      buffer = parsed.rest;
 
-    // Backend closes connection, we resolve only once
-    client.on('close', () => {
-      if (dataBuffer.length > 0) {
-        resolve(dataBuffer);
-      } else {
-        reject(new Error('Backend closed connection without data'));
+      // For HTTP one-shot we expect only one response frame
+      if (parsed.frames.length > 0 && !resolved) {
+        const jsonStr = parsed.frames[0];
+        console.log(`Backend responded (framed): ${jsonStr}`);
+        resolved = true;
+        client.end();
+        resolve(jsonStr);
       }
     });
 
-    client.on('error', (err) => reject(err));
+    client.on('error', (err) => {
+      console.error('TCP error in sendToBackend:', err.message);
+      if (!resolved) {
+        resolved = true;
+        reject(err);
+      }
+    });
+
+    client.on('close', () => {
+      if (!resolved) {
+        reject(new Error('Backend closed connection without sending a complete frame'));
+      }
+    });
   });
 }
 
 // HTTP endpoint (signup, etc.)
-// When arrive a HTTP request at /api/send executes this call back function
+// When an HTTP request arrives at /api/send the callback is executed
 // In req we have all information sent from frontend
 app.post('/api/send', async (req, res) => {
   try {
@@ -71,7 +122,7 @@ app.post('/api/send', async (req, res) => {
     const response = await sendToBackend(message);
     console.log(`Backend responded: ${response}`);
 
-    //We send HTTP backend response to client 
+    // We send HTTP backend response to client
     res.json({ backendResponse: response.trim() });
   } catch (err) {
     console.error('Bridge error:', err);
@@ -103,21 +154,24 @@ wss.on('connection', (ws) => {
   const client = new net.Socket();
   userConnections.set(ws, client);
 
-  //Client represents the TCP connection (with backend)
-  //ws represents the WebSocket connection (with frontend)
+  // Buffer used to accumulate framed data coming from backend
+  let tcpBuffer = Buffer.alloc(0);
+
+  // client represents the TCP connection (with backend)
+  // ws represents the WebSocket connection (with frontend)
   client.connect(BACKEND_PORT, BACKEND_HOST, () => {
     console.log(`Connected persistent TCP → ${BACKEND_HOST}:${BACKEND_PORT}`);
 
-    //Print table connection 
-    console.log(`\n Numero di connessioni websocket aperte: ${userConnections.size}`);
-    console.log("\n=== CONNESSIONI ATTUALI ===\n");
+    // Print connection table
+    console.log(`\n Number of open websocket connections: ${userConnections.size}`);
+    console.log("\n=== CURRENT CONNECTIONS ===\n");
 
     const connectionsInfo = [];
 
-    for (const [ws, client] of userConnections) {
+    for (const [wsConn, clientConn] of userConnections) {
       connectionsInfo.push({
-        WebSocketState: ws.readyState,
-        TCP: `${client.remoteAddress}:${client.remotePort}`
+        WebSocketState: wsConn.readyState,
+        TCP: `${clientConn.remoteAddress}:${clientConn.remotePort}`
       });
     }
 
@@ -126,17 +180,26 @@ wss.on('connection', (ws) => {
 
   // --- FRONTEND → BACKEND ------------------------------------------------
   ws.on('message', (msg) => {
-    const message = msg.toString();
-    console.log(`[Frontend → Backend]: ${message}`);
-    const withDelim = message.endsWith('\r\n\r\n') ? message : message + '\r\n\r\n';
-    client.write(withDelim);
+    const jsonStr = msg.toString(); // frontend sends already JSON.stringify(...)
+    console.log(`[Frontend → Backend]: ${jsonStr}`);
+
+    const frame = buildFrame(jsonStr);
+    client.write(frame);
   });
 
   // --- BACKEND → FRONTEND ------------------------------------------------
   client.on('data', (data) => {
-    const str = data.toString();
-    console.log(`[Backend → Frontend]: ${str}`);
-    ws.send(JSON.stringify({ backendResponse: str.trim() }));
+    tcpBuffer = Buffer.concat([tcpBuffer, data]);
+
+    const parsed = parseFrames(tcpBuffer);
+    tcpBuffer = parsed.rest;
+
+    for (const jsonStr of parsed.frames) {
+      console.log(`[Backend → Frontend]: ${jsonStr}`);
+
+      // We keep the same wrapper expected by the Angular WebsocketService
+      ws.send(JSON.stringify({ backendResponse: jsonStr }));
+    }
   });
 
   // --- CONNECTION MANAGEMENT ---------------------------------------------
@@ -144,20 +207,20 @@ wss.on('connection', (ws) => {
     console.log('Frontend disconnected — closing backend TCP');
     client.end();
     userConnections.delete(ws);
-
   });
 
   client.on('close', () => {
     console.log('Backend closed connection — closing WebSocket');
-    //After the TCP connection with backend is closed, we olso close WebSocket connection with frontend
+    // After the TCP connection with backend is closed, we also close WebSocket connection with frontend
     if (ws.readyState === ws.OPEN) ws.close();
     userConnections.delete(ws);
   });
 
   client.on('error', (err) => {
     console.error('TCP connection error:', err.message);
-    if (ws.readyState === ws.OPEN)
+    if (ws.readyState === ws.OPEN) {
       ws.send(JSON.stringify({ error: 'TCP connection error: ' + err.message }));
+    }
   });
 });
 
