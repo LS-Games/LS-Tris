@@ -137,7 +137,7 @@ static void *handle_client(void *arg) {
         int r = recv_all(client_fd, &len_net, sizeof(len_net));
 
         if (r == 0) {
-            // Il client ha chiuso la connessione
+            //The client has closed the connection.
             LOG_INFO("Client fd=%d closed the connection (while reading header)\n", client_fd);
             break;
         } else if (r < 0) {
@@ -149,23 +149,23 @@ static void *handle_client(void *arg) {
 
         if (len == 0) {
             LOG_WARN("Received empty frame from fd=%d\n", client_fd);
-            continue; // ignoro, ma tengo aperta la connessione
+            continue; //I don't know, but I'll keep the connection open.
         }
 
-        // (opzionale) limite massimo per sicurezza, es. 1MB
+        //(optional) maximum limit for security, e.g., 1MB per open connection
         if (len > 1024 * 1024) {
             LOG_WARN("Frame too large (%u bytes) from fd=%d\n", len, client_fd);
             break;
         }
 
-        // 2) Alloco il buffer per il JSON
+        //I allocate the buffer for JSON
         char *json_body = malloc(len + 1);
         if (!json_body) {
             LOG_ERROR("malloc() failed for JSON body (len=%u) fd=%d\n", len, client_fd);
             break;
         }
 
-        // 3) Leggo il corpo JSON
+        //I read the JSON body
         r = recv_all(client_fd, json_body, len);
         if (r == 0) {
             LOG_INFO("Client fd=%d closed the connection (while reading body)\n", client_fd);
@@ -177,24 +177,24 @@ static void *handle_client(void *arg) {
             break;
         }
 
-        // Termino la stringa
+        //I end the string
         json_body[len] = '\0';
 
         LOG_INFO("Full message received: %s\n", json_body);
 
-        int persistence = 1; // di default la teniamo aperta
+        int persistence = 1; //by default, we keep it open
         route_request(json_body, client_fd, &persistence);
 
         free(json_body);
 
-        // Se la route ci dice che è una connessione non persistente, chiudiamo
+        //If the route tells us that it is a non-persistent connection, we close it.
         if (persistence == 0) {
             LOG_INFO("Closing connection with fd=%d (non-persistent)\n", client_fd);
             break;
         }
     }
 
-    // Rimuovo la sessione se esiste
+    //Remove the session if it exists
     session_remove(&session_manager, client_fd);
     LOG_INFO("Client fd=%d closed the connection\n", client_fd);
     print_session_list(&session_manager);
@@ -208,10 +208,10 @@ static int send_all(int fd, const void *buf, size_t len) {
     while (len > 0) {
         ssize_t n = send(fd, p, len, 0);
         if (n < 0) {
-            if (errno == EINTR) continue; // ritenta se segnale
+            if (errno == EINTR) continue; 
             return -1;
         }
-        if (n == 0) return -1; // connessione chiusa
+        if (n == 0) return -1; // closed connection
         p   += n;
         len -= n;
     }
@@ -260,7 +260,7 @@ int send_server_broadcast_message(const char *message, int64_t id_sender) {
     Session session_sender;
 
     if(!(session_find_by_id_player(&session_manager, id_sender, &session_sender))) {
-        LOG_WARN("Session not found");
+        LOG_WARN("%s", "Session not found");
         return -1;
     }
 
@@ -279,12 +279,12 @@ int send_server_unicast_message(const char *message, int64_t id_receiver) {
     Session receiverSession;  
 
     if (!(session_find_by_id_player(&session_manager, id_receiver, &receiverSession))) {
-        LOG_WARN("Receiver session not found\n");
+        LOG_WARN("%s", "Receiver session not found\n");
         return -1;
     }
 
     if(receiverSession.fd < 1) {
-        LOG_WARN("Session fd is negative");
+        LOG_WARN("%s", "Session fd is negative");
         return -1;
     }
 

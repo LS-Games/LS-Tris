@@ -10,14 +10,3 @@
     </div>
   }
 </div>
-
-@if (winner) {
-  <div class="game-status">
-    @if (winner !== 'draw') {
-      <p>🏆 Vincitore: <strong>{{ winner }}</strong></p>
-    } @else {
-      <p>🤝 Pareggio!</p>
-    }
-    <button class="restart-btn" (click)="restart()">Rigioca</button>
-  </div>
-}

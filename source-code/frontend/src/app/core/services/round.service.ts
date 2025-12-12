@@ -20,7 +20,7 @@ export class RoundService {
     lastMoveIndexSignal = signal<number | null>(null);
 
     mySymbolSignal = signal<'X' | 'O'>('X');
-    winnerSignal = signal<string | null>(null);
+    winnerSignal = signal<'X' | 'O' | null>(null);
 
     constructor() {
 
@@ -42,54 +42,46 @@ export class RoundService {
                 }
             });
 
-        this._ws.onAction<any>('round_make_move')
-            .subscribe(msg => {
-                if (msg.status === 'success') {
-
-                    const index = this.lastMoveIndexSignal();
-                    if (index !== null) {
-                        this.boardSignal.update(b => {
-                            const copy = [...b];
-                            copy[index] = this.mySymbolSignal();
-                            return copy;
-                        });
-
-                        this.lastMoveIndexSignal.set(null);
-                    }
-                }
-            });
-
 
         this._ws.onAction<any>('server_updated_round_move')
             .subscribe(msg => {
                 console.log(msg);
                 this.updateBoard(msg.rounds[0].board);
+                this.lastMoveIndexSignal.set(null);
             })
 
         this._ws.onAction<any>('server_updated_round_end')
             .subscribe(msg => {
+                console.log(msg);
                 const round = msg.rounds[0];
-                console.log("ROUND ENDED", round);
-
                 this.roundId.set(round.id_round);
                 this.updateBoard(round.board);
 
-                this.winnerSignal.set(round.winner ?? null);
+                this.winnerSignal.set(this.findWinner(round.board));
+                if(this.winnerSignal() === this.mySymbolSignal()) {
+                    console.log("Hai vinto");
+                } else {
+                    console.log("Hai perso");
+                }
+
+                
             });
 
         this._ws.onAction<any>('server_round_end_notification')
             .subscribe(msg => {
-                console.log("NOTIFICATION: ROUND ENDED", msg);
+                console.log(msg);
 
                 this.currentPlayerTurnSignal.set('X');
             });
     }
 
     updateBoard(board:string) {
-        /**
+
+        /*
          * With split() if we have "X@O@@X@O" it provides us ["X", "@", "O", "@", "@", "X", "@", "O"]
-           Moreover if there are @ symbols these are repleced with null
+         * Moreover if there are @ symbols these are repleced with null
          */
+
         const arr = board.split('').map(c => {
         if (c === '@') return null;
         return c as 'X' | 'O';
@@ -117,6 +109,34 @@ export class RoundService {
         this.player2Id.set(null);
         this.player1Nickname.set(null);
         this.player2Nickname.set(null);
+    }
+
+    findWinner(board: string): 'X' | 'O' | null {
+
+        const wins = [
+            [0, 1, 2], 
+            [3, 4, 5], 
+            [6, 7, 8], 
+            [0, 3, 6], 
+            [1, 4, 7], 
+            [2, 5, 8], 
+            [0, 4, 8], 
+            [2, 4, 6]  
+        ];
+
+        for (const [a, b, c] of wins) {
+
+            const v1 = board[a];
+            const v2 = board[b];
+            const v3 = board[c];
+
+            // Check that they're equal AND not '@'
+            if (v1 !== '@' && v1 === v2 && v2 === v3) {
+            return v1 as 'X' | 'O';
+            }
+        }
+
+        return null;
     }
 
     makeMove(index:number) {

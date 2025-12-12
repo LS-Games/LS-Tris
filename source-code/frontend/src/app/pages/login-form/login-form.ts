@@ -14,6 +14,7 @@ import { DestroyRef } from '@angular/core';
   styleUrl: './login-form.scss'
 })
 export class LoginForm {
+
   private readonly _dialogRef = inject(DialogRef<LoginForm>);
   private readonly _dialog = inject(Dialog);
   private readonly _formBuilder = inject(FormBuilder);
@@ -27,6 +28,30 @@ export class LoginForm {
     nickname: ['', [Validators.required]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
+
+  constructor() {
+
+    // Listen for login success
+    this._authService.onLoginSuccess()
+      .pipe(takeUntilDestroyed(this._destroyRef))
+      .subscribe((id) => {
+
+        const nickname = this.loginForm.value.nickname;
+        
+        this._notificationService.show('success', `Welcome back! ${nickname}`, 4000);
+        this._authService.id = id;
+        this.close();
+        this.buttonClicked = false;
+      });
+
+    // Listen for login error
+    this._authService.onLoginError()
+      .pipe(takeUntilDestroyed(this._destroyRef))
+      .subscribe((err) => {
+        this._notificationService.show('error', err, 4000);
+        this.buttonClicked = false;
+      });
+  }
 
   // Closes the login dialog 
   close() {
@@ -54,23 +79,5 @@ export class LoginForm {
 
     // Call AuthService to sign in via WebSocket
     this._authService.signin(nickname!, password!);
-
-    // Listen for login success
-    this._authService.onLoginSuccess()
-      .pipe(takeUntilDestroyed(this._destroyRef))
-      .subscribe((id) => {
-        this._notificationService.show('success', `Welcome back! ${nickname}`, 4000);
-        this._authService.id = id;
-        this.close();
-        this.buttonClicked = false;
-      });
-
-    // Listen for login error
-    this._authService.onLoginError()
-      .pipe(takeUntilDestroyed(this._destroyRef))
-      .subscribe((err) => {
-        this._notificationService.show('error', err, 4000);
-        this.buttonClicked = false;
-      });
   }
 }

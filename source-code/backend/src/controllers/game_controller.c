@@ -237,17 +237,12 @@ GameControllerStatus game_cancel(int64_t id_game, int64_t id_owner, int64_t* out
 
 GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner) {
 
-    LOG_INFO("ID_GAME: %d", id_game);
-    LOG_INFO("ID_NEW_OWNER: %d", id_newOwner);
-
     Game retrievedGame;
     GameControllerStatus status = game_find_one(id_game, &retrievedGame);
     if (status != GAME_CONTROLLER_OK)
         return status;
 
     retrievedGame.id_owner = id_newOwner;
-
-    LOG_INFO("RETRIEVED GAME ID_OWNER: %d", retrievedGame.id_owner);
 
     return game_update(&retrievedGame);
 }

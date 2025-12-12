@@ -29,7 +29,7 @@ export class WebsocketService {
   // Shared reactive stream that emits every message received from the backend
   // This Subject acts as a bridge between the native WebSocket events
   // and the rest of the Angular app (components, services, etc.)
-  private readonly messages$ = new Subject<BackendMessage>();
+  private messages$ = new Subject<BackendMessage>();
 
   // WebSocket connection parameters
   private readonly address = this.config.get('BRIDGE_ADDRESS');
@@ -64,6 +64,7 @@ export class WebsocketService {
         this._zone.run(() => {
           try {
             const wrapper = JSON.parse(event.data);
+            console.log("WS RAW DATA:", event.data);
 
             let payload: BackendMessage | null = null;
 
@@ -165,8 +166,21 @@ export class WebsocketService {
   close(): void {
     if (this.socket) {
       this.socket.close();
-      this.messages$.complete();
-      console.log('WebSocket connection closed.');
+      this.socket = undefined;
+      console.log('WebSocket closed.');
     }
   }
+
+
+  /**
+   * Used to restore the WebSocket service to its initial state
+   */
+  reset() {
+    if (this.socket) {
+      this.socket.close();
+    }
+    
+    this.socket = undefined;
+  }
+
 }

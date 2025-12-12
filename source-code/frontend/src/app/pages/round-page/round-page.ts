@@ -1,8 +1,8 @@
-import { Component, inject, Input, signal, effect } from '@angular/core';
+import { Component, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BoardComponent } from '../round-page/components/board/board';
 import { RoundService } from '../../core/services/round.service';
-
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-round-page',
   standalone: true,
@@ -13,7 +13,8 @@ import { RoundService } from '../../core/services/round.service';
 export class RoundPage {
 
   private readonly _round = inject(RoundService);
-
+  private readonly _router = inject(Router);
+  
   player1Nickname = this._round.player1Nickname;
   player2Nickname = this._round.player2Nickname;
 
@@ -34,8 +35,6 @@ export class RoundPage {
 
   handleMove(index:number) {
 
-    if(this.winner()) return;
-
     if(this.currentPlayer() !== this.mySimbol()) {
       console.log("Non è il tuo turno");
     }
@@ -44,5 +43,10 @@ export class RoundPage {
 
     this._round.makeMove(index);
   }
+
+  toHomePage() {
+    this._router.navigate(['']);
+  }
+  
 
 }

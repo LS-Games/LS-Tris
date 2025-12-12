@@ -1,7 +1,8 @@
 import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { HttpService } from './http.service';
 import { WebsocketService } from './websocket.service';
-import { Subject } from 'rxjs';
+import { Subject} from 'rxjs';
+import { take } from 'rxjs/operators';
 
 interface BackendSigninResponse {
   action: 'player_signin';
@@ -31,7 +32,24 @@ export class AuthService {
   constructor() {
 
     const saved = localStorage.getItem('player_id');
-    if (saved) this._playerId.set(Number(saved));
+
+    if (saved) {
+      this._playerId.set(Number(saved));
+      this._isLoggedIn.set(true);
+    }
+
+    this._ws.onAction<BackendSigninResponse>('player_signin')
+      .subscribe((backend) => {
+        console.log('Received backend response for login:', backend);
+
+        if (backend.status === 'success' && backend.id) {
+          this._playerId.set(backend.id);
+          this._isLoggedIn.set(true);
+          this.loginSuccess$.next(backend.id);
+        } else {
+          this.loginError$.next(backend.error_message || 'Login failed');
+        }
+      });
 
     effect(() => {
       if (this.isLoggedIn()) localStorage.setItem('token', 'demo');
@@ -49,21 +67,10 @@ export class AuthService {
 signin(nickname: string, password: string) {
   const payload = { action: 'player_signin', nickname, password };
 
+  this._ws.reset();
+
   this._ws.connect().then(() => {
     this._ws.send(payload);
-
-    this._ws.onAction<BackendSigninResponse>('player_signin')
-      .subscribe((backend) => {
-        console.log('Received backend response for login:', backend);
-
-        if (backend.status === 'success' && backend.id) {
-          this._playerId.set(backend.id);
-          this._isLoggedIn.set(true);
-          this.loginSuccess$.next(backend.id);
-        } else {
-          this.loginError$.next(backend.error_message || 'Login failed');
-        }
-      });
   });
 }
 
@@ -81,7 +88,8 @@ signin(nickname: string, password: string) {
     this._playerId.set(null);
     localStorage.removeItem('player_id');
     localStorage.removeItem('token');
-    this._ws.close();
+    
+    this._ws.reset();
   }
 
   get id() {
