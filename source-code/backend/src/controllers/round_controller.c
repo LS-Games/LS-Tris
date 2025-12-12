@@ -231,7 +231,6 @@ RoundControllerStatus round_make_move(int64_t id_round, int64_t id_playerMoving,
 
 RoundControllerStatus round_end(int64_t id_round, int64_t id_playerEndingRound, int64_t* out_id_round) {
     
-    LOG_INFO("ID_ROUND PASSATO IN ROUND_END: %d", id_round);
     // Retrieve round to end
     Round retrievedRound;
     RoundControllerStatus status = round_find_one(id_round, &retrievedRound);
@@ -310,7 +309,7 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, int64_t id_play
             if (send_server_unicast_message(json_message, retrievedPlayArray[i].id_player) < 0 )
                 return ROUND_CONTROLLER_INTERNAL_ERROR;
     }
-    
+
     free(json_message);
 
     return ROUND_CONTROLLER_OK;
@@ -356,8 +355,6 @@ static RoundControllerStatus round_start_helper(int64_t id_game, int64_t duratio
     RoundControllerStatus status = round_create(&roundToStart);
     if (status != ROUND_CONTROLLER_OK)
         return status;
-
-    LOG_DEBUG("AFTER INSERT: NEW ROUND ID = %" PRId64 "\n", roundToStart.id_round);
 
     *out_newRound = roundToStart;
 
@@ -475,4 +472,5 @@ RoundControllerStatus round_find_full_info_by_id_round(int64_t id_round, RoundFu
 
     return ROUND_CONTROLLER_OK;
 }
+
 

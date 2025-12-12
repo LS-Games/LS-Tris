@@ -22,6 +22,7 @@ export class RoundPage {
   currentPlayer = this._round.currentPlayerTurnSignal;
   mySimbol = this._round.mySymbolSignal;
   winner = this._round.winnerSignal;
+  roundEndend = this._round.roundEndedSignal;
 
   constructor() {
 
@@ -45,8 +46,8 @@ export class RoundPage {
   }
 
   toHomePage() {
+    this._round.reset();
     this._router.navigate(['']);
   }
-  
 
 }

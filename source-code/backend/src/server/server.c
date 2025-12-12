@@ -259,9 +259,11 @@ int send_server_broadcast_message(const char *message, int64_t id_sender) {
 
     Session session_sender;
 
-    if(!(session_find_by_id_player(&session_manager, id_sender, &session_sender))) {
-        LOG_WARN("%s", "Session not found");
-        return -1;
+    if(id_sender > 0) {
+        if(!(session_find_by_id_player(&session_manager, id_sender, &session_sender))) {
+            LOG_WARN("%s", "Session not found");
+            return -1;
+        }
     }
 
     if (session_broadcast(&session_manager, message, session_sender.fd) < 0) {

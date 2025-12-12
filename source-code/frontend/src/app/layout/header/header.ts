@@ -5,6 +5,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { Dialog } from '@angular/cdk/dialog';
 import { SignupForm } from '../../pages/signup-form/signup-form';
 import { LoginForm } from '../../pages/login-form/login-form';
+import { Router } from '@angular/router';
 
 
 @Component({
@@ -16,10 +17,12 @@ import { LoginForm } from '../../pages/login-form/login-form';
 })
 
 export class Header {
-  auth = inject(AuthService); // static access to the AuthService
+  auth = inject(AuthService); 
+  private readonly _router = inject(Router);
 
   logout() {
     this.auth.logout()
+    this._router.navigate(['/']);
   }
 
   private readonly dialog = inject(Dialog);

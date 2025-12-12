@@ -2,7 +2,6 @@ import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { HttpService } from './http.service';
 import { WebsocketService } from './websocket.service';
 import { Subject} from 'rxjs';
-import { take } from 'rxjs/operators';
 
 interface BackendSigninResponse {
   action: 'player_signin';

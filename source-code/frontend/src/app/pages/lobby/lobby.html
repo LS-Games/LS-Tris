@@ -22,8 +22,6 @@
         @else if (games().length > 0) {
 
             @for (game of games(); track game.id_game) {
-
-                @if (game.state === 'new' || game.state === 'waiting') {
                     <app-game-card
                         [id]="game.id_game"
                         [creator]="game.creator_nickname"
@@ -32,7 +30,6 @@
                         [state]="game.state">
                     </app-game-card>
                 }
-            }
 
         } @else {
             <p class="empty-message">No games found.</p>

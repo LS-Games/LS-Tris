@@ -34,6 +34,8 @@ export class Lobby {
 
   constructor() {
 
+    this._round.reset();
+
     effect(() => {
       const gameId = this._round.gameId();
       const roundId = this._round.roundId();
@@ -50,6 +52,10 @@ export class Lobby {
      */
 
     afterNextRender(() => {
+
+      //We clear the array 
+      this._game.setGames([]);
+
       this._game
         .getAllGame()
           .pipe(takeUntilDestroyed(this._destroyRef))
@@ -63,7 +69,10 @@ export class Lobby {
 
             next : (backend) => {
               if(backend.status === 'success') {
-                this._game.setGames(backend.games);
+                console.log("DEBUG LOBBY GAMES FROM BACKEND:", backend.games);
+                const filtered_games = backend.games.filter((g:any) => (g.state === 'active' || g.state === 'new' || g.state === 'waiting'));
+                this._game.setGames(filtered_games);
+                console.log(filtered_games);
                 this.loading = false;
 
                 if(backend.count == 0) {

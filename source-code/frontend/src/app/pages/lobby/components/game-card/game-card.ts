@@ -20,7 +20,7 @@ export class GameCard {
   @Input() creator!:string;
   @Input() data!:string;
   @Input() owner!:string;
-  @Input() state!: 'new' | 'active' | 'waiting' | 'finished'
+  @Input() state!:string
   @Input() current_streak?: number;
 
 

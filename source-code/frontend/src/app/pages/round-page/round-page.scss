@@ -62,6 +62,18 @@
   margin-top: 20px;
 }
 
+#draw-text {
+  font-family: 'Bowlby One SC', sans-serif;
+  font-size: clamp(40px, 3vw, 125px);
+  font-weight: 900;
+  text-align: center;
+  color: #F7B725; 
+  letter-spacing: 1px;
+
+  animation: loseShake 0.35s ease-out;
+  margin-top: 20px;
+}
+
 @keyframes loseShake {
   0%   { transform: translateX(0); }
   25%  { transform: translateX(-5px); }
@@ -88,7 +100,6 @@
 .round-end-button:hover {
   transform: translateY(-2px);
   transform: scale(1.05);
-
 }
 
 .round-end-button:active {
@@ -101,8 +112,12 @@
 }
 
 #lose-text + .round-end-button {
-  transform: scale(1.05);
   background-color: #FF0000;
+  color: #fff;
+}
+
+#draw-text + .round-end-button {
+  background-color: #F7B725;
   color: #fff;
 }
 

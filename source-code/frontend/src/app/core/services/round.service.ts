@@ -21,6 +21,7 @@ export class RoundService {
 
     mySymbolSignal = signal<'X' | 'O'>('X');
     winnerSignal = signal<'X' | 'O' | null>(null);
+    roundEndedSignal = signal<boolean>(false);
 
     constructor() {
 
@@ -57,13 +58,21 @@ export class RoundService {
                 this.roundId.set(round.id_round);
                 this.updateBoard(round.board);
 
-                this.winnerSignal.set(this.findWinner(round.board));
-                if(this.winnerSignal() === this.mySymbolSignal()) {
-                    console.log("Hai vinto");
-                } else {
-                    console.log("Hai perso");
-                }
+                if(this.findWinner(round.board)) {
 
+                    this.winnerSignal.set(this.findWinner(round.board));
+                    if(this.winnerSignal() === this.mySymbolSignal()) {
+                        this.roundEndedSignal.set(true);
+                        console.log("Hai vinto");
+                    } else {
+                        this.roundEndedSignal.set(true);
+                        console.log("Hai perso");
+                    }
+
+                } else {
+                    this.roundEndedSignal.set(true);
+                    console.log("Pareggio");
+                }
                 
             });
 
@@ -171,6 +180,20 @@ export class RoundService {
         
         console.log(payload);
         this._ws.send(payload);
+    }
+
+    reset() {
+        this.gameId.set(null);
+        this.roundId.set(null);
+        this.player1Id.set(null);
+        this.player2Id.set(null);
+        this.player1Nickname.set(null);
+        this.player2Nickname.set(null);
+        this.boardSignal.set(Array(9).fill(null));
+        this.currentPlayerTurnSignal.set('X');
+        this.lastMoveIndexSignal.set(null);
+        this.mySymbolSignal.set('X');
+        this.winnerSignal.set(null);
     }
 
 }

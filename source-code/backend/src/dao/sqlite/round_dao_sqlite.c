@@ -463,8 +463,3 @@ RoundDaoStatus round_find_full_info(sqlite3 *db, int64_t id_round, RoundFullDTO 
     sqlite3_finalize(stmt);
     return ROUND_DAO_OK;
 }
-
-
-
-
-
