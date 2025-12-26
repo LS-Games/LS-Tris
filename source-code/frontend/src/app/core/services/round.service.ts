@@ -28,6 +28,9 @@ export class RoundService {
         this._ws.onAction<any>('server_round_start') 
             .subscribe(msg => {
 
+                console.log(msg);
+                this.resetRoundState();
+
                 const round = msg.round; 
                 this.gameId.set(round.id_game);
                 this.roundId.set(round.id_round);
@@ -182,18 +185,31 @@ export class RoundService {
         this._ws.send(payload);
     }
 
-    reset() {
+    // --- RESET "UI / ROUND STATE" ---
+    private resetRoundState() {
+        this.boardSignal.set(Array(9).fill(null));
+        this.currentPlayerTurnSignal.set('X');
+        this.lastMoveIndexSignal.set(null);
+        this.winnerSignal.set(null);
+        this.roundEndedSignal.set(false); 
+    }
+
+    // --- RESET "SESSION / IDENTIFIERS" ---
+    private resetRoundSession() {
         this.gameId.set(null);
         this.roundId.set(null);
+
         this.player1Id.set(null);
         this.player2Id.set(null);
         this.player1Nickname.set(null);
         this.player2Nickname.set(null);
-        this.boardSignal.set(Array(9).fill(null));
-        this.currentPlayerTurnSignal.set('X');
-        this.lastMoveIndexSignal.set(null);
-        this.mySymbolSignal.set('X');
-        this.winnerSignal.set(null);
+
+        this.mySymbolSignal.set('X'); 
+    }
+
+    resetAll() {
+        this.resetRoundSession();
+        this.resetRoundState();
     }
 
 }

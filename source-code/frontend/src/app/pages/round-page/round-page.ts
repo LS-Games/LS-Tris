@@ -24,7 +24,7 @@ export class RoundPage {
   currentPlayer = this._round.currentPlayerTurnSignal;
   mySimbol = this._round.mySymbolSignal;
   winner = this._round.winnerSignal;
-  roundEndend = this._round.roundEndedSignal;
+  roundEnded = this._round.roundEndedSignal;
 
   constructor() {
 
@@ -40,6 +40,7 @@ export class RoundPage {
 
     if(this.currentPlayer() !== this.mySimbol()) {
       console.log("Non è il tuo turno");
+      return;
     }
 
     if(this.board()[index] !== null) return;
@@ -48,7 +49,7 @@ export class RoundPage {
   }
 
   toHomePage() {
-    this._round.reset();
+    this._round.resetAll();
     this._router.navigate(['']);
   }
 

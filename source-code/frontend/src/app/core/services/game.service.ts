@@ -1,6 +1,7 @@
 import { inject, Injectable, NgZone, signal } from "@angular/core";
 import { WebsocketService } from "./websocket.service";
 import { AuthService } from "./auth.service";
+import { RoundService } from "./round.service";
 
 //We report the backend message structure about this service
 
@@ -17,9 +18,9 @@ export class GameService {
 
     private readonly _ws = inject(WebsocketService);
     private readonly _auth = inject(AuthService);
+    private readonly _round = inject(RoundService);
     
     gamesSignal = signal<GameInfo[]>([]);
-    currentGameIdSignal = signal<number | null>(null);
 
     constructor() {
 
@@ -44,10 +45,6 @@ export class GameService {
         this.gamesSignal.set(games);
     }
 
-    setCurrentGameId(id:number | null) {
-        this.currentGameIdSignal.set(id);
-    }
-
     getAllGame() {
         const payload = { action: 'games_get_public_info', status: 'all' };
         this._ws.send(payload);
@@ -70,7 +67,11 @@ export class GameService {
     }
 
     endGame() {
-        const id_game = this.currentGameIdSignal();
+        if(!this._round.gameId()) {
+            console.warn("GameId is null!");
+        }
+
+        const id_game = this._round.gameId();
         if (!id_game) return;
 
         const payload = {

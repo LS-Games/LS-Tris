@@ -7,6 +7,7 @@ import { RequestsService } from '../../core/services/requests.service';
 import { RequestCard } from './components/request-card/request-card';
 import { Router } from '@angular/router';
 import { RoundService } from '../../core/services/round.service';
+import { consumerPollProducersForChange } from '@angular/core/primitives/signals';
 
 @Component({
   selector: 'app-request-page',
@@ -52,9 +53,10 @@ export class RequestPage {
         .pipe(takeUntilDestroyed(this._destroyRef))
         .subscribe(msg => {
 
+          console.log(msg);
+
           if (msg.status === 'success' && msg.id) {
             this.id_game = msg.id;
-            this._game.setCurrentGameId(msg.id);
             this.loading = false;
             console.log("Game created successfully:", msg.id);
           } else {
@@ -75,7 +77,6 @@ export class RequestPage {
 
     this._rqst.rejectAllParticipationRequests();
     this._rqst.clearRequests();
-    this._game.setCurrentGameId(null);
     this._game.deleteGame(this.id_game);
     this._dialogRef.close();
   }

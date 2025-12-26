@@ -10,14 +10,14 @@
     (move)="handleMove($event)"
   ></app-board>
 
-  @if (this.roundEndend()) {
+  @if (roundEnded()) {
     <div class="game-status">
 
-        @if (this.winner() === this.mySimbol()) {
+        @if (winner() === mySimbol()) {
           <p id="win-text">🏆 YOU WON!</p>
-          <button (click)="newGameAfterWin()"class="play-again-button">CERCA UN NUOVO AVVERSARIO</button>
-          <button (click)="gameEndAfterWin()"class="round-end-button" id="">TERMINA PARTITA</button>
-        } @else if(this.winner() !== null && this.winner() !== this.mySimbol()){
+          <button (click)="newGameAfterWin()" class="play-again-button">CERCA UN NUOVO AVVERSARIO</button>
+          <button (click)="gameEndAfterWin()" class="round-end-button">TERMINA PARTITA</button>
+        } @else if(winner() !== null && winner() !== mySimbol()){
           <p id="lose-text"> 😢 YOU'VE LOST </p>
           <button (click)="toHomePage()" class="round-end-button">TORNA ALLA HOMEPAGE</button>
         } @else {

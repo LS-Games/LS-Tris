@@ -34,7 +34,7 @@ export class Lobby {
 
   constructor() {
 
-    this._round.reset();
+    this._round.resetAll();
 
     effect(() => {
       const gameId = this._round.gameId();
