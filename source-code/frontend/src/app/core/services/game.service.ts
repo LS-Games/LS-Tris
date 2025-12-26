@@ -19,11 +19,13 @@ export class GameService {
     private readonly _auth = inject(AuthService);
     
     gamesSignal = signal<GameInfo[]>([]);
+    currentGameIdSignal = signal<number | null>(null);
 
     constructor() {
 
         this._ws.onAction<any>('server_new_game')
         .subscribe(msg => {
+            console.log(msg);
             const newGame = msg.games[0];
             this.gamesSignal.update(games => [...games, newGame]);
         });
@@ -42,25 +44,41 @@ export class GameService {
         this.gamesSignal.set(games);
     }
 
+    setCurrentGameId(id:number | null) {
+        this.currentGameIdSignal.set(id);
+    }
+
     getAllGame() {
-    const payload = { action: 'games_get_public_info', status: 'all' };
-    this._ws.send(payload);
-    return this._ws.onAction<any>('games_get_public_info');
-  }
+        const payload = { action: 'games_get_public_info', status: 'all' };
+        this._ws.send(payload);
+        return this._ws.onAction<any>('games_get_public_info');
+    }
 
-  createGame() {
-    const payload = { action: 'game_start', id_creator: this._auth.id };
-    this._ws.send(payload);
-  }
+    createGame() {
+        const payload = { action: 'game_start', id_creator: this._auth.id };
+        this._ws.send(payload);
+    }
 
-  deleteGame(id_game: number) {
+    deleteGame(id_game: number) {
+        const payload = { 
+            action: 'game_cancel', 
+            id_game, 
+            id_owner: this._auth.id 
+        };
 
-    const payload = { 
-        action: 'game_cancel', 
-        id_game, 
-        id_owner: this._auth.id 
-    };
+        this._ws.send(payload);
+    }
 
-    this._ws.send(payload);
-  }
+    endGame() {
+        const id_game = this.currentGameIdSignal();
+        if (!id_game) return;
+
+        const payload = {
+            action: 'game_end',
+            id_game,
+            id_owner: this._auth.id
+        };
+
+        this._ws.send(payload)
+    }
 }

@@ -54,6 +54,7 @@ export class RequestPage {
 
           if (msg.status === 'success' && msg.id) {
             this.id_game = msg.id;
+            this._game.setCurrentGameId(msg.id);
             this.loading = false;
             console.log("Game created successfully:", msg.id);
           } else {
@@ -74,6 +75,7 @@ export class RequestPage {
 
     this._rqst.rejectAllParticipationRequests();
     this._rqst.clearRequests();
+    this._game.setCurrentGameId(null);
     this._game.deleteGame(this.id_game);
     this._dialogRef.close();
   }

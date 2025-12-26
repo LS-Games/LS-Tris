@@ -2,6 +2,7 @@ import { Component, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BoardComponent } from '../round-page/components/board/board';
 import { RoundService } from '../../core/services/round.service';
+import { GameService } from '../../core/services/game.service';
 import { Router } from '@angular/router';
 @Component({
   selector: 'app-round-page',
@@ -14,6 +15,7 @@ export class RoundPage {
 
   private readonly _round = inject(RoundService);
   private readonly _router = inject(Router);
+  private readonly _game = inject(GameService);
   
   player1Nickname = this._round.player1Nickname;
   player2Nickname = this._round.player2Nickname;
@@ -50,4 +52,12 @@ export class RoundPage {
     this._router.navigate(['']);
   }
 
+  newGameAfterWin() {
+
+  }
+
+  gameEndAfterWin() {
+    this._game.endGame();
+    this.toHomePage();
+  }
 }
