@@ -14,6 +14,7 @@ export class RoundService {
     player2Id = signal<number | null>(null);
     player1Nickname = signal<string | null>(null);
     player2Nickname = signal<string | null>(null);
+    rematchPendingSignal = signal<boolean>(false);
 
     boardSignal = signal<(null | 'X' | 'O')[]>(Array(9).fill(null));
     currentPlayerTurnSignal = signal<'X' | 'O'>('X');
@@ -85,6 +86,15 @@ export class RoundService {
 
                 this.currentPlayerTurnSignal.set('X');
             });
+
+        this._ws.onAction<any>('game_accept_rematch')
+            .subscribe(msg => {
+                console.log(msg);
+
+                if(msg.status === 'success' && msg.waiting === 1) {
+                    this.rematchPendingSignal.set(true);
+                }
+            })
     }
 
     updateBoard(board:string) {
@@ -192,6 +202,7 @@ export class RoundService {
         this.lastMoveIndexSignal.set(null);
         this.winnerSignal.set(null);
         this.roundEndedSignal.set(false); 
+        this.rematchPendingSignal.set(false);
     }
 
     // --- RESET "SESSION / IDENTIFIERS" ---
@@ -210,6 +221,10 @@ export class RoundService {
     resetAll() {
         this.resetRoundSession();
         this.resetRoundState();
+    }
+
+    endPending() {
+        this.rematchPendingSignal.set(false);
     }
 
 }

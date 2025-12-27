@@ -1,4 +1,16 @@
 <div class="game-page">
+
+  @if (rematchPending()) {
+    <div class="waiting-overlay">
+        <div class="waiting-box">
+
+        <button class="close-btn-waiting-box" (click)="closePending()">&times;</button>
+
+        <div class="loader"></div>
+        <p>In attesa che l’altro giocatore accetti…</p>
+        </div>
+    </div>
+  }
   
   <div class="game-summary">
       <p class="round-players-nickname"> {{player1Nickname()}} </p>

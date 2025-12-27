@@ -25,15 +25,26 @@ export class RoundPage {
   mySimbol = this._round.mySymbolSignal;
   winner = this._round.winnerSignal;
   roundEnded = this._round.roundEndedSignal;
+  rematchPending = this._round.rematchPendingSignal;
 
   constructor() {
 
-      effect(() => {
-        const winner = this.winner();
-        if (winner) {
-          console.log("Round finito:", winner);
-        }
-      });
+    effect(() => {
+      const winner = this.winner();
+      if (winner) {
+        console.log("Round finito:", winner);
+      }
+    });
+
+    // Keep URL in sync with the current round (rematch included)
+    effect(() => {
+      const gameId = this._round.gameId();
+      const roundId = this._round.roundId();
+
+      if (gameId !== null && roundId !== null) {
+        this._router.navigate(['/round', gameId, roundId], { replaceUrl: true });
+      }
+    });
   }
 
   handleMove(index:number) {
@@ -64,5 +75,9 @@ export class RoundPage {
 
   rematch() {
     this._game.rematchGame()
+  }
+
+  closePending() {
+    this._round.endPending();
   }
 }

@@ -21,6 +21,7 @@ export class GameService {
     private readonly _round = inject(RoundService);
     
     gamesSignal = signal<GameInfo[]>([]);
+    rematchPendingSignal = signal<boolean>(false);
 
     constructor() {
 
