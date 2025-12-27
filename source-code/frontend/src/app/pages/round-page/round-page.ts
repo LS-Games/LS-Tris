@@ -61,4 +61,8 @@ export class RoundPage {
     this._game.endGame();
     this.toHomePage();
   }
+
+  rematch() {
+    this._game.rematchGame()
+  }
 }

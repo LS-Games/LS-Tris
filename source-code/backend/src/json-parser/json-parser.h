@@ -19,6 +19,7 @@ ParticipationRequest* extract_requests_array_from_json(const char *json_str, siz
 /* === Serialize functions === */
 
 char *serialize_action_success(const char *action, const char *message, int64_t id);
+char *serialize_action_success_with_waiting(const char *action, const char *message, int64_t id, int waiting);
 char *serialize_action_error(const char *action, const char *error_message);
 char *serialize_players_to_json(const char *action, const PlayerDTO* players, size_t count);
 char *serialize_games_to_json(const char *action, const GameDTO* games, size_t count);

@@ -1,16 +1,78 @@
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
+#include <inttypes.h>
 
 #include "../../include/debug_log.h"
 
 #include "game_controller.h"
 #include "round_controller.h"
 #include "player_controller.h"
+#include "play_controller.h"
 #include "notification_controller.h"
 #include "../json-parser/json-parser.h"
 #include "../server/server.h"
 #include "../dao/sqlite/db_connection_sqlite.h"
 #include "../dao/sqlite/game_dao_sqlite.h"
+
+typedef struct {
+    int64_t id_game;
+    int64_t requested_by;
+} PendingRematch;
+
+static PendingRematch *g_pending_rematches = NULL;
+static int g_pending_count = 0;
+static pthread_mutex_t g_pending_mtx = PTHREAD_MUTEX_INITIALIZER;
+
+/**
+ * We check if there are pending rematch request for a given id_game
+ * return index if found
+ * return -1 if not found
+ */
+static int pending_find_index(int64_t id_game) {
+    for (int i = 0; i < g_pending_count; i++) {
+        if (g_pending_rematches[i].id_game == id_game) return i;
+    }
+    return -1;
+}
+
+
+/**
+ * Set/update the rematch request
+ * if id_game exists then it updates requested_by only 
+ * if id_game doesn't exist then it extends the array and add the element at the bottom
+ */
+static int pending_set(int64_t id_game, int64_t requested_by) {
+    int idx = pending_find_index(id_game);
+
+
+    if (idx >= 0) {
+        g_pending_rematches[idx].requested_by = requested_by;
+        return 1;
+    }
+
+    PendingRematch *tmp = realloc(g_pending_rematches, sizeof(PendingRematch) * (g_pending_count + 1));
+    if (!tmp) return 0;
+
+    g_pending_rematches = tmp;
+    g_pending_rematches[g_pending_count].id_game = id_game;
+    g_pending_rematches[g_pending_count].requested_by = requested_by;
+    g_pending_count++;
+    return 1;
+}
+
+static void pending_clear(int64_t id_game) {
+    int idx = pending_find_index(id_game);
+    if (idx < 0) return;
+
+    g_pending_rematches[idx] = g_pending_rematches[g_pending_count - 1];
+    g_pending_count--;
+
+    if (g_pending_count == 0) {
+        free(g_pending_rematches);
+        g_pending_rematches = NULL;
+    }
+}
 
 // This function provides a query by `status`. 
 // @param status Possible values are `new`, `active`, `waiting`, `finished` and `all` (no filter)
@@ -150,6 +212,11 @@ GameControllerStatus game_refuse_rematch(int64_t id_game, int64_t* out_id_game) 
     if (status != GAME_CONTROLLER_OK)
         return status;
 
+    //Clear any pending rematch request in RAM
+    pthread_mutex_lock(&g_pending_mtx);
+    pending_clear(id_game);
+    pthread_mutex_unlock(&g_pending_mtx);
+
     // Update game state in order to let anyone send participation requests
     retrievedGame.state = WAITING_GAME;
 
@@ -187,26 +254,133 @@ GameControllerStatus game_refuse_rematch(int64_t id_game, int64_t* out_id_game) 
     return GAME_CONTROLLER_OK;
 }
 
-GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAcceptingRematch, int64_t* out_id_game) {
+/**
+ * Handles a rematch request using a simple in-memory handshake.
+ *
+ * The first player requesting a rematch is put in a waiting state.
+ * When the other player also requests a rematch, a new round is created.
+ *
+ * Active rounds are checked to prevent duplicate rematch creation.
+ * No database schema or persistent state is modified.
+ *
+ * @param id_game Game identifier.
+ * @param id_playerAcceptingRematch Player requesting or accepting the rematch.
+ * @param out_id_game Output game identifier.
+ * @param out_waiting 1 if waiting for the opponent, 0 if the round starts.
+ *
+ * @return GAME_CONTROLLER_OK on success, or an error code on failure.
+ */
 
+GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAcceptingRematch, int64_t* out_id_game, int* out_waiting) {
+
+    /* Default behavior: not waiting */
+    if (out_waiting) *out_waiting = 0;
+
+    /* Retrieve game information */
     Game retrievedGame;
     GameControllerStatus gameStatus = game_find_one(id_game, &retrievedGame);
     if (gameStatus != GAME_CONTROLLER_OK)
         return gameStatus;
 
     int64_t new_round_id;
-    
-    // Start the round
-    RoundControllerStatus roundStatus = round_start(retrievedGame.id_game, retrievedGame.id_owner, id_playerAcceptingRematch, 500, &new_round_id);
-    if (roundStatus != ROUND_CONTROLLER_OK) {
-        LOG_WARN("%s\n", return_round_controller_status_to_string(roundStatus));
+
+    /* Step 1: Prevent duplicate ACTIVE rounds for the same game */
+    Round *rounds = NULL;
+    int count = 0;
+
+    RoundControllerStatus roundStatus1 = round_find_all(&rounds, &count);
+    if (roundStatus1 != ROUND_CONTROLLER_OK && roundStatus1 != ROUND_CONTROLLER_NOT_FOUND)
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+
+    for (int i = 0; i < count; i++) {
+        if (rounds[i].id_game == id_game && rounds[i].state == ACTIVE_ROUND) {
+            LOG_INFO("An ACTIVE round already exists, avoiding duplicate creation");
+            free(rounds);
+            *out_id_game = id_game;
+            if (out_waiting) *out_waiting = 0;
+            return GAME_CONTROLLER_OK;
+        }
+    }
+
+    if (rounds) free(rounds);
+
+    /* Step 2: In-memory handshake for rematch */
+    pthread_mutex_lock(&g_pending_mtx);
+
+    int idx = pending_find_index(id_game);
+
+    /* First player requests rematch */
+    if (idx < 0) {
+        if (!pending_set(id_game, id_playerAcceptingRematch)) {
+            pthread_mutex_unlock(&g_pending_mtx);
+            return GAME_CONTROLLER_INTERNAL_ERROR;
+        }
+
+        pthread_mutex_unlock(&g_pending_mtx);
+
+        LOG_INFO("Rematch requested by player %" PRId64 ", waiting for opponent", id_playerAcceptingRematch);
+
+        *out_id_game = id_game;
+        if (out_waiting) *out_waiting = 1;
+        return GAME_CONTROLLER_OK;
+    }
+
+    int64_t firstRequester = g_pending_rematches[idx].requested_by;
+
+    /* Same player clicked rematch again */
+    if (firstRequester == id_playerAcceptingRematch) {
+        pthread_mutex_unlock(&g_pending_mtx);
+
+        LOG_INFO("Player %" PRId64 " already requested rematch, still waiting", id_playerAcceptingRematch);
+
+        *out_id_game = id_game;
+        if (out_waiting) *out_waiting = 1;
+        return GAME_CONTROLLER_OK;
+    }
+
+    /* Second player confirms rematch: clear pending and proceed */
+    pending_clear(id_game);
+    pthread_mutex_unlock(&g_pending_mtx);
+
+    /* Step 3: Start a new round with the two rematch players (firstRequester vs second clicker) */
+    RoundControllerStatus roundStatus2 = round_start(retrievedGame.id_game, firstRequester, id_playerAcceptingRematch, 500, &new_round_id);
+    if (roundStatus2 != ROUND_CONTROLLER_OK) {
+        LOG_WARN("%s", return_round_controller_status_to_string(roundStatus2));
         return GAME_CONTROLLER_INTERNAL_ERROR;
     }
 
+    /* Build and send server_round_start event to both players */
+    RoundFullDTO out_full_round;
+    if (round_find_full_info_by_id_round(new_round_id, &out_full_round) != ROUND_CONTROLLER_OK)
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+
+    char *json_new_round_for_rematch = serialize_round_full_to_json("server_round_start", &out_full_round);
+    if (!json_new_round_for_rematch)
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+
+    int64_t id_player1 = firstRequester;
+    int64_t id_player2 = id_playerAcceptingRematch;
+
+    LOG_INFO("Sending server_round_start to players %" PRId64 " and %" PRId64, id_player1, id_player2);
+
+    /* Best-effort delivery: do not fail the rematch if a websocket send fails */
+    if (send_server_unicast_message(json_new_round_for_rematch, id_player1) < 0)
+        LOG_WARN("Failed to unicast server_round_start to player %" PRId64, id_player1);
+
+    if (send_server_unicast_message(json_new_round_for_rematch, id_player2) < 0)
+        LOG_WARN("Failed to unicast server_round_start to player %" PRId64, id_player2);
+
+    free(json_new_round_for_rematch);
+
+    LOG_INFO("Rematch accepted, new round started with id_round=%" PRId64, new_round_id);
+
     *out_id_game = retrievedGame.id_game;
+    if (out_waiting) *out_waiting = 0;
 
     return GAME_CONTROLLER_OK;
 }
+
+
 
 GameControllerStatus game_cancel(int64_t id_game, int64_t id_owner, int64_t* out_id_game) {
 
@@ -243,6 +417,7 @@ GameControllerStatus game_change_owner(int64_t id_game, int64_t id_newOwner) {
         return status;
 
     retrievedGame.id_owner = id_newOwner;
+
 
     return game_update(&retrievedGame);
 }

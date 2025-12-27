@@ -172,6 +172,33 @@ char *serialize_action_success(const char *action, const char *message, int64_t 
     return result;
 }
 
+// Serialize: Action Success (with waiting flag)
+char *serialize_action_success_with_waiting(const char *action, const char *message, int64_t id, int waiting) {
+    struct json_object *json_response = json_object_new_object();
+
+    json_object_object_add(json_response, "status", json_object_new_string("success"));
+
+    if (id != -1) {
+        json_object_object_add(json_response, "id", json_object_new_int64(id));
+    }
+    if (action) {
+        json_object_object_add(json_response, "action", json_object_new_string(action));
+    }
+    if (message) {
+        json_object_object_add(json_response, "message", json_object_new_string(message));
+    }
+
+    // waiting: 1 if the caller must wait for the opponent, 0 otherwise
+    json_object_object_add(json_response, "waiting", json_object_new_int(waiting));
+
+    const char *json_str = json_object_to_json_string(json_response);
+    char *result = malloc(strlen(json_str) + 1);
+    if (result) strcpy(result, json_str);
+
+    json_object_put(json_response);
+    return result;
+}
+
 // Serialize: Action Error
 char *serialize_action_error(const char *action, const char *error_message) {
     struct json_object *json_response = json_object_new_object();

@@ -113,6 +113,22 @@
   color: #ffffff;
 }
 
+.rematch-button {
+  padding: 12px 26px;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.15s ease, background-color 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  background-color: #F7B725;
+  color: #ffffff;
+}
+
 .play-again-button:hover {
   transform: translateY(-2px);
   transform: scale(1.05);

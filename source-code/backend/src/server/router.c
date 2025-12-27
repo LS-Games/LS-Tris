@@ -186,10 +186,12 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
             json_response = serialize_action_error(action, return_game_controller_status_to_string(gameStatus));
         }
 
-    } else if (strcmp(action, "game_accept_rematch") == 0) { // Sent by the player who got the rematch notification
-        GameControllerStatus gameStatus = game_accept_rematch(id_game, id_player_accepting_rematch, &out_id_game);
+    } else if (strcmp(action, "game_accept_rematch") == 0) {
+        int waiting = 0;
+        GameControllerStatus gameStatus = game_accept_rematch(id_game, id_player_accepting_rematch, &out_id_game, &waiting);
         if (gameStatus == GAME_CONTROLLER_OK) {
-            json_response = serialize_action_success(action, "Rematch accepted", out_id_game);
+            const char *msg = waiting ? "Waiting for opponent" : "Rematch accepted";
+            json_response = serialize_action_success_with_waiting(action, msg, out_id_game, waiting);
         } else {
             json_response = serialize_action_error(action, return_game_controller_status_to_string(gameStatus));
         }

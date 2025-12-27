@@ -22,7 +22,8 @@
           <button (click)="toHomePage()" class="round-end-button">TORNA ALLA HOMEPAGE</button>
         } @else {
           <p id="draw-text">🤝 YOU TIED THE GAME!</p>
-          <button class="round-end-button">REMATCH</button>
+          <button (click)="rematch()" class="rematch-button">REMATCH</button>
+          <button (click)="toHomePage()" class="round-end-button">TORNA ALLA HOMEPAGE</button>
         }
 
     </div>
