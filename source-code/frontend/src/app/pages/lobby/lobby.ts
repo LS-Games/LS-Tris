@@ -101,6 +101,10 @@ export class Lobby {
 
   //Logic to open game request page when create game button is clicked"
   openRequestPage() {
+
+    //When a create game button in Lobby is clicked we open a request-page and we create a game
+    this._game.createGame();
+    
     this._dialog.open(RequestPage, {
       disableClose: true
     })

@@ -24,8 +24,9 @@ export class RequestsService {
 
     requestsSignal = signal<RequestInfo[]>([]);
 
-
     constructor() {
+
+        console.log('[RequestsService instance]', Math.random());
 
         this._ws.onAction<any>('participation_request_send') 
         .subscribe( msg => {
@@ -86,17 +87,6 @@ export class RequestsService {
             .subscribe(msg => {
                 console.log(msg);
         });
-
-
-        // this._ws.onAction<any>('server_round_start')
-        //     .subscribe(msg => {
-        //         console.log(msg);
-
-        //         if(msg.status === 'success' && msg.games?.length > 0) {
-        //             console.log("Successo!")
-        //             this.activeGameId.set(msg.games[0].id_game);
-        //         }   
-        // });
     }
 
     requestParticipation( id_game:number, id_player:number) {
@@ -158,7 +148,6 @@ export class RequestsService {
         }
 
         this._ws.send(payload);
-
     }
 
     clearRequests() {

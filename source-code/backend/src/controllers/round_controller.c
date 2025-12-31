@@ -272,6 +272,20 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, int64_t id_play
             LOG_WARN("%s\n", return_game_controller_status_to_string(gameStatus));
             return ROUND_CONTROLLER_INTERNAL_ERROR;
         }
+
+        // --- Set game back to WAITING after round end ---
+        Game game;
+        GameControllerStatus gstatus = game_find_one(roundToEnd->id_game, &game);
+        if (gstatus != GAME_CONTROLLER_OK)
+            return ROUND_CONTROLLER_INTERNAL_ERROR;
+
+        game.state = WAITING_GAME;
+
+        gstatus = game_update(&game);
+        if (gstatus != GAME_CONTROLLER_OK) {
+            LOG_WARN("%s\n", return_game_controller_status_to_string(gstatus));
+            return ROUND_CONTROLLER_INTERNAL_ERROR;
+        }
     }
 
     // Update round

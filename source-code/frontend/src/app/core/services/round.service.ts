@@ -2,6 +2,9 @@ import { inject, Injectable, signal } from "@angular/core";
 import { WebsocketService } from "./websocket.service";
 import { AuthService } from "./auth.service";
 import { NotificationService } from "./notification";
+import { Router } from "@angular/router";
+import { Dialog, throwDialogContentAlreadyAttachedError } from "@angular/cdk/dialog";
+import { RequestsService } from "./requests.service";
 
 @Injectable({ providedIn: 'root'})
 export class RoundService {
@@ -9,6 +12,9 @@ export class RoundService {
     private readonly _ws = inject(WebsocketService);
     private readonly _auth = inject(AuthService);
     private readonly _notification = inject(NotificationService);
+    private readonly _router = inject(Router);
+    private readonly _dialog = inject(Dialog);
+    private readonly _rqst = inject(RequestsService);
 
     gameId = signal<number | null>(null);
     roundId = signal<number | null>(null);
@@ -18,6 +24,7 @@ export class RoundService {
     player2Nickname = signal<string | null>(null);
     rematchPendingSignal = signal<boolean>(false);
     winnerByForfeitSignal = signal<boolean>(false);
+    isAcceptingRequestsSignal = signal(false);
 
     boardSignal = signal<(null | 'X' | 'O')[]>(Array(9).fill(null));
     currentPlayerTurnSignal = signal<'X' | 'O'>('X');
@@ -35,6 +42,8 @@ export class RoundService {
                 console.log(msg);
                 this.resetRoundState();
 
+                
+
                 const round = msg.round; 
                 this.gameId.set(round.id_game);
                 this.roundId.set(round.id_round);
@@ -48,6 +57,9 @@ export class RoundService {
                 } else if (this.player2Id() === this._auth.id) {
                     this.mySymbolSignal.set('O');
                 }
+
+                this._dialog.closeAll();
+                this._router.navigate(['/round', round.id_game, round.id_round]);
             });
 
 

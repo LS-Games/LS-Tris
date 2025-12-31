@@ -23,7 +23,6 @@ export class RequestPage {
   private readonly _ws = inject(WebsocketService);
   private readonly _rqst = inject(RequestsService);
   private readonly _round = inject(RoundService);
-  private readonly _router = inject(Router);
 
   loading = true;
   requests = this._rqst.requestsSignal;
@@ -33,20 +32,14 @@ export class RequestPage {
 
   constructor() {
 
-    effect(() => {
-      const gameId = this._round.gameId();
-      const roundId = this._round.roundId();
+    const gameId = this._round.gameId();
 
-      if (gameId !== null && roundId !== null) {
-        this._dialogRef.close();
-        this._router.navigate(['/round', gameId, roundId]);
-      }
-    });
+    if(gameId !== null) {
+      this.id_game = gameId;
+      this.loading = false;
+    }
 
     afterNextRender(() => {
-
-      //When a create game button in Lobby is clicked we open a request-page and we create a game
-      this._game.createGame();
 
       this._ws.onAction<any>('game_start')
         .pipe(takeUntilDestroyed(this._destroyRef))

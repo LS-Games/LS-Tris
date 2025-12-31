@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import { CanComponentDeactivate } from '../../core/guards/can-component-deactivate';
 import { Dialog } from '@angular/cdk/dialog';
 import { RequestPage } from '../request-page/request-page';
+import { RequestsService } from '../../core/services/requests.service';
 @Component({
   selector: 'app-round-page',
   standalone: true,
@@ -20,6 +21,8 @@ export class RoundPage implements CanComponentDeactivate {
   private readonly _router = inject(Router);
   private readonly _game = inject(GameService);
   private readonly _dialog = inject(Dialog);
+  private readonly _rqst = inject(RequestsService);
+
   private allowInternalNavigation = false;
   
   player1Nickname = this._round.player1Nickname;
@@ -85,7 +88,7 @@ export class RoundPage implements CanComponentDeactivate {
   }
 
   newGameAfterWin() {
-
+    this.openRequestPage();
   }
 
   gameEndAfterWin() {
@@ -125,8 +128,6 @@ export class RoundPage implements CanComponentDeactivate {
       if(!this.winnerByForfeit()) { 
         this._game.forfeitGame();
       }
-      
-      this._round.resetAll();
     }
 
     return confirmLeave;
