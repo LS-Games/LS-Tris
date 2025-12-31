@@ -178,6 +178,39 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
             json_response = serialize_action_error(action, return_game_controller_status_to_string(gameStatus));
         }
 
+    } else if (strcmp(action, "game_forfeit") == 0) {
+
+        int64_t winner = -1;
+        GameControllerStatus gameStatus = game_forfeit(id_game, id_player, &winner);
+
+        if (gameStatus == GAME_CONTROLLER_OK) {
+
+            /* Notify the winner that the opponent has forfeited */
+            NotificationDTO *out_notification = NULL;
+
+            if (notification_game_forfeit(id_game, winner, id_player, &out_notification) == NOTIFICATION_CONTROLLER_OK) {
+
+                char *json_msg = serialize_notification_to_json("server_game_forfeit_notification", out_notification);
+
+                send_server_unicast_message(json_msg, winner);
+
+                free(json_msg);
+                free(out_notification);
+            }
+
+            json_response = serialize_action_success(
+                action,
+                "Game forfeited",
+                winner
+            );
+
+        } else {
+            json_response = serialize_action_error(
+                action,
+                return_game_controller_status_to_string(gameStatus)
+            );
+        }
+
     } else if (strcmp(action, "game_refuse_rematch") == 0) { // Sent by the player who got the rematch notification
         GameControllerStatus gameStatus = game_refuse_rematch(id_game, &out_id_game);
         if (gameStatus == GAME_CONTROLLER_OK) {

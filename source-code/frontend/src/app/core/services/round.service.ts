@@ -1,12 +1,14 @@
 import { inject, Injectable, signal } from "@angular/core";
 import { WebsocketService } from "./websocket.service";
 import { AuthService } from "./auth.service";
+import { NotificationService } from "./notification";
 
 @Injectable({ providedIn: 'root'})
 export class RoundService {
 
     private readonly _ws = inject(WebsocketService);
     private readonly _auth = inject(AuthService);
+    private readonly _notification = inject(NotificationService);
 
     gameId = signal<number | null>(null);
     roundId = signal<number | null>(null);
@@ -15,6 +17,7 @@ export class RoundService {
     player1Nickname = signal<string | null>(null);
     player2Nickname = signal<string | null>(null);
     rematchPendingSignal = signal<boolean>(false);
+    winnerByForfeitSignal = signal<boolean>(false);
 
     boardSignal = signal<(null | 'X' | 'O')[]>(Array(9).fill(null));
     currentPlayerTurnSignal = signal<'X' | 'O'>('X');
@@ -94,7 +97,19 @@ export class RoundService {
                 if(msg.status === 'success' && msg.waiting === 1) {
                     this.rematchPendingSignal.set(true);
                 }
-            })
+            });
+
+        this._ws.onAction<any>('server_game_forfeit_notification')
+            .subscribe(msg => {
+                console.log(msg);
+
+                if(msg.status === 'success') {
+                    this._notification.show('success', msg.message, 4000);
+                    this.winnerByForfeitSignal.set(true);
+                    this.roundEndedSignal.set(true);
+                    console.log(this.winnerByForfeitSignal());
+                }
+            });
     }
 
     updateBoard(board:string) {

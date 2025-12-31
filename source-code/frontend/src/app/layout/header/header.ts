@@ -20,10 +20,28 @@ export class Header {
   auth = inject(AuthService); 
   private readonly _router = inject(Router);
 
-  logout() {
-    this.auth.logout()
-    this._router.navigate(['/']);
+  /**
+   * We're using async and await because we have to wait to know if the 
+   * navigation is blocked, whitout the await the logout would happen immediately
+   * when perhaps it should not.
+   */
+
+  async logout() {
+
+    const currentUrl = this._router.url;
+
+    if (currentUrl === '/') {
+      this.auth.logout();
+      return;
+    }
+    
+    const navigated = await this._router.navigate(['/']);
+
+    if (!navigated) return;
+
+    this.auth.logout();
   }
+
 
   private readonly dialog = inject(Dialog);
 

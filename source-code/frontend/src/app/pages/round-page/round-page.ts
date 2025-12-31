@@ -4,6 +4,9 @@ import { BoardComponent } from '../round-page/components/board/board';
 import { RoundService } from '../../core/services/round.service';
 import { GameService } from '../../core/services/game.service';
 import { Router } from '@angular/router';
+import { CanComponentDeactivate } from '../../core/guards/can-component-deactivate';
+import { Dialog } from '@angular/cdk/dialog';
+import { RequestPage } from '../request-page/request-page';
 @Component({
   selector: 'app-round-page',
   standalone: true,
@@ -11,11 +14,13 @@ import { Router } from '@angular/router';
   templateUrl: './round-page.html',
   styleUrl: './round-page.scss'
 })
-export class RoundPage {
+export class RoundPage implements CanComponentDeactivate {
 
   private readonly _round = inject(RoundService);
   private readonly _router = inject(Router);
   private readonly _game = inject(GameService);
+  private readonly _dialog = inject(Dialog);
+  private allowInternalNavigation = false;
   
   player1Nickname = this._round.player1Nickname;
   player2Nickname = this._round.player2Nickname;
@@ -26,6 +31,7 @@ export class RoundPage {
   winner = this._round.winnerSignal;
   roundEnded = this._round.roundEndedSignal;
   rematchPending = this._round.rematchPendingSignal;
+  winnerByForfeit = this._round.winnerByForfeitSignal;
 
   constructor() {
 
@@ -60,6 +66,20 @@ export class RoundPage {
   }
 
   toHomePage() {
+
+    this.allowInternalNavigation = true;
+    this._round.resetAll();
+    this._router.navigate(['']);
+  }
+
+  toHomePageAfterDraw() {
+    this.allowInternalNavigation = true;
+
+    if(!this.winnerByForfeit()) {
+      console.log(this.winnerByForfeit());
+      this._game.forfeitGame();
+    }
+
     this._round.resetAll();
     this._router.navigate(['']);
   }
@@ -69,15 +89,53 @@ export class RoundPage {
   }
 
   gameEndAfterWin() {
+    this.allowInternalNavigation = true;
     this._game.endGame();
     this.toHomePage();
   }
 
   rematch() {
-    this._game.rematchGame()
+    this.allowInternalNavigation = true;
+    this._game.rematchGame(); 
   }
 
   closePending() {
     this._round.endPending();
   }
+
+  canDeactivate(): boolean {
+
+    if(this.allowInternalNavigation) {
+      this.allowInternalNavigation = false;
+      return true;
+    }
+
+    if(this.allowInternalNavigation) {
+      return true;
+    }
+
+    if (this.roundEnded()) {
+      return true;
+    }
+
+    const confirmLeave = confirm('If you leave now, the match will be forfeited. Do you want to continue?');
+
+    if (confirmLeave) {
+
+      if(!this.winnerByForfeit()) { 
+        this._game.forfeitGame();
+      }
+      
+      this._round.resetAll();
+    }
+
+    return confirmLeave;
+  }
+
+  openRequestPage() {
+    this._dialog.open(RequestPage, {
+      disableClose: true
+    })
+  }
+
 }

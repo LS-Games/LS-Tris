@@ -24,22 +24,22 @@
 
   @if (roundEnded()) {
     <div class="game-status">
-
         @if (winner() === mySimbol()) {
           <p id="win-text">🏆 YOU WON!</p>
-          <button (click)="newGameAfterWin()" class="play-again-button">CERCA UN NUOVO AVVERSARIO</button>
+          <button (click)="openRequestPage()" class="play-again-button">CERCA UN NUOVO AVVERSARIO</button>
           <button (click)="gameEndAfterWin()" class="round-end-button">TERMINA PARTITA</button>
+        } @else if (winnerByForfeit()) {
+            <p id="win-text-by-forfeit">🏆 YOU WON!</p>
+            <button (click)="newGameAfterWin()" class="play-again-button">CERCA UN NUOVO AVVERSARIO</button>
+            <button (click)="gameEndAfterWin()" class="round-end-button">TERMINA PARTITA</button>
         } @else if(winner() !== null && winner() !== mySimbol()){
-          <p id="lose-text"> 😢 YOU'VE LOST </p>
-          <button (click)="toHomePage()" class="round-end-button">TORNA ALLA HOMEPAGE</button>
+            <p id="lose-text"> 😢 YOU'VE LOST </p>
+            <button (click)="toHomePage()" class="round-end-button">TORNA ALLA HOMEPAGE</button>
         } @else {
-          <p id="draw-text">🤝 YOU TIED THE GAME!</p>
-          <button (click)="rematch()" class="rematch-button">REMATCH</button>
-          <button (click)="toHomePage()" class="round-end-button">TORNA ALLA HOMEPAGE</button>
+            <p id="draw-text">🤝 YOU TIED THE GAME!</p>
+            <button (click)="rematch()" class="rematch-button">REMATCH</button>
+            <button (click)="toHomePageAfterDraw()" class="round-end-button">TORNA ALLA HOMEPAGE</button>
         }
-
     </div>
-
   } 
-
 </div>

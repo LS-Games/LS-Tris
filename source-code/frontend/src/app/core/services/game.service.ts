@@ -100,4 +100,17 @@ export class GameService {
 
         this._ws.send(payload);
     }
+
+    forfeitGame() {
+        const id_game = this._round.gameId();
+        const id_player = this._auth.id;
+
+        const payload = {
+            action: 'game_forfeit',
+            id_game : id_game,
+            id_player : id_player
+        }
+
+        this._ws.send(payload);
+    }
 }

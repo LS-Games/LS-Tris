@@ -205,6 +205,151 @@ GameControllerStatus game_end(int64_t id_game, int64_t id_owner, int64_t* out_id
     return GAME_CONTROLLER_OK;
 }
 
+
+/**
+ * Finalizes a game due to player forfeit.
+ *
+ * This function is called when a player voluntarily leaves a game
+ * (home navigation, logout, browser close, refresh, etc.).
+ *
+ * The winner is determined from the ACTIVE round and its Play entries:
+ * the player who did NOT leave automatically wins.
+ *
+ * The function is idempotent:
+ * - if the game is already finished, it safely returns
+ * - this prevents duplicated events or race conditions
+ *
+ * Updates performed:
+ * - Play.result  -> WIN / LOSE
+ * - Round.state  -> FINISHED
+ * - Game.state   -> FINISHED
+ * - Game.id_owner -> winner
+ *
+ * @param id_game   Game identifier
+ * @param id_leaver Player who left the game
+ * @param out_winner Optional output winner id (can be NULL)
+ *
+ * @return GAME_CONTROLLER_OK on success, or an error code
+ */
+
+GameControllerStatus game_forfeit(int64_t id_game, int64_t id_leaver, int64_t* out_winner) {
+    Game game;
+    GameControllerStatus gstatus = game_find_one(id_game, &game);
+    if (gstatus != GAME_CONTROLLER_OK)
+        return gstatus;
+
+    /* Idempotency guard: if already finished, do nothing */
+    if (game.state == FINISHED_GAME)
+        return GAME_CONTROLLER_OK;
+
+    /* 1. Find ACTIVE round for this game                  */
+    Round *rounds = NULL;
+    int round_count = 0;
+
+    RoundControllerStatus rstatus = round_find_all(&rounds, &round_count);
+    if (rstatus != ROUND_CONTROLLER_OK && rstatus != ROUND_CONTROLLER_NOT_FOUND)
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+
+    Round *selected_round = NULL;
+
+    /* 1. Try to find an ACTIVE round */
+    for (int i = 0; i < round_count; i++) {
+        if (rounds[i].id_game == id_game &&
+            rounds[i].state == ACTIVE_ROUND) {
+            selected_round = &rounds[i];
+            break;
+        }
+    }
+
+    /* 2. Fallback: use the last round of the game (if no ACTIVE one exists) */
+    if (!selected_round) {
+        for (int i = 0; i < round_count; i++) {
+            if (rounds[i].id_game == id_game) {
+                selected_round = &rounds[i];
+            }
+        }
+    }
+
+    /* 3. No rounds at all → real NOT_FOUND */
+    if (!selected_round) {
+        free(rounds);
+        return GAME_CONTROLLER_NOT_FOUND;
+    }
+
+    /* 2. Retrieve Play entries for the active round       */
+    Play *plays = NULL;
+    int play_count = 0;
+
+    PlayControllerStatus pstatus =
+        play_find_all_by_id_round(&plays, selected_round->id_round, &play_count);
+
+    if (pstatus != PLAY_CONTROLLER_OK || play_count != 2) {
+        free(rounds);
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    }
+
+    /* 3. Determine winner (the one who did NOT leave)     */
+    int64_t winner = -1;
+
+    for (int i = 0; i < play_count; i++) {
+        if (plays[i].id_player != id_leaver) {
+            winner = plays[i].id_player;
+            break;
+        }
+    }
+
+    if (winner < 0) {
+        free(plays);
+        free(rounds);
+        return GAME_CONTROLLER_FORBIDDEN;
+    }
+
+    /* 4. Update Play results (WIN / LOSE)                 */
+    for (int i = 0; i < play_count; i++) {
+        if (plays[i].id_player == winner) {
+            plays[i].result = WIN;
+        } else {
+            plays[i].result = LOSE;
+        }
+
+        if (play_update(&plays[i]) != PLAY_CONTROLLER_OK) {
+            free(plays);
+            free(rounds);
+            return GAME_CONTROLLER_DATABASE_ERROR;
+        }
+    }
+                              
+    /* 5. Finalize Round (only if still active) */
+    if (selected_round->state == ACTIVE_ROUND) {
+
+        selected_round->state = FINISHED_ROUND;
+
+        if (round_update(selected_round) != ROUND_CONTROLLER_OK) {
+            free(plays);
+            free(rounds);
+            return GAME_CONTROLLER_DATABASE_ERROR;
+        }
+    }
+
+    /* 6. Finalize Game                                    */
+    game.id_owner = winner;
+    game.state = WAITING_GAME;
+
+    gstatus = game_update(&game);
+    if (gstatus != GAME_CONTROLLER_OK) {
+        free(plays);
+        free(rounds);
+        return gstatus;
+    }
+
+    if (out_winner)
+        *out_winner = winner;
+
+    free(plays);
+    free(rounds);
+    return GAME_CONTROLLER_OK;
+}
+
 GameControllerStatus game_refuse_rematch(int64_t id_game, int64_t* out_id_game) {
 
     Game retrievedGame;

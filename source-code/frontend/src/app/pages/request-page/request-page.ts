@@ -7,7 +7,6 @@ import { RequestsService } from '../../core/services/requests.service';
 import { RequestCard } from './components/request-card/request-card';
 import { Router } from '@angular/router';
 import { RoundService } from '../../core/services/round.service';
-import { consumerPollProducersForChange } from '@angular/core/primitives/signals';
 
 @Component({
   selector: 'app-request-page',

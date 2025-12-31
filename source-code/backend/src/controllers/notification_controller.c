@@ -229,6 +229,33 @@ NotificationControllerStatus notification_finished_round(int64_t id_round, int64
     return NOTIFICATION_CONTROLLER_OK;
 }
 
+NotificationControllerStatus notification_game_forfeit(int64_t id_game, int64_t id_winner, int64_t id_leaver, NotificationDTO **out_dto) {
+    Game retrievedGame;
+    GameControllerStatus status = game_find_one(id_game, &retrievedGame);
+    if (status != GAME_CONTROLLER_OK)
+        return NOTIFICATION_CONTROLLER_INTERNAL_ERROR;
+
+    NotificationDTO *dynamicDTO = malloc(sizeof(NotificationDTO));
+    if (dynamicDTO == NULL) {
+        LOG_WARN("%s\n", "Memory not allocated");
+        return NOTIFICATION_CONTROLLER_INTERNAL_ERROR;
+    }
+
+    /* Initialize all fields for safety */
+    dynamicDTO->id_playerSender   = id_leaver;
+    dynamicDTO->id_playerReceiver = id_winner;
+    dynamicDTO->id_game           = id_game;
+    dynamicDTO->id_round          = -1;
+    dynamicDTO->id_request        = -1;
+    dynamicDTO->request_status    = NULL;
+
+    dynamicDTO->message = "Your opponent has left the game. You win by forfeit.";
+
+    *out_dto = dynamicDTO;
+
+    return NOTIFICATION_CONTROLLER_OK;
+}
+
 // ===================== CRUD Operations =====================
 
 // Funzione di utilità per messaggi di errore

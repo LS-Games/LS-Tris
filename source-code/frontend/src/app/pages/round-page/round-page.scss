@@ -43,6 +43,17 @@
   animation: winPop 0.45s ease-out;
   margin-top: 20px;
 }
+#win-text-by-forfeit {
+  font-family: 'Bowlby One SC', sans-serif;
+  font-size: clamp(40px, 3vw, 125px);
+  font-weight: 900;
+  text-align: center;
+  color: #d4af37; 
+  letter-spacing: 1px;
+
+  animation: winPop 0.45s ease-out;
+  margin-top: 20px;
+}
 
 @keyframes winPop {
   0%   { transform: scale(0.7); opacity: 0; }
