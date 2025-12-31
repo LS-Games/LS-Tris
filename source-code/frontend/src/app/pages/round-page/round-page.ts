@@ -108,6 +108,10 @@ export class RoundPage implements CanComponentDeactivate {
 
   canDeactivate(): boolean {
 
+    if (this._round.isNavigationAllowedSignal()) {
+      return true;
+    }
+
     if(this.allowInternalNavigation) {
       this.allowInternalNavigation = false;
       return true;

@@ -24,7 +24,7 @@ export class RoundService {
     player2Nickname = signal<string | null>(null);
     rematchPendingSignal = signal<boolean>(false);
     winnerByForfeitSignal = signal<boolean>(false);
-    isAcceptingRequestsSignal = signal(false);
+    isNavigationAllowedSignal = signal(false);
 
     boardSignal = signal<(null | 'X' | 'O')[]>(Array(9).fill(null));
     currentPlayerTurnSignal = signal<'X' | 'O'>('X');
@@ -42,8 +42,6 @@ export class RoundService {
                 console.log(msg);
                 this.resetRoundState();
 
-                
-
                 const round = msg.round; 
                 this.gameId.set(round.id_game);
                 this.roundId.set(round.id_round);
@@ -59,7 +57,13 @@ export class RoundService {
                 }
 
                 this._dialog.closeAll();
-                this._router.navigate(['/round', round.id_game, round.id_round]);
+
+                this.isNavigationAllowedSignal.set(true);
+                this._router.navigate(['/round', round.id_game, round.id_round])
+                    .then(() => {
+                        
+                        this.isNavigationAllowedSignal.set(false);
+                    });
             });
 
 
@@ -230,6 +234,7 @@ export class RoundService {
         this.winnerSignal.set(null);
         this.roundEndedSignal.set(false); 
         this.rematchPendingSignal.set(false);
+        this.winnerByForfeitSignal.set(false);
     }
 
     // --- RESET "SESSION / IDENTIFIERS" ---

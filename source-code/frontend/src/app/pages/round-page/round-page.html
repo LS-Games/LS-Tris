@@ -26,7 +26,7 @@
     <div class="game-status">
         @if (winner() === mySimbol()) {
           <p id="win-text">🏆 YOU WON!</p>
-          <button (click)="openRequestPage()" class="play-again-button">CERCA UN NUOVO AVVERSARIO</button>
+          <button (click)="newGameAfterWin()" class="play-again-button">CERCA UN NUOVO AVVERSARIO</button>
           <button (click)="gameEndAfterWin()" class="round-end-button">TERMINA PARTITA</button>
         } @else if (winnerByForfeit()) {
             <p id="win-text-by-forfeit">🏆 YOU WON!</p>
