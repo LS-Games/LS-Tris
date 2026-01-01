@@ -257,6 +257,7 @@ export class RoundService {
 
     endPending() {
         this.rematchPendingSignal.set(false);
+        
     }
 
 }

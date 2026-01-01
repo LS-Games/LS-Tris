@@ -87,7 +87,7 @@ export class GameService {
     rematchGame() {
         if(!this._round.gameId()) {
             console.warn("GameId is null!");
-            return
+            return;
         }
 
         const id_game = this._round.gameId();
@@ -96,6 +96,22 @@ export class GameService {
             action: 'game_accept_rematch',
             id_game,
             id_player_accepting_rematch : this._auth.id
+        }
+
+        this._ws.send(payload);
+    }
+
+    refuseRematchGame() {
+        if(!this._round.gameId()) {
+            console.warn("GameId is null");
+            return;
+        }
+
+        const id_game = this._round.gameId();
+
+        const payload = {
+            action: 'game_refuse_rematch',
+            id_game
         }
 
         this._ws.send(payload);

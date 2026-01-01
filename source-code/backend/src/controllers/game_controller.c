@@ -525,8 +525,6 @@ GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAccep
     return GAME_CONTROLLER_OK;
 }
 
-
-
 GameControllerStatus game_cancel(int64_t id_game, int64_t id_owner, int64_t* out_id_game) {
 
     NotificationDTO *out_notification_dto = NULL;

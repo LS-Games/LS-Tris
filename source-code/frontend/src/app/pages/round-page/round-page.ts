@@ -103,6 +103,7 @@ export class RoundPage implements CanComponentDeactivate {
   }
 
   closePending() {
+    this._game.refuseRematchGame();
     this._round.endPending();
   }
 
@@ -114,10 +115,6 @@ export class RoundPage implements CanComponentDeactivate {
 
     if(this.allowInternalNavigation) {
       this.allowInternalNavigation = false;
-      return true;
-    }
-
-    if(this.allowInternalNavigation) {
       return true;
     }
 
