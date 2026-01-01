@@ -34,7 +34,7 @@ export class Header {
       this.auth.logout();
       return;
     }
-    
+
     const navigated = await this._router.navigate(['/']);
 
     if (!navigated) return;

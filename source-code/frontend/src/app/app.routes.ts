@@ -23,5 +23,11 @@ export const routes: Routes = [
         canDeactivate: [LeaveGameGuard],
         loadComponent: () =>
             import('./pages/round-page/round-page').then(m => m.RoundPage),
+    }, 
+    {
+        path: 'profile/:playerId',
+        canActivate: [authGuard],
+        loadComponent: () => 
+            import('./pages/profile-page/profile-page').then(m => m.ProfilePage)
     }
 ];

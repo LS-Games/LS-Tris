@@ -80,8 +80,9 @@ export class RequestPage {
       this._game.deleteGame(this.id_game);
     
       //There is a history, don't delete it
-      
+
     } else {
+      this._rqst.rejectAllParticipationRequests();
       this._rqst.clearRequests();
     }
     this._dialogRef.close();

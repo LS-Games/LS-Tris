@@ -39,7 +39,6 @@ export class LoginForm {
         const nickname = this.loginForm.value.nickname;
         
         this._notificationService.show('success', `Welcome back! ${nickname}`, 4000);
-        this._authService.id = id;
         this.close();
         this.buttonClicked = false;
       });
