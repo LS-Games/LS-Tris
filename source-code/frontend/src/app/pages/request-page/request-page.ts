@@ -67,9 +67,23 @@ export class RequestPage {
       return;
     }
 
-    this._rqst.rejectAllParticipationRequests();
-    this._rqst.clearRequests();
-    this._game.deleteGame(this.id_game);
+    /**
+     * If there is a round id (so it was played) or the round is in a "finished" status
+     * then don't delete it    
+    */
+
+    const hasHistory = this._round.roundId() !== null || this._round.roundEndedSignal();
+
+    if(!hasHistory) {
+      this._rqst.rejectAllParticipationRequests();
+      this._rqst.clearRequests();
+      this._game.deleteGame(this.id_game);
+    
+      //There is a history, don't delete it
+      
+    } else {
+      this._rqst.clearRequests();
+    }
     this._dialogRef.close();
   }
 }
