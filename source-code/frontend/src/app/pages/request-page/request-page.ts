@@ -41,6 +41,8 @@ export class RequestPage {
 
     afterNextRender(() => {
 
+      this._rqst.clearRequests();
+
       this._ws.onAction<any>('game_start')
         .pipe(takeUntilDestroyed(this._destroyRef))
         .subscribe(msg => {

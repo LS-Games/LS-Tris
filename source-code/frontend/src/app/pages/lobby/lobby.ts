@@ -8,7 +8,6 @@ import { GameService } from '../../core/services/game.service';
 import { RequestsService } from '../../core/services/requests.service';
 import { RoundService } from '../../core/services/round.service';
 import { Router } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-lobby',

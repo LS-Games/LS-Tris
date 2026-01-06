@@ -124,6 +124,7 @@ export class RoundPage implements CanComponentDeactivate {
   }
 
   newGameAfterWin() {
+    this._rqst.clearRequests();
     this.openRequestPage();
   }
 
