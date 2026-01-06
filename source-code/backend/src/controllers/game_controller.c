@@ -186,6 +186,23 @@ GameControllerStatus game_end(int64_t id_game, int64_t id_owner, int64_t* out_id
     if (status != GAME_CONTROLLER_OK)
         return status;
 
+    //Reset current streak
+    Player retrived_player;
+    PlayerControllerStatus player_status = player_find_one(id_owner, &retrived_player);
+
+    if(player_status != PLAYER_CONTROLLER_OK) {
+        LOG_WARN("%s", "Error in retriving player to reset current streak after round ended");
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    }
+
+    retrived_player.current_streak = 0;
+    player_status = player_update(&retrived_player);
+
+    if(player_status != PLAYER_CONTROLLER_OK) {
+        LOG_WARN("%s", "Error in resetting current streak after round ended");
+        return GAME_CONTROLLER_INTERNAL_ERROR;
+    }
+
     // Send updated game
     GameDTO out_game_dto;
     GameWithPlayerNickname retrievedGameWithPlayerNickname; // Retrieve players nicknames
@@ -204,7 +221,6 @@ GameControllerStatus game_end(int64_t id_game, int64_t id_owner, int64_t* out_id
 
     return GAME_CONTROLLER_OK;
 }
-
 
 /**
  * Finalizes a game due to player forfeit.
@@ -290,15 +306,17 @@ GameControllerStatus game_forfeit(int64_t id_game, int64_t id_leaver, int64_t* o
 
     /* 3. Determine winner (the one who did NOT leave)     */
     int64_t winner = -1;
+    int64_t loser = -1;
 
     for (int i = 0; i < play_count; i++) {
         if (plays[i].id_player != id_leaver) {
             winner = plays[i].id_player;
-            break;
+        } else {
+            loser = plays[i].id_player;
         }
     }
 
-    if (winner < 0) {
+    if (winner < 0 || loser < 0) {
         free(plays);
         free(rounds);
         return GAME_CONTROLLER_FORBIDDEN;
@@ -319,10 +337,38 @@ GameControllerStatus game_forfeit(int64_t id_game, int64_t id_leaver, int64_t* o
         }
     }
                               
-    /* 5. Finalize Round (only if still active) */
-    if (selected_round->state == ACTIVE_ROUND) {
+    /* 5. Update STREAKS (mandatory, since we don't use round_end_helper) */
 
+    Player p;
+
+    /* Winner: increment streak */
+    if (player_find_one(winner, &p) == PLAYER_CONTROLLER_OK) {
+        p.current_streak++;
+        if (p.current_streak > p.max_streak)
+            p.max_streak = p.current_streak;
+
+        if (player_update(&p) != PLAYER_CONTROLLER_OK) {
+            free(plays);
+            free(rounds);
+            return GAME_CONTROLLER_DATABASE_ERROR;
+        }
+    }
+
+    /* Loser: reset streak */
+    if (player_find_one(loser, &p) == PLAYER_CONTROLLER_OK) {
+        p.current_streak = 0;
+
+        if (player_update(&p) != PLAYER_CONTROLLER_OK) {
+            free(plays);
+            free(rounds);
+            return GAME_CONTROLLER_DATABASE_ERROR;
+        }
+    }
+
+    /* 6. Finalize Round COMPLETELY */
+    if (selected_round->state == ACTIVE_ROUND) {
         selected_round->state = FINISHED_ROUND;
+        selected_round->end_time = (int64_t)time(NULL);
 
         if (round_update(selected_round) != ROUND_CONTROLLER_OK) {
             free(plays);
@@ -331,7 +377,7 @@ GameControllerStatus game_forfeit(int64_t id_game, int64_t id_leaver, int64_t* o
         }
     }
 
-    /* 6. Finalize Game                                    */
+    /* 7. Finalize Game                                    */
     game.id_owner = winner;
     game.state = WAITING_GAME;
 

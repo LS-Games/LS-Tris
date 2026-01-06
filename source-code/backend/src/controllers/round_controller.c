@@ -8,6 +8,7 @@
 #include "round_controller.h"
 #include "game_controller.h"
 #include "play_controller.h"
+#include "player_controller.h"
 #include "notification_controller.h"
 #include "../json-parser/json-parser.h"
 #include "../server/server.h"
@@ -265,6 +266,8 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, int64_t id_play
     if (result != DRAW)
         winner = find_winner(roundToEnd->board);
 
+        LOG_INFO("WINNER è %c", winner);
+
     // Update play results
     PlayControllerStatus playStatus = play_set_round_plays_result(roundToEnd->id_round, result, player_symbol_to_number(winner));
     if (playStatus != PLAY_CONTROLLER_OK) {
@@ -274,13 +277,71 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, int64_t id_play
 
     // Update game owner
     int64_t id_playerWinner = -1;
+    int64_t id_playerLoser = -1;
     playStatus = play_find_round_winner(roundToEnd->id_round, &id_playerWinner);
+
     if (playStatus != PLAY_CONTROLLER_NOT_FOUND) {
         GameControllerStatus gameStatus = game_change_owner(roundToEnd->id_game, id_playerWinner);
         if (gameStatus != GAME_CONTROLLER_OK) {
             LOG_WARN("%s\n", return_game_controller_status_to_string(gameStatus));
             return ROUND_CONTROLLER_INTERNAL_ERROR;
         }
+            //we retrive the loser 
+            Play *all_play_by_round = NULL;
+            int count_play_retrived;
+            playStatus = play_find_all_by_id_round(&all_play_by_round, roundToEnd->id_round, &count_play_retrived);
+
+            if (playStatus != PLAY_CONTROLLER_OK) {
+                LOG_WARN("%s", "Error in retriving plays for streak update!");
+                return ROUND_CONTROLLER_INTERNAL_ERROR;
+            }
+
+            for(int i=0; i<count_play_retrived; i++) {
+                if(all_play_by_round[i].id_player != id_playerWinner) {
+                    id_playerLoser = all_play_by_round[i].id_player;
+                }
+            }
+
+            if(id_playerLoser > 0) {
+                Player updated_player;
+                PlayerControllerStatus player_status = player_find_one(id_playerLoser, &updated_player);
+
+                if(player_status == PLAYER_CONTROLLER_OK) {
+                    updated_player.current_streak = 0;
+                    LOG_INFO("CURRENT STREAK DOPO L'UPDATE: %d", updated_player.current_streak);
+
+                    PlayerControllerStatus player_update_status = player_update(&updated_player);
+
+                    if(player_update_status != PLAYER_CONTROLLER_OK) {
+                        LOG_WARN("%s", "Error in current or max streak player update!");
+                    }
+
+                } else {
+                    LOG_WARN("%s", "Player NOT FOUND in current or max streak update!");
+                }
+            }
+
+            //Update current_streak and max_streak for winner and loser
+            Player updated_player;
+            PlayerControllerStatus player_status = player_find_one(id_playerWinner, &updated_player);
+
+            if(player_status == PLAYER_CONTROLLER_OK) {
+                updated_player.current_streak++;
+                LOG_INFO("CURRENT STREAK DOPO L'UPDATE: %d", updated_player.current_streak);
+
+                if(updated_player.current_streak > updated_player.max_streak) {
+                    updated_player.max_streak = updated_player.current_streak;
+                }
+
+                PlayerControllerStatus player_update_status = player_update(&updated_player);
+
+                if(player_update_status != PLAYER_CONTROLLER_OK) {
+                    LOG_WARN("%s", "Error in current or max streak player update!");
+                }
+
+            } else {
+                LOG_WARN("%s", "Player NOT FOUND in current or max streak update!");
+            }
 
         // --- Set game back to WAITING after round end ---
         Game game;
