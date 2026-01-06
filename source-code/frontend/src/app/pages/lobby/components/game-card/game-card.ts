@@ -21,8 +21,7 @@ export class GameCard {
   @Input() data!:string;
   @Input() owner!:string;
   @Input() state!:string
-  @Input() current_streak?: number;
-
+  @Input() owner_current_streak?: number;
 
   sendGameRequest() {
     const playerId = this.auth.id;

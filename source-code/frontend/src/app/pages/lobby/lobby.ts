@@ -8,6 +8,7 @@ import { GameService } from '../../core/services/game.service';
 import { RequestsService } from '../../core/services/requests.service';
 import { RoundService } from '../../core/services/round.service';
 import { Router } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-lobby',
@@ -104,7 +105,7 @@ export class Lobby {
 
     //When a create game button in Lobby is clicked we open a request-page and we create a game
     this._game.createGame();
-    
+
     this._dialog.open(RequestPage, {
       disableClose: true
     })

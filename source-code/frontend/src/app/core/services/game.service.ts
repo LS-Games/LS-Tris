@@ -9,6 +9,8 @@ interface GameInfo {
     id_game : number,
     creator_nickname : string,
     owner_nickname : string,
+    owner_current_streak :number,
+    owner_max_streak : number,
     state : string,
     created_at : string
 }

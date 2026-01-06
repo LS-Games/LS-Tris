@@ -153,7 +153,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
     if (strcmp(action, "games_get_public_info") == 0) {
         GameControllerStatus gameStatus = games_get_public_info(status, &out_games, &out_count);
         if (gameStatus == GAME_CONTROLLER_OK || gameStatus == GAME_CONTROLLER_NOT_FOUND) {
-            json_response = serialize_games_to_json(action, out_games, out_count);
+            json_response = serialize_games_with_streak_to_json(action, out_games, out_count);
         } else if (gameStatus == GAME_CONTROLLER_INVALID_INPUT) {
             json_response = serialize_action_error(action, "Invalid input values");
         } else {

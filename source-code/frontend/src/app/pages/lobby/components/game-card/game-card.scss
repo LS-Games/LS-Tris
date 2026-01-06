@@ -57,8 +57,6 @@
     box-shadow: 0 3px 0 #800000; 
 }
 
-
-
 .game-card-button {
     background-color: #118A0A;
     color: white;
@@ -80,6 +78,12 @@
 
 .game-card-button:hover {
   transform: translateY(-2px);
+}
+
+.body-game-card {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 }
 
 

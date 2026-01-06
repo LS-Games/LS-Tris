@@ -266,6 +266,68 @@ char *serialize_games_to_json(const char *action, const GameDTO* games, size_t c
     return result;
 }
 
+//Serialize: GameDTO with streaks
+char *serialize_games_with_streak_to_json(const char *action, const GameDTO *games, size_t count) {
+    struct json_object *json_response = json_object_new_object();
+    struct json_object *json_array = json_object_new_array();
+
+    for (size_t i = 0; i < count; i++) {
+
+        struct json_object *json_game = json_object_new_object();
+
+        json_object_object_add(json_game, "id_game",
+            json_object_new_int64(games[i].id_game));
+
+        json_object_object_add(json_game, "creator_nickname",
+            json_object_new_string(games[i].creator_nickname));
+
+        json_object_object_add(json_game, "owner_nickname",
+            json_object_new_string(games[i].owner_nickname));
+
+        json_object_object_add(json_game, "state",
+            json_object_new_string(games[i].state_str));
+
+        json_object_object_add(json_game, "created_at",
+            json_object_new_string(games[i].created_at_str));
+
+        /* --- streak info --- */
+        if (games[i].owner_current_streak >= 0) {
+            json_object_object_add(json_game,
+                "owner_current_streak",
+                json_object_new_int(games[i].owner_current_streak));
+        }
+
+        if (games[i].owner_max_streak >= 0) {
+            json_object_object_add(json_game,
+                "owner_max_streak",
+                json_object_new_int(games[i].owner_max_streak));
+        }
+
+        json_object_array_add(json_array, json_game);
+    }
+
+    json_object_object_add(json_response,
+        "status", json_object_new_string("success"));
+
+    if (action) {
+        json_object_object_add(json_response,
+            "action", json_object_new_string(action));
+    }
+
+    json_object_object_add(json_response,
+        "count", json_object_new_int64(count));
+
+    json_object_object_add(json_response,
+        "games", json_array);
+
+    const char *json_str = json_object_to_json_string(json_response);
+    char *result = malloc(strlen(json_str) + 1);
+    if (result) strcpy(result, json_str);
+
+    json_object_put(json_response);
+    return result;
+}
+
 // Serialize: RoundDTO
 char *serialize_rounds_to_json(const char *action, const RoundDTO* rounds, size_t count) {
     struct json_object *json_response = json_object_new_object();

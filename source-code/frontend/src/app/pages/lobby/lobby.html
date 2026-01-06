@@ -27,10 +27,11 @@
                         [creator]="game.creator_nickname"
                         [data]="game.created_at"
                         [owner]="game.owner_nickname"
-                        [state]="game.state">
+                        [state]="game.state"
+                        [owner_current_streak]="game.owner_current_streak">
                     </app-game-card>
-                }
-
+            }
+            
         } @else {
             <p class="empty-message">No games found.</p>
         }

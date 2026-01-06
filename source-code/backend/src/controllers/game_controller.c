@@ -77,7 +77,6 @@ static void pending_clear(int64_t id_game) {
 // This function provides a query by `status`. 
 // @param status Possible values are `new`, `active`, `waiting`, `finished` and `all` (no filter)
 GameControllerStatus games_get_public_info(char *status, GameDTO **out_dtos, int *out_count) {
-
     LOG_DEBUG("Status: %s\n", status);
 
     GameStatus queryStatus = GAME_STATUS_INVALID;
@@ -87,42 +86,70 @@ GameControllerStatus games_get_public_info(char *status, GameDTO **out_dtos, int
             return GAME_CONTROLLER_INVALID_INPUT;
     }
 
-    GameWithPlayerNickname* retrievedGamesWithPlayerInfo;
-    int retrievedObjectCount;
-    if (game_find_all_with_player_info(&retrievedGamesWithPlayerInfo, &retrievedObjectCount) == GAME_CONTROLLER_NOT_FOUND) {
+    GameWithPlayerNickname *games = NULL;
+    int games_count = 0;
+
+    if (game_find_all_with_player_info(&games, &games_count)
+        == GAME_CONTROLLER_NOT_FOUND) {
+
         *out_dtos = NULL;
         *out_count = 0;
         return GAME_CONTROLLER_NOT_FOUND;
     }
 
-    GameDTO *dynamicDTOs = NULL;
-    int filteredObjectCount = 0;
-    for (int i = 0; i < retrievedObjectCount; i++) {
-        if (strcmp(status, "all") == 0 || retrievedGamesWithPlayerInfo[i].state == queryStatus) {
+    GameDTO *dtos = NULL;
+    int dto_count = 0;
 
-            Game game = {
-                .id_game = retrievedGamesWithPlayerInfo[i].id_game,
-                .state = retrievedGamesWithPlayerInfo[i].state,
-                .created_at = retrievedGamesWithPlayerInfo[i].created_at
-            };
+    for (int i = 0; i < games_count; i++) {
 
-            dynamicDTOs = realloc(dynamicDTOs, (filteredObjectCount + 1) * sizeof(GameDTO));
-            if (dynamicDTOs == NULL) {
-                LOG_WARN("%s\n", "Memory not allocated");
-                return GAME_CONTROLLER_INTERNAL_ERROR;
-            }
+        if (strcmp(status, "all") != 0 &&
+            games[i].state != queryStatus)
+            continue;
 
-            map_game_to_dto(&game, retrievedGamesWithPlayerInfo[i].creator, retrievedGamesWithPlayerInfo[i].owner, &(dynamicDTOs[filteredObjectCount]));
+        Game game = {
+            .id_game    = games[i].id_game,
+            .state      = games[i].state,
+            .created_at = games[i].created_at
+        };
 
-            filteredObjectCount = filteredObjectCount + 1;
-        } 
+        int owner_current_streak = -1;
+        int owner_max_streak     = -1;
+
+        Player owner;
+        if (player_find_one(games[i].id_owner, &owner)
+            == PLAYER_CONTROLLER_OK) {
+
+            owner_current_streak = owner.current_streak;
+            owner_max_streak     = owner.max_streak;
+        }
+
+        GameDTO *tmp = realloc(dtos, (dto_count + 1) * sizeof(GameDTO));
+        if (!tmp) {
+            free(dtos);
+            free(games);
+            return GAME_CONTROLLER_INTERNAL_ERROR;
+        }
+        dtos = tmp;
+
+        map_game_with_streak_to_dto(
+            &game,
+            games[i].creator,
+            games[i].owner,
+            owner_current_streak,
+            owner_max_streak,
+            &dtos[dto_count]
+        );
+
+        dto_count++;
     }
 
-    *out_dtos = dynamicDTOs;
-    *out_count = filteredObjectCount;
-    
+    free(games);
+
+    *out_dtos  = dtos;
+    *out_count = dto_count;
     return GAME_CONTROLLER_OK;
 }
+
 
 GameControllerStatus game_start(int64_t id_creator, int64_t* out_id_game) {
 
