@@ -24,7 +24,7 @@ RoundControllerStatus round_end(int64_t id_round, int64_t id_playerEndingRound, 
 
 // ===================== Controllers Helper Functions =====================
 
-RoundControllerStatus round_start(int64_t id_game, int64_t id_player1, int64_t id_player2, int64_t duration, int64_t *out_new_round);
+RoundControllerStatus round_start(int64_t id_game, int64_t id_player1, int64_t id_player2, int64_t *out_new_round);
 
 // ===================== CRUD Operations =====================
 

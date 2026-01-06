@@ -11,7 +11,8 @@
 typedef struct RoundDTO {
     int64_t id_round;
     int64_t id_game;
-    int64_t duration;
+    int64_t start_time;
+    int64_t end_time;
     char state_str[ROUND_STATE_STR_MAX];
     char board[BOARD_MAX];
 } RoundDTO;

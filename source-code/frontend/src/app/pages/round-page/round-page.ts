@@ -1,4 +1,4 @@
-import { Component, inject, effect } from '@angular/core';
+import { Component, inject, effect, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BoardComponent } from '../round-page/components/board/board';
 import { RoundService } from '../../core/services/round.service';
@@ -13,8 +13,9 @@ import { RequestsService } from '../../core/services/requests.service';
   standalone: true,
   imports: [CommonModule, BoardComponent],
   templateUrl: './round-page.html',
-  styleUrl: './round-page.scss'
+  styleUrls: ['./round-page.scss']
 })
+
 export class RoundPage implements CanComponentDeactivate {
 
   private readonly _round = inject(RoundService);
@@ -36,7 +37,38 @@ export class RoundPage implements CanComponentDeactivate {
   rematchPending = this._round.rematchPendingSignal;
   winnerByForfeit = this._round.winnerByForfeitSignal;
 
+  startTimeMs = signal<number | null>(null);
+  elapsedSeconds = signal<number>(0);
+  timerId: any = null;
+
+  roundActive = computed(() =>
+    this.startTimeMs() !== null && !this.roundEnded()
+  );
+
+  formattedTime = computed(() => {
+    const total = this.elapsedSeconds();
+    const minutes = Math.floor(total / 60).toString().padStart(2, '0');
+    const seconds = (total % 60).toString().padStart(2, '0');
+    return `${minutes}:${seconds}`;
+  });
+
   constructor() {
+
+    //Start timer when round begin
+    // effect(() => {
+    //   const startTime = this._round.startTimeSignal?.();
+
+    //   if (startTime && this.startTimeMs() === null) {
+    //     this.startTimer(startTime);
+    //   }
+    // });
+
+    //Stop timer when round finish
+    effect(() => {
+      if (this.roundEnded()) {
+        this.stopTimer();
+      }
+    });
 
     effect(() => {
       const winner = this.winner();
@@ -49,9 +81,13 @@ export class RoundPage implements CanComponentDeactivate {
     effect(() => {
       const gameId = this._round.gameId();
       const roundId = this._round.roundId();
+      const startTime = this._round.startTimeSignal?.();
 
       if (gameId !== null && roundId !== null) {
         this._router.navigate(['/round', gameId, roundId], { replaceUrl: true });
+        if (startTime) {
+          this.startTimer(startTime);
+        }
       }
     });
   }
@@ -139,5 +175,33 @@ export class RoundPage implements CanComponentDeactivate {
       disableClose: true
     })
   }
+
+  private startTimer(startTimeSeconds: number) {
+    this.startTimeMs.set(startTimeSeconds * 1000);
+
+    this.elapsedSeconds.set(
+      Math.floor((Date.now() - this.startTimeMs()!) / 1000)
+    );
+
+    if (this.timerId) {
+      clearInterval(this.timerId);
+    }
+
+    this.timerId = setInterval(() => {
+      this.elapsedSeconds.set(
+        Math.floor((Date.now() - this.startTimeMs()!) / 1000)
+      );
+    }, 1000);
+  }
+
+  private stopTimer() {
+    if (this.timerId) {
+      clearInterval(this.timerId);
+      this.timerId = null;
+    }
+  }
+
+
+
 
 }

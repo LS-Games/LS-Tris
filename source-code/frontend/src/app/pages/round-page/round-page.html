@@ -13,8 +13,12 @@
   }
   
   <div class="game-summary">
-      <p class="round-players-nickname"> {{player1Nickname()}} </p>
-      <p class="round-players-nickname"> {{player2Nickname()}} </p>
+      <p class="round-players-nickname player-x" [class.active-player]="currentPlayer() === 'X'"> {{player1Nickname()}} </p>
+
+      <!-- TIMER -->
+      <p class="round-timer pulse">{{ formattedTime() }} </p>
+
+      <p class="round-players-nickname player-o" [class.active-player]="currentPlayer() === 'O'"> {{player2Nickname()}} </p>
   </div>
 
   <app-board

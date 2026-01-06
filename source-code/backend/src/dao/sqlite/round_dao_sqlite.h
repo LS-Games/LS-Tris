@@ -16,12 +16,12 @@ typedef enum {
 } RoundDaoStatus;
 
 typedef enum {
-    UPDATE_ROUND_ID_GAME        = 1 << 0,
-    UPDATE_ROUND_STATE          = 1 << 1,
-    UPDATE_ROUND_DURATION       = 1 << 2,
-    UPDATE_ROUND_BOARD          = 1 << 3
+    UPDATE_ROUND_ID_GAME    = 1 << 0,
+    UPDATE_ROUND_STATE      = 1 << 1,
+    UPDATE_ROUND_START_TIME = 1 << 2,
+    UPDATE_ROUND_END_TIME   = 1 << 3,
+    UPDATE_ROUND_BOARD      = 1 << 4
 } UpdateRoundFlags;
-
 
 // Funzioni CRUD concrete
 RoundDaoStatus get_round_by_id(sqlite3 *db, int64_t id_round, Round *out); 

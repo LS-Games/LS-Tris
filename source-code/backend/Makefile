@@ -9,7 +9,8 @@ WARN        := -Wall -Wextra -Wpedantic
 # DEPFLAGS: dependency tracking for smart rebuilds
 DEPFLAGS    := -MMD -MP
 # DEBUG: debugging information
-DEBUG       := -g
+DEBUG := -g -O0 -fno-omit-frame-pointer
+
 # RELEASE: release settings (-O3 optimization level, disables assert(expr))
 RELEASE     := -O3 -DNDEBUG
 

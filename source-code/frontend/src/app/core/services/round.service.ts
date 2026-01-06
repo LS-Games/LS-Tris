@@ -34,6 +34,9 @@ export class RoundService {
     winnerSignal = signal<'X' | 'O' | null>(null);
     roundEndedSignal = signal<boolean>(false);
 
+    startTimeSignal = signal<number | null>(null);
+
+
     constructor() {
 
         this._ws.onAction<any>('server_round_start') 
@@ -43,12 +46,15 @@ export class RoundService {
                 this.resetRoundState();
 
                 const round = msg.round; 
+
                 this.gameId.set(round.id_game);
                 this.roundId.set(round.id_round);
                 this.player1Id.set(round.id_player1);
                 this.player2Id.set(round.id_player2);
                 this.player1Nickname.set(round.nickname_player1);
                 this.player2Nickname.set(round.nickname_player2);
+
+                this.startTimeSignal.set(round.start_time);
 
                 if(this.player1Id() === this._auth.id) {
                     this.mySymbolSignal.set('X');
@@ -257,7 +263,7 @@ export class RoundService {
 
     endPending() {
         this.rematchPendingSignal.set(false);
-        
+
     }
 
 }

@@ -133,6 +133,7 @@ ParticipationRequestControllerStatus participation_request_change_state(int64_t 
     if (req.state == ACCEPTED) {
 
         RoundFullDTO fullRound;
+        memset(&fullRound, 0, sizeof(RoundFullDTO));
 
         status = participation_request_accept_helper(&req, &fullRound);
 
@@ -219,7 +220,6 @@ ParticipationRequestControllerStatus participation_request_change_state(int64_t 
     return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
 
-
 static ParticipationRequestControllerStatus participation_request_accept_helper(ParticipationRequest *req, RoundFullDTO *out_fullRound) {
 
     int64_t id_game = req->id_game;
@@ -230,7 +230,13 @@ static ParticipationRequestControllerStatus participation_request_accept_helper(
         return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
 
     int64_t new_round_id;
-    if (round_start(game.id_game, game.id_owner, id_player, 500, &new_round_id)
+
+    if (new_round_id <= 0) {
+        LOG_ERROR("round_start returned invalid round id: %" PRId64, new_round_id);
+        return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
+    }
+
+    if (round_start(game.id_game, game.id_owner, id_player, &new_round_id)
         != ROUND_CONTROLLER_OK)
         return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
 

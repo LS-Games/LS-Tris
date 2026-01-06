@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { AuthService } from '../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
 
@@ -11,10 +11,13 @@ import { CommonModule } from '@angular/common';
 })
 export class ProfilePage {
 
+  constructor() {
+    this._auth.ensureUserLoaded();
+  }
+
   private readonly _auth = inject(AuthService);
 
   user = this._auth.currentUser;
 
-
-
+  isLoading = computed(() => this.user() === null);
 }

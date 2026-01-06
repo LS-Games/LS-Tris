@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "../../include/debug_log.h"
 
@@ -22,8 +23,9 @@ static char find_winner(char board[BOARD_MAX]);
 static bool is_draw(char board[BOARD_MAX]);
 static bool is_valid_move(char board[BOARD_MAX], int row, int col);
 static int get_current_turn(char *board);
-static RoundControllerStatus round_start_helper(int64_t id_game, int64_t duration, Round* out_newRound);
+static RoundControllerStatus round_start_helper(int64_t id_game, Round* out_newRound);
 static RoundControllerStatus round_end_helper(Round* roundToEnd, int64_t id_playerEndingRound, PlayResult result);
+
 
 // ===========================================================
 
@@ -217,11 +219,12 @@ RoundControllerStatus round_make_move(int64_t id_round, int64_t id_playerMoving,
 
     // If match is over
     if (result != PLAY_RESULT_INVALID) {
-        RoundStatus endStatus = round_end_helper(&retrievedRound, -1, result);
+        RoundControllerStatus endStatus = round_end_helper(&retrievedRound, -1, result);
+        if (endStatus != ROUND_CONTROLLER_OK)
+            return endStatus;
+
         *out_id_round = retrievedRound.id_round;
-
         return ROUND_CONTROLLER_OK;
-
     }
 
     *out_id_round = retrievedRound.id_round;
@@ -237,6 +240,11 @@ RoundControllerStatus round_end(int64_t id_round, int64_t id_playerEndingRound, 
     if (status != ROUND_CONTROLLER_OK)
         return status;
 
+    if (retrievedRound.state == FINISHED_ROUND) {
+        *out_id_round = retrievedRound.id_round;
+        return ROUND_CONTROLLER_OK;
+    }
+
     status = round_end_helper(&retrievedRound, id_playerEndingRound, DRAW);
     if (status != ROUND_CONTROLLER_OK)
         return status;
@@ -250,6 +258,7 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, int64_t id_play
     
     // Set round status
     roundToEnd->state = FINISHED_ROUND;
+    roundToEnd->end_time = (int64_t)time(NULL);  // Server-side end timestamp
 
     // If match is not a draw, check who won
     char winner = NO_SYMBOL;
@@ -331,17 +340,16 @@ static RoundControllerStatus round_end_helper(Round* roundToEnd, int64_t id_play
 
 // ===================== Controllers Helper Functions =====================
 
-RoundControllerStatus round_start(int64_t id_game, int64_t id_player1, int64_t id_player2, int64_t duration, int64_t *out_new_round) {
-
-    // Build the new round
+RoundControllerStatus round_start(int64_t id_game, int64_t id_player1, int64_t id_player2, int64_t *out_new_round) {
+    // Create a new round with server-side timestamps (start_time set here)
     Round out_newRound;
-    RoundControllerStatus roundStatus = round_start_helper(id_game, duration, &out_newRound);
+    RoundControllerStatus roundStatus = round_start_helper(id_game, &out_newRound);
     if (roundStatus != ROUND_CONTROLLER_OK)
         return roundStatus;
 
     *out_new_round = out_newRound.id_round;
 
-    // Add plays to round
+    // Add the two players to the round
     PlayControllerStatus playStatus = play_add_round_plays(out_newRound.id_round, id_player1, id_player2);
     if (playStatus != PLAY_CONTROLLER_OK)
         return ROUND_CONTROLLER_INTERNAL_ERROR;
@@ -349,19 +357,23 @@ RoundControllerStatus round_start(int64_t id_game, int64_t id_player1, int64_t i
     return ROUND_CONTROLLER_OK;
 }
 
-static RoundControllerStatus round_start_helper(int64_t id_game, int64_t duration, Round* out_newRound) {
+
+static RoundControllerStatus round_start_helper(int64_t id_game, Round* out_newRound) {
 
     // Build empty board
     char emptyBoard[BOARD_MAX];
     fill_empty_board(emptyBoard);
 
     // Build new round
+    // IMPORTANT: time is server-authoritative.
+    // start_time is set now, end_time is 0 until the round finishes.
     Round roundToStart = {
         .id_game = id_game,
-        .duration = duration,
         .state = ACTIVE_ROUND,
+        .start_time = (int64_t)time(NULL),
+        .end_time = 0
     };
-    
+
     strcpy(roundToStart.board, emptyBoard);
 
     LOG_STRUCT_DEBUG(print_round_inline, &roundToStart);
@@ -370,8 +382,12 @@ static RoundControllerStatus round_start_helper(int64_t id_game, int64_t duratio
     if (status != ROUND_CONTROLLER_OK)
         return status;
 
-    *out_newRound = roundToStart;
+    if (roundToStart.id_round <= 0) {
+        LOG_ERROR("CRITICAL: round created with invalid id_round=%ld", roundToStart.id_round);
+        return ROUND_CONTROLLER_INTERNAL_ERROR;
+    }
 
+    *out_newRound = roundToStart;
     return ROUND_CONTROLLER_OK;
 }
 
@@ -394,18 +410,24 @@ const char *return_round_controller_status_to_string(RoundControllerStatus statu
 // Create
 RoundControllerStatus round_create(Round* roundToCreate) {
     sqlite3* db = db_open();
+
     RoundDaoStatus status = insert_round(db, roundToCreate);
+
     db_close(db);
+
     if (status != ROUND_DAO_OK) {
         LOG_WARN("%s\n", return_round_dao_status_to_string(status));
         return ROUND_CONTROLLER_DATABASE_ERROR;
     }
 
-    roundToCreate->id_round = sqlite3_last_insert_rowid(db);
+    if (roundToCreate->id_round <= 0) {
+        LOG_ERROR("CRITICAL: round created with invalid id_round");
+        return ROUND_CONTROLLER_INTERNAL_ERROR;
+    }
 
-    db_close(db);
     return ROUND_CONTROLLER_OK;
 }
+
 
 // Read all
 RoundControllerStatus round_find_all(Round **retrievedRoundArray, int* retrievedObjectCount) {

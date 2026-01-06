@@ -488,7 +488,7 @@ GameControllerStatus game_accept_rematch(int64_t id_game, int64_t id_playerAccep
     pthread_mutex_unlock(&g_pending_mtx);
 
     /* Step 3: Start a new round with the two rematch players (firstRequester vs second clicker) */
-    RoundControllerStatus roundStatus2 = round_start(retrievedGame.id_game, firstRequester, id_playerAcceptingRematch, 500, &new_round_id);
+    RoundControllerStatus roundStatus2 = round_start(retrievedGame.id_game, firstRequester, id_playerAcceptingRematch, &new_round_id);
     if (roundStatus2 != ROUND_CONTROLLER_OK) {
         LOG_WARN("%s", return_round_controller_status_to_string(roundStatus2));
         return GAME_CONTROLLER_INTERNAL_ERROR;

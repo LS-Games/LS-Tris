@@ -1,20 +1,3 @@
-
-/**
- * The json parser library we used is json-c.
- * GitHub repository: https://github.com/json-c/json-c 
- * Reference: https://json-c.github.io/json-c/
- * 
- * You can verify the installed libjson-c version with the command: `dpkg -l | grep libjson-c`
- * Our version is the json-c 16.0. 
- * json-c 0.16 reference: https://json-c.github.io/json-c/json-c-0.16/doc/html/index.html
- * Video tutorial: https://youtu.be/dQyXuFWylm4?si=KWfLu5QcM055VKwl
-*/
-
-#include <json-c/json.h> // Header to access all the functions that json-c offers
-#include <string.h>
-
-#include "json-parser.h"
-
 /**
  * The json parser library we used is json-c.
  * GitHub repository: https://github.com/json-c/json-c 
@@ -291,20 +274,44 @@ char *serialize_rounds_to_json(const char *action, const RoundDTO* rounds, size_
     for (size_t i = 0; i < count; i++) {
         struct json_object *json_round = json_object_new_object();
 
-        json_object_object_add(json_round, "id_round", json_object_new_int64(rounds[i].id_round));
-        json_object_object_add(json_round, "id_game", json_object_new_int64(rounds[i].id_game));
-        json_object_object_add(json_round, "duration", json_object_new_int64(rounds[i].duration));
-        json_object_object_add(json_round, "state", json_object_new_string(rounds[i].state_str));
-        json_object_object_add(json_round, "board", json_object_new_string(rounds[i].board));
+        json_object_object_add(json_round, "id_round",
+            json_object_new_int64(rounds[i].id_round));
+
+        json_object_object_add(json_round, "id_game",
+            json_object_new_int64(rounds[i].id_game));
+
+        json_object_object_add(json_round, "state",
+            json_object_new_string(rounds[i].state_str));
+
+        json_object_object_add(json_round, "start_time",
+            json_object_new_int64(rounds[i].start_time));
+
+        json_object_object_add(json_round, "end_time",
+            json_object_new_int64(rounds[i].end_time));
+
+        // Duration is DERIVED, not stored
+        if (rounds[i].end_time > 0 && rounds[i].start_time > 0) {
+            json_object_object_add(json_round, "duration",
+                json_object_new_int64(rounds[i].end_time - rounds[i].start_time));
+        }
+
+        json_object_object_add(json_round, "board",
+            json_object_new_string(rounds[i].board));
 
         json_object_array_add(json_array, json_round);
     }
 
-    json_object_object_add(json_response, "status", json_object_new_string("success"));
+    json_object_object_add(json_response, "status",
+        json_object_new_string("success"));
+
     if (action) {
-        json_object_object_add(json_response, "action", json_object_new_string(action));
+        json_object_object_add(json_response, "action",
+            json_object_new_string(action));
     }
-    json_object_object_add(json_response, "count", json_object_new_int64(count));
+
+    json_object_object_add(json_response, "count",
+        json_object_new_int64(count));
+
     json_object_object_add(json_response, "rounds", json_array);
 
     const char *json_str = json_object_to_json_string(json_response);
@@ -440,8 +447,17 @@ char *serialize_round_full_to_json(const char *action, RoundFullDTO* in_round_fu
     json_object_object_add(round_obj, "state",
         json_object_new_string(in_round_full->state));
 
-    json_object_object_add(round_obj, "duration",
-        json_object_new_int64(in_round_full->duration));
+    json_object_object_add(round_obj, "start_time",
+        json_object_new_int64(in_round_full->start_time));
+
+    json_object_object_add(round_obj, "end_time",
+        json_object_new_int64(in_round_full->end_time));
+
+    // Duration is derived, not persisted
+    if (in_round_full->start_time > 0 && in_round_full->end_time > 0) {
+        json_object_object_add(round_obj, "duration",
+            json_object_new_int64(in_round_full->end_time - in_round_full->start_time));
+    }
 
     json_object_object_add(round_obj, "board",
         json_object_new_string(in_round_full->board));

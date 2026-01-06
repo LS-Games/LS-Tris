@@ -322,14 +322,18 @@ PlayDaoStatus insert_play(sqlite3 *db, Play *in_out_play) {
     if (rc != SQLITE_OK) goto bind_fail;
 
     
-    const char *p_st = play_result_to_string(in_out_play->result);
-    
-    if(!p_st) {
-        sqlite3_finalize(stmt);
-        return PLAY_DAO_INVALID_INPUT;
+    // Bind result: NULL if the round is not finished yet
+    if (in_out_play->result == PLAY_RESULT_INVALID) {
+        rc = sqlite3_bind_null(stmt, 3);
+    } else {
+        const char *p_st = play_result_to_string(in_out_play->result);
+        if (!p_st) {
+            sqlite3_finalize(stmt);
+            return PLAY_DAO_INVALID_INPUT;
+        }
+        rc = sqlite3_bind_text(stmt, 3, p_st, -1, SQLITE_TRANSIENT);
     }
 
-    rc = sqlite3_bind_text(stmt, 3, p_st, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail;
 
     rc = sqlite3_bind_int(stmt, 4, in_out_play->player_number);
@@ -339,8 +343,14 @@ PlayDaoStatus insert_play(sqlite3 *db, Play *in_out_play) {
 
     in_out_play->id_player = sqlite3_column_int64(stmt, 0);
     in_out_play->id_round = sqlite3_column_int64(stmt, 1);
-    unsigned const char *result = sqlite3_column_text(stmt,2);
-    in_out_play->result = string_to_play_result((const char*) result);
+    unsigned const char *result = sqlite3_column_text(stmt, 2);
+
+    if (result == NULL) {
+        in_out_play->result = PLAY_RESULT_INVALID;   // oppure PLAY_RESULT_PENDING
+    } else {
+        in_out_play->result = string_to_play_result((const char*) result);
+    }
+
     in_out_play->player_number = sqlite3_column_int(stmt, 3);
 
     sqlite3_finalize(stmt);

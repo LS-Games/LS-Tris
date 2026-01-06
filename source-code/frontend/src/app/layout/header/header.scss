@@ -44,7 +44,7 @@
 .nav-links-header a:hover { transform: scale(1.1);}
 
 .logo img {
-  max-width: clamp(60px, 10vw, 140px);
+  max-width: clamp(60px, 10vw, 100px);
   height: auto;
   display: block;
   transition: transform 0.2s ease;
@@ -86,7 +86,7 @@
 @media (min-width: 1440px) {
   .site-header { padding: 20px 64px; }
   .nav-links-header { width: auto; margin-top: 0; justify-content: flex-end; gap: 20px; }
-  .logo img { max-width: 140px; }
+  .logo img { max-width: 100px; }
   .nav-link-header  a:hover { transform: scale(1.18); }
   #logout-btn:hover { transform: scale(1.12); }
 }
