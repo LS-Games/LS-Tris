@@ -279,16 +279,16 @@ char *serialize_games_with_streak_to_json(const char *action, const GameDTO *gam
             json_object_new_int64(games[i].id_game));
 
         json_object_object_add(json_game, "creator_nickname",
-            json_object_new_string(games[i].creator_nickname));
+            json_object_new_string(games[i].creator_nickname ? games[i].creator_nickname : ""));
 
         json_object_object_add(json_game, "owner_nickname",
-            json_object_new_string(games[i].owner_nickname));
+            json_object_new_string(games[i].owner_nickname ? games[i].owner_nickname : ""));
 
         json_object_object_add(json_game, "state",
-            json_object_new_string(games[i].state_str));
+            json_object_new_string(games[i].state_str ? games[i].state_str : ""));
 
         json_object_object_add(json_game, "created_at",
-            json_object_new_string(games[i].created_at_str));
+            json_object_new_string(games[i].created_at_str ? games[i].created_at_str : ""));
 
         /* --- streak info --- */
         if (games[i].owner_current_streak >= 0) {
@@ -306,23 +306,24 @@ char *serialize_games_with_streak_to_json(const char *action, const GameDTO *gam
         json_object_array_add(json_array, json_game);
     }
 
-    json_object_object_add(json_response,
-        "status", json_object_new_string("success"));
+    json_object_object_add(json_response, "status", json_object_new_string("success"));
 
     if (action) {
-        json_object_object_add(json_response,
-            "action", json_object_new_string(action));
+        json_object_object_add(json_response, "action", json_object_new_string(action));
     }
 
-    json_object_object_add(json_response,
-        "count", json_object_new_int64(count));
-
-    json_object_object_add(json_response,
-        "games", json_array);
+    json_object_object_add(json_response, "count", json_object_new_int64((int64_t)count));
+    json_object_object_add(json_response, "games", json_array);
 
     const char *json_str = json_object_to_json_string(json_response);
+
     char *result = malloc(strlen(json_str) + 1);
-    if (result) strcpy(result, json_str);
+    if (!result) {
+        json_object_put(json_response);
+        return NULL;
+    }
+
+    strcpy(result, json_str);
 
     json_object_put(json_response);
     return result;

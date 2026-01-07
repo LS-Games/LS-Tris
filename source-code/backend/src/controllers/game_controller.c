@@ -150,7 +150,6 @@ GameControllerStatus games_get_public_info(char *status, GameDTO **out_dtos, int
     return GAME_CONTROLLER_OK;
 }
 
-
 GameControllerStatus game_start(int64_t id_creator, int64_t* out_id_game) {
 
     // Build game to start
@@ -184,8 +183,16 @@ GameControllerStatus game_start(int64_t id_creator, int64_t* out_id_game) {
     if (status != GAME_CONTROLLER_OK) {
         return status;
     }
-    map_game_to_dto(&gameToStart, retrievedGameWithPlayerNickname.creator, retrievedGameWithPlayerNickname.owner, &out_game_dto);
-    json_message = serialize_games_to_json("server_new_game", &out_game_dto, 1);
+
+    map_game_with_streak_to_dto(
+        &gameToStart, 
+        retrievedGameWithPlayerNickname.creator, 
+        retrievedGameWithPlayerNickname.owner, 
+        retrievedGameWithPlayerNickname.owner_current_streak, 
+        retrievedGameWithPlayerNickname.owner_max_streak, 
+        &out_game_dto);
+
+    json_message = serialize_games_with_streak_to_json("server_new_game", &out_game_dto, 1);
     if (send_server_broadcast_message(json_message, gameToStart.id_owner) < 0 ) {
         return GAME_CONTROLLER_INTERNAL_ERROR;
     }

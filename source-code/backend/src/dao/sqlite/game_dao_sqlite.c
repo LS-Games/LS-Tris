@@ -406,8 +406,11 @@ GameDaoStatus get_game_by_id_with_player_info(sqlite3 *db, int64_t id_game, Game
         " c.nickname              AS creator, "
         " g.id_game               AS id_game, "
         " g.id_creator            AS id_creator, "
+        " g.id_owner              AS id_owner, "
         " g.state                 AS state, "
-        " unixepoch(g.created_at) AS created_at "
+        " unixepoch(g.created_at) AS created_at, "
+        " o.current_streak        AS owner_current_streak, "
+        " o.max_streak            AS owner_max_streak "
         "FROM Game g "
         "JOIN Player c ON c.id_player = g.id_creator "
         "JOIN Player o ON o.id_player = g.id_owner "
@@ -431,19 +434,23 @@ GameDaoStatus get_game_by_id_with_player_info(sqlite3 *db, int64_t id_game, Game
 
     if (rc == SQLITE_ROW) {
 
-        const unsigned char *owner      = sqlite3_column_text(stmt, 0);
-        const unsigned char *creator    = sqlite3_column_text(stmt, 1);
+        const unsigned char *owner   = sqlite3_column_text(stmt, 0);
+        const unsigned char *creator = sqlite3_column_text(stmt, 1);
 
         out->id_game    = sqlite3_column_int64(stmt, 2);
         out->id_creator = sqlite3_column_int64(stmt, 3);
+        out->id_owner   = sqlite3_column_int64(stmt, 4);
 
-        const unsigned char *stateText  = sqlite3_column_text(stmt, 4);
-        out->created_at = (time_t) sqlite3_column_int64(stmt, 5);
+        const unsigned char *stateText = sqlite3_column_text(stmt, 5);
+        out->state = string_to_game_status(stateText ? (const char*)stateText : "");
+
+        out->created_at = (time_t) sqlite3_column_int64(stmt, 6);
+
+        out->owner_current_streak = sqlite3_column_int(stmt, 7);
+        out->owner_max_streak     = sqlite3_column_int(stmt, 8);
 
         snprintf(out->owner,   sizeof(out->owner),   "%s", owner   ? (const char*)owner   : "");
         snprintf(out->creator, sizeof(out->creator), "%s", creator ? (const char*)creator : "");
-
-        out->state = string_to_game_status((const char*)stateText);
 
         sqlite3_finalize(stmt);
         return GAME_DAO_OK;
@@ -457,6 +464,7 @@ GameDaoStatus get_game_by_id_with_player_info(sqlite3 *db, int64_t id_game, Game
         return GAME_DAO_SQL_ERROR;
     }
 }
+
 
 GameDaoStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickname **out_array, int *out_count) {
 
