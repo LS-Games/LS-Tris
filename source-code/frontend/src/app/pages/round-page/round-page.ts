@@ -25,7 +25,6 @@ export class RoundPage implements CanComponentDeactivate {
   private readonly _rqst = inject(RequestsService);
 
   private allowInternalNavigation = false;
-  private exitGameIntent = false;
   
   player1Nickname = this._round.player1Nickname;
   player2Nickname = this._round.player2Nickname;
@@ -109,13 +108,11 @@ export class RoundPage implements CanComponentDeactivate {
   toHomePage() {
 
     this.allowInternalNavigation = true;
-    this.exitGameIntent = true;
     this._round.resetAll();
     this._router.navigate(['']);
   }
 
   toHomePageAfterDraw() {
-    this.exitGameIntent = true;
 
     if(!this.winnerByForfeit()) {
       console.log(this.winnerByForfeit());

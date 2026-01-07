@@ -383,12 +383,15 @@ GameControllerStatus game_forfeit(int64_t id_game, int64_t id_leaver, int64_t* o
 
     /* Loser: reset streak */
     if (player_find_one(loser, &p) == PLAYER_CONTROLLER_OK) {
-        p.current_streak = 0;
+        
+        if (p.current_streak != 0) {       
+            p.current_streak = 0;
 
-        if (player_update(&p) != PLAYER_CONTROLLER_OK) {
-            free(plays);
-            free(rounds);
-            return GAME_CONTROLLER_DATABASE_ERROR;
+            if (player_update(&p) != PLAYER_CONTROLLER_OK) {
+                free(plays);
+                free(rounds);
+                return GAME_CONTROLLER_DATABASE_ERROR;
+            }
         }
     }
 

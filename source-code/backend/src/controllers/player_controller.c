@@ -147,12 +147,13 @@ PlayerControllerStatus player_update(Player* updatedPlayer) {
     sqlite3* db = db_open();
     PlayerDaoStatus status = update_player_by_id(db, updatedPlayer);
     db_close(db);
-    if (status != PLAYER_DAO_OK) {
-        LOG_WARN("%s\n", return_player_dao_status_to_string(status));
-        return PLAYER_CONTROLLER_DATABASE_ERROR;
+
+    if (status == PLAYER_DAO_OK || status == PLAYER_DAO_NOT_MODIFIED) {
+        return PLAYER_CONTROLLER_OK;
     }
 
-    return PLAYER_CONTROLLER_OK;
+    LOG_WARN("%s\n", return_player_dao_status_to_string(status));
+    return PLAYER_CONTROLLER_DATABASE_ERROR;
 }
 
 // Delete
