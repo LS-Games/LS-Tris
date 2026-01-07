@@ -106,21 +106,17 @@ export class RoundPage implements CanComponentDeactivate {
   }
 
   toHomePage() {
-
     this.allowInternalNavigation = true;
-    this._round.resetAll();
-    this._router.navigate(['']);
+
+    this._router.navigate(['']).then(ok => {
+      if (ok) this._round.resetAll();
+    });
   }
 
   toHomePageAfterDraw() {
-
-    if(!this.winnerByForfeit()) {
-      console.log(this.winnerByForfeit());
-      this._game.forfeitGame();
-    }
-
-    this._round.resetAll();
-    this._router.navigate(['']);
+    this._router.navigate(['']).then(ok => {
+      if (ok) this._round.resetAll();
+    });
   }
 
   newGameAfterWin() {
@@ -145,40 +141,31 @@ export class RoundPage implements CanComponentDeactivate {
 
   canDeactivate(): boolean {
 
-  // Navigazioni interne “lecite” gestite dalla tua logica (rematch, ecc.)
   if (this._round.isNavigationAllowedSignal()) {
     return true;
   }
 
-  // Click su pulsanti interni dove vuoi bypassare il guard
   if (this.allowInternalNavigation) {
     this.allowInternalNavigation = false;
     return true;
   }
 
   const roundEnded = this.roundEnded();
-  const winner = this.winner();                 // 'X' | 'O' | null
-  const wonByForfeit = this.winnerByForfeit();  // boolean
+  const winner = this.winner();                 
+  const wonByForfeit = this.winnerByForfeit();  
 
-  const hasWinner = winner !== null || wonByForfeit; // vittoria “vera” o per forfeit
+  const hasWinner = winner !== null || wonByForfeit; 
 
-  // ✅ CASO 1: round finito con vincitore → niente popup, niente forfeit
   if (roundEnded && hasWinner) {
-    this._game.endGame();   // setta solo FINISHED
+    this._game.endGame();  
     return true;
   }
 
-  // ✅ CASO 2: round finito in pareggio → se esci perdi a tavolino
-  // ✅ CASO 3: round non finito → se esci perdi a tavolino
   const confirmLeave = confirm(
     'If you leave now, the match will be forfeited. Do you want to continue?'
   );
 
   if (confirmLeave) {
-    // Qui dentro siamo:
-    // - oppure in pareggio
-    // - oppure a round in corso
-    // In entrambi i casi: uscire = perdere a tavolino
     this._game.forfeitGame();
   }
 
