@@ -26,8 +26,6 @@ export class RequestsService {
 
     constructor() {
 
-        console.log('[RequestsService instance]', Math.random());
-
         this._ws.onAction<any>('participation_request_send') 
         .subscribe( msg => {
             console.log(msg);

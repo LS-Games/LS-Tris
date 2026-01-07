@@ -23,6 +23,7 @@ export class RequestCard {
 
   acceptParticipationReqeust() {
     this._rqst.acceptParticipationReqeust(this.id_request);
+    this._rqst.rejectAllParticipationRequests();
   }
   
 }

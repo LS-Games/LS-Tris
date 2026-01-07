@@ -42,6 +42,21 @@ export class GameService {
             games.filter(g => g.id_game !== idToRemove)
             );
         });
+
+        this._ws.onAction<any>('server_game_updated')
+        .subscribe(msg => {
+            console.log('[WS] game updated:', msg.game);
+            const updatedGame = msg.game;
+
+            this.gamesSignal.update(games =>
+                games.map(g =>
+                    g.id_game === updatedGame.id_game
+                    ? { ...g, ...updatedGame }
+                    : g
+        )
+    );
+});
+
     }
 
     setGames(games: GameInfo[]) {

@@ -284,9 +284,7 @@ static ParticipationRequestControllerStatus participation_request_accept_helper(
 
 
 ParticipationRequestControllerStatus participation_request_reject_all(ParticipationRequest* pendingRequestsToReject, int count) {
-
-    NotificationDTO *out_notification_dto = NULL;
-
+    
     for (int i = 0; i < count; i++) {
 
         ParticipationRequest dbRequest;
@@ -294,6 +292,9 @@ ParticipationRequestControllerStatus participation_request_reject_all(Participat
 
         if (status != PARTICIPATION_REQUEST_CONTROLLER_OK)
             return status;
+
+        if (dbRequest.state != PENDING)
+            continue;
 
         dbRequest.state = REJECTED;
 
@@ -304,30 +305,38 @@ ParticipationRequestControllerStatus participation_request_reject_all(Participat
         Game retrivedGame;
         GameControllerStatus game_status = game_find_one(dbRequest.id_game, &retrivedGame);
 
-        if (game_status != GAME_CONTROLLER_OK) {
-            return status;
-        }
+        if (game_status != GAME_CONTROLLER_OK)
+            return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
 
-        if(notification_participation_request_change(dbRequest.id_request, retrivedGame.id_owner, dbRequest.id_player, "rejected", &out_notification_dto) != NOTIFICATION_CONTROLLER_OK) {
+        NotificationDTO *out_notification_dto = NULL;
+        if (notification_participation_request_change(
+                dbRequest.id_request,
+                retrivedGame.id_owner,
+                dbRequest.id_player,
+                "rejected",
+                &out_notification_dto) != NOTIFICATION_CONTROLLER_OK) {
+
             LOG_WARN("ERRORE IN notification_participation_request_cancel");
-        return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
+            return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
         }
 
         char *json_message = serialize_notification_to_json("server_participation_request_change", out_notification_dto);
-        LOG_DEBUG("%s", json_message);
 
-        if(out_notification_dto->id_playerReceiver > 0) {
-            if(send_server_unicast_message(json_message, out_notification_dto->id_playerReceiver) < 0) {
+        if (out_notification_dto->id_playerReceiver > 0) {
+            if (send_server_unicast_message(json_message, out_notification_dto->id_playerReceiver) < 0) {
+
                 free(json_message);
                 free(out_notification_dto);
                 return PARTICIPATION_REQUEST_CONTROLLER_INTERNAL_ERROR;
             }
         }
+
+        free(json_message);
+        free(out_notification_dto);
     }
 
     return PARTICIPATION_REQUEST_CONTROLLER_OK;
 }
-
 
 ParticipationRequestControllerStatus participation_request_cancel(int64_t id_participation_request, int64_t id_sender, int64_t* out_id_participation_request) {
 

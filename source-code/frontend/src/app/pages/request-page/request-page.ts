@@ -5,7 +5,6 @@ import { WebsocketService } from '../../core/services/websocket.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RequestsService } from '../../core/services/requests.service';
 import { RequestCard } from './components/request-card/request-card';
-import { Router } from '@angular/router';
 import { RoundService } from '../../core/services/round.service';
 
 @Component({
@@ -41,7 +40,7 @@ export class RequestPage {
 
     afterNextRender(() => {
 
-      this._rqst.clearRequests();
+      // this._rqst.clearRequests();
 
       this._ws.onAction<any>('game_start')
         .pipe(takeUntilDestroyed(this._destroyRef))

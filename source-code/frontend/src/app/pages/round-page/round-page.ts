@@ -67,6 +67,7 @@ export class RoundPage implements CanComponentDeactivate {
     effect(() => {
       if (this.roundEnded()) {
         this.stopTimer();
+        this._rqst.clearRequests();
       }
     });
 
@@ -124,7 +125,6 @@ export class RoundPage implements CanComponentDeactivate {
   }
 
   newGameAfterWin() {
-    this._rqst.clearRequests();
     this.openRequestPage();
   }
 
