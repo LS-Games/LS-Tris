@@ -25,6 +25,7 @@ export class RoundPage implements CanComponentDeactivate {
   private readonly _rqst = inject(RequestsService);
 
   private allowInternalNavigation = false;
+  private exitGameIntent = false;
   
   player1Nickname = this._round.player1Nickname;
   player2Nickname = this._round.player2Nickname;
@@ -108,12 +109,13 @@ export class RoundPage implements CanComponentDeactivate {
   toHomePage() {
 
     this.allowInternalNavigation = true;
+    this.exitGameIntent = true;
     this._round.resetAll();
     this._router.navigate(['']);
   }
 
   toHomePageAfterDraw() {
-    this.allowInternalNavigation = true;
+    this.exitGameIntent = true;
 
     if(!this.winnerByForfeit()) {
       console.log(this.winnerByForfeit());
@@ -146,30 +148,45 @@ export class RoundPage implements CanComponentDeactivate {
 
   canDeactivate(): boolean {
 
-    if (this._round.isNavigationAllowedSignal()) {
-      return true;
-    }
-
-    if(this.allowInternalNavigation) {
-      this.allowInternalNavigation = false;
-      return true;
-    }
-
-    if (this.roundEnded()) {
-      return true;
-    }
-
-    const confirmLeave = confirm('If you leave now, the match will be forfeited. Do you want to continue?');
-
-    if (confirmLeave) {
-
-      if(!this.winnerByForfeit()) { 
-        this._game.forfeitGame();
-      }
-    }
-
-    return confirmLeave;
+  // Navigazioni interne “lecite” gestite dalla tua logica (rematch, ecc.)
+  if (this._round.isNavigationAllowedSignal()) {
+    return true;
   }
+
+  // Click su pulsanti interni dove vuoi bypassare il guard
+  if (this.allowInternalNavigation) {
+    this.allowInternalNavigation = false;
+    return true;
+  }
+
+  const roundEnded = this.roundEnded();
+  const winner = this.winner();                 // 'X' | 'O' | null
+  const wonByForfeit = this.winnerByForfeit();  // boolean
+
+  const hasWinner = winner !== null || wonByForfeit; // vittoria “vera” o per forfeit
+
+  // ✅ CASO 1: round finito con vincitore → niente popup, niente forfeit
+  if (roundEnded && hasWinner) {
+    this._game.endGame();   // setta solo FINISHED
+    return true;
+  }
+
+  // ✅ CASO 2: round finito in pareggio → se esci perdi a tavolino
+  // ✅ CASO 3: round non finito → se esci perdi a tavolino
+  const confirmLeave = confirm(
+    'If you leave now, the match will be forfeited. Do you want to continue?'
+  );
+
+  if (confirmLeave) {
+    // Qui dentro siamo:
+    // - oppure in pareggio
+    // - oppure a round in corso
+    // In entrambi i casi: uscire = perdere a tavolino
+    this._game.forfeitGame();
+  }
+
+  return confirmLeave;
+}
 
   openRequestPage() {
     this._dialog.open(RequestPage, {
@@ -201,8 +218,5 @@ export class RoundPage implements CanComponentDeactivate {
       this.timerId = null;
     }
   }
-
-
-
 
 }
