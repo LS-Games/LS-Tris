@@ -329,6 +329,36 @@ char *serialize_games_with_streak_to_json(const char *action, const GameDTO *gam
     return result;
 }
 
+char *serialize_game_with_streak_to_json(const char *action, const GameDTO *g) {
+    struct json_object *json_response = json_object_new_object();
+    struct json_object *json_game = json_object_new_object();
+
+    json_object_object_add(json_game, "id_game", json_object_new_int64(g->id_game));
+    json_object_object_add(json_game, "creator_nickname", json_object_new_string(g->creator_nickname));
+    json_object_object_add(json_game, "owner_nickname", json_object_new_string(g->owner_nickname));
+    json_object_object_add(json_game, "state", json_object_new_string(g->state_str));
+    json_object_object_add(json_game, "created_at", json_object_new_string(g->created_at_str));
+
+    if (g->owner_current_streak >= 0) {
+        json_object_object_add(json_game, "owner_current_streak", json_object_new_int(g->owner_current_streak));
+    }
+    if (g->owner_max_streak >= 0) {
+        json_object_object_add(json_game, "owner_max_streak", json_object_new_int(g->owner_max_streak));
+    }
+
+    json_object_object_add(json_response, "status", json_object_new_string("success"));
+    if (action) json_object_object_add(json_response, "action", json_object_new_string(action));
+    json_object_object_add(json_response, "game", json_game);
+
+    const char *json_str = json_object_to_json_string(json_response);
+    char *result = malloc(strlen(json_str) + 1);
+    if (result) strcpy(result, json_str);
+
+    json_object_put(json_response);
+    return result;
+}
+
+
 char *serialize_game_updated_to_json(const GameDTO *game) {
     if (!game) return NULL;
 

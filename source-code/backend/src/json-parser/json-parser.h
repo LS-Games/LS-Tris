@@ -24,6 +24,7 @@ char *serialize_action_error(const char *action, const char *error_message);
 char *serialize_players_to_json(const char *action, const PlayerDTO* players, size_t count);
 char *serialize_games_to_json(const char *action, const GameDTO* games, size_t count);
 char *serialize_games_with_streak_to_json(const char *action, const GameDTO *games, size_t count);
+char *serialize_game_with_streak_to_json(const char *action, const GameDTO *games);
 char *serialize_game_updated_to_json(const GameDTO *game);
 char *serialize_rounds_to_json(const char *action, const RoundDTO* rounds, size_t count);
 char *serialize_participation_requests_to_json(const char *action, const ParticipationRequestDTO* participationRequests, size_t count);

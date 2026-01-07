@@ -168,16 +168,43 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
             json_response = serialize_action_error(action, return_game_controller_status_to_string(gameStatus));
         }
 
-    } else if (strcmp(action, "game_end") == 0) { // Sent by the game owner
+    } else if (strcmp(action, "game_end") == 0) {
+
         GameControllerStatus gameStatus = game_end(id_game, id_owner, &out_id_game);
         if (gameStatus == GAME_CONTROLLER_OK) {
+
             json_response = serialize_action_success(action, "Game closed", out_id_game);
+
+            Game updatedGame;
+            if (game_find_one(id_game, &updatedGame) == GAME_CONTROLLER_OK) {
+
+                GameWithPlayerNickname info;
+                if (game_find_one_with_player_info(id_game, &info) == GAME_CONTROLLER_OK) {
+
+                    GameDTO dto;
+                    map_game_with_streak_to_dto(
+                        &updatedGame,
+                        info.creator,
+                        info.owner,
+                        info.owner_current_streak,
+                        info.owner_max_streak,
+                        &dto
+                    );
+
+                    char *json_broadcast = serialize_game_with_streak_to_json("server_game_updated", &dto);
+
+                    send_server_broadcast_message(json_broadcast, id_owner);
+
+                    free(json_broadcast);
+                }
+            }
+
         } else if (gameStatus == GAME_CONTROLLER_FORBIDDEN) {
             json_response = serialize_action_error(action, "Action not allowed");
         } else {
             json_response = serialize_action_error(action, return_game_controller_status_to_string(gameStatus));
         }
-
+        
     } else if (strcmp(action, "game_forfeit") == 0) {
 
         int64_t winner = -1;

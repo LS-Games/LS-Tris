@@ -53,10 +53,9 @@ export class GameService {
                     g.id_game === updatedGame.id_game
                     ? { ...g, ...updatedGame }
                     : g
-        )
-    );
-});
-
+                )
+            );
+        });
     }
 
     setGames(games: GameInfo[]) {
