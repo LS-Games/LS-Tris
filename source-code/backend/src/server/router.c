@@ -208,20 +208,23 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
     } else if (strcmp(action, "game_forfeit") == 0) {
 
         int64_t winner = -1;
-        GameControllerStatus gameStatus = game_forfeit(id_game, id_player, &winner);
+
+        GameControllerStatus gameStatus = game_forfeit(
+            id_game,
+            id_player,
+            &winner
+        );
 
         if (gameStatus == GAME_CONTROLLER_OK) {
 
-            /* Notify the winner that the opponent has forfeited */
             NotificationDTO *out_notification = NULL;
-
-            if (notification_game_forfeit(id_game, winner, id_player, &out_notification) == NOTIFICATION_CONTROLLER_OK) {
-
-                char *json_msg = serialize_notification_to_json("server_game_forfeit_notification", out_notification);
-
-                send_server_unicast_message(json_msg, winner);
-
-                free(json_msg);
+            if (notification_game_forfeit(id_game, winner, id_sender, &out_notification) == NOTIFICATION_CONTROLLER_OK) {
+                char *json_notification = serialize_notification_to_json(
+                    "server_game_forfeit_notification",
+                    out_notification
+                );
+                send_server_broadcast_message(json_notification, id_player);
+                free(json_notification);
                 free(out_notification);
             }
 
@@ -231,7 +234,41 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
                 winner
             );
 
+            Game updatedGame;
+            if (game_find_one(id_game, &updatedGame) == GAME_CONTROLLER_OK) {
+
+                GameWithPlayerNickname info;
+                if (game_find_one_with_player_info(id_game, &info) == GAME_CONTROLLER_OK) {
+
+                    GameDTO dto;
+                    map_game_with_streak_to_dto(
+                        &updatedGame,
+                        info.creator,
+                        info.owner,
+                        info.owner_current_streak,
+                        info.owner_max_streak,
+                        &dto
+                    );
+
+                    char *json_broadcast = serialize_game_with_streak_to_json(
+                        "server_game_updated",
+                        &dto
+                    );
+
+                    send_server_broadcast_message(json_broadcast, id_owner);
+                    free(json_broadcast);
+                }
+            }
+
+        } else if (gameStatus == GAME_CONTROLLER_FORBIDDEN) {
+
+            json_response = serialize_action_error(
+                action,
+                "Action not allowed"
+            );
+
         } else {
+
             json_response = serialize_action_error(
                 action,
                 return_game_controller_status_to_string(gameStatus)
