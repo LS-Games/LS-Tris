@@ -11,6 +11,8 @@ typedef enum {
     PLAYER_CONTROLLER_INVALID_INPUT,
     PLAYER_CONTROLLER_NOT_FOUND,
     PLAYER_CONTROLLER_STATE_VIOLATION,
+    PLAYER_CONTROLLER_STATE_VIOLATION_NICKNAME,
+    PLAYER_CONTROLLER_STATE_VIOLATION_EMAIL,
     PLAYER_CONTROLLER_DATABASE_ERROR,
     PLAYER_CONTROLLER_CONFLICT,
     // PLAYER_CONTROLLER_FORBIDDEN,
@@ -31,6 +33,7 @@ PlayerControllerStatus player_update(Player* updatedPlayer);
 PlayerControllerStatus player_delete(int64_t id_player);
 
 PlayerControllerStatus player_find_one_by_nickname(const char *nickname, Player* retrievedPlayer);
+PlayerControllerStatus player_find_one_by_email(const char *email, Player* retrievedPlayer);
 
 // Funzione di utilità per messaggi di errore
 const char *return_player_controller_status_to_string(PlayerControllerStatus status);

@@ -26,7 +26,7 @@ ParticipationRequestDaoStatus get_participation_request_by_id(sqlite3 *db, int64
 
     const char *sql = 
         "SELECT id_request, id_player, id_game, unixepoch(created_at), state"
-        " FROM Participation_request WHERE id_request = ?1";
+        " FROM participation_request WHERE id_request = ?1";
 
     sqlite3_stmt *st = NULL;    
 
@@ -138,7 +138,7 @@ ParticipationRequestDaoStatus get_all_participation_requests(sqlite3 *db, Partic
     }
 
     if (rc != SQLITE_DONE) {
-        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(p_request_array);
         sqlite3_finalize(st);
         return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
@@ -388,6 +388,76 @@ ParticipationRequestDaoStatus insert_participation_request(sqlite3 *db, Particip
         return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
 }
 
+ParticipationRequestDaoStatus get_participation_request_by_id_with_player_info(sqlite3 *db, int64_t id_request, ParticipationRequestWithPlayerNickname *out ) {
+    if (!db || id_request <= 0 || !out) {
+        return PARTICIPATION_DAO_REQUEST_INVALID_INPUT;
+    }
+
+    const char *sql =
+        "SELECT "
+        " pr.id_request, "
+        " pr.id_player, "
+        " pr.id_game, "
+        " unixepoch(pr.created_at) AS created_at, "
+        " pr.state, "
+        " p.nickname "
+        "FROM Participation_request pr "
+        "JOIN Player p ON p.id_player = pr.id_player "
+        "WHERE pr.id_request = ?1;";
+
+    sqlite3_stmt *st = NULL;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
+    if (rc != SQLITE_OK) goto prepare_fail;
+
+    rc = sqlite3_bind_int64(st, 1, id_request);
+    if (rc != SQLITE_OK) goto bind_fail;
+
+    rc = sqlite3_step(st);
+
+    if (rc == SQLITE_ROW) {
+        out->id_request = sqlite3_column_int64(st, 0);
+        out->id_player  = sqlite3_column_int64(st, 1);
+        out->id_game    = sqlite3_column_int64(st, 2);
+        out->created_at = (time_t) sqlite3_column_int64(st, 3);
+
+        const unsigned char *state = sqlite3_column_text(st, 4);
+        const unsigned char *nickname = sqlite3_column_text(st, 5);
+
+        if (state) {
+            out->state = string_to_request_participation_status((const char *)state);
+        } else {
+            out->state = REQUEST_STATUS_INVALID;
+        }
+
+        snprintf(out->player_nickname, sizeof out->player_nickname, "%s", nickname ? (const char *)nickname : "");
+
+        sqlite3_finalize(st);
+        return PARTICIPATION_DAO_REQUEST_OK;
+
+    } else if (rc == SQLITE_DONE) {
+        sqlite3_finalize(st);
+        return PARTICIPATION_DAO_REQUEST_NOT_FOUND;
+        
+    } else {
+        goto step_fail;
+    }
+
+prepare_fail:
+    LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+    if (st) sqlite3_finalize(st);
+    return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
+
+bind_fail:
+    LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+    if (st) sqlite3_finalize(st);
+    return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
+
+step_fail:
+    LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+    if (st) sqlite3_finalize(st);
+    return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
+}
+
 ParticipationRequestDaoStatus get_all_participation_requests_with_player_info(sqlite3 *db, ParticipationRequestWithPlayerNickname **out_array, int *out_count) {
 
     if(db == NULL || out_array == NULL || out_count == NULL) { 
@@ -455,7 +525,7 @@ ParticipationRequestDaoStatus get_all_participation_requests_with_player_info(sq
     }
 
     if (rc != SQLITE_DONE) {
-        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(p_request_array);
         sqlite3_finalize(st);
         return PARTICIPATION_DAO_REQUEST_SQL_ERROR;
@@ -539,7 +609,7 @@ ParticipationRequestDaoStatus get_all_pending_participation_request_by_id_game(s
     }
 
     if (rc != SQLITE_DONE) {
-        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(p_request_array);
         sqlite3_finalize(st);
         return PARTICIPATION_DAO_REQUEST_SQL_ERROR;

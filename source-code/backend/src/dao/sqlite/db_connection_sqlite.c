@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 
 #include "../../../include/debug_log.h"
 
@@ -11,6 +12,11 @@
 sqlite3* db_open() {
 
     sqlite3* db = NULL;
+
+    char cwd[1024];
+    getcwd(cwd, sizeof(cwd));
+    LOG_DEBUG("Current working directory: %s\n", cwd);
+    LOG_DEBUG("Trying to open DB at: %s\n", DB_PATH);
 
     //If an error occured in database opening we print the error and close it, even if it was partially opened
     if(sqlite3_open(DB_PATH, &db) != SQLITE_OK) {
@@ -35,6 +41,6 @@ void db_close(sqlite3* db) {
 
     if (db) {
         sqlite3_close(db);
-        LOG_DEBUG("%s","Database closed.\n");
+        LOG_DEBUG("%s\n","Database closed.");
     }
 }

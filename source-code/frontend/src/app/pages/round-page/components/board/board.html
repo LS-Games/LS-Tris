@@ -1,1 +1,12 @@
-<p>board works!</p>
+<div class="board">
+  @for (cell of board; track $index; let i = $index) {
+    <div
+      class="cell"
+      (click)="playMove(i)"
+      [class.x]="cell === 'X'" 
+      [class.o]="cell === 'O'"
+    >
+      {{ cell }}
+    </div>
+  }
+</div>

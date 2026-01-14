@@ -137,7 +137,7 @@ GameDaoStatus get_all_games(sqlite3 *db, Game **out_array, int *out_count) {
     }
 
     if (rc != SQLITE_DONE) {
-        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(games_array);
         sqlite3_finalize(st);
         return GAME_DAO_SQL_ERROR;
@@ -158,6 +158,13 @@ GameDaoStatus get_all_games(sqlite3 *db, Game **out_array, int *out_count) {
 
 GameDaoStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
 
+    LOG_DEBUG("UPDATE GAME: id=%ld id_creator=%ld id_owner=%ld state=%d created_at=%ld",
+          upd_game->id_game,
+          upd_game->id_creator,
+          upd_game->id_owner,
+          upd_game->state,
+          upd_game->created_at);
+
     if (db == NULL || upd_game == NULL || upd_game->id_game <= 0) {
         return GAME_DAO_INVALID_INPUT;
     }
@@ -166,6 +173,7 @@ GameDaoStatus update_game_by_id(sqlite3 *db, const Game *upd_game) {
     GameDaoStatus game_status = get_game_by_id(db, upd_game->id_game, &original_game);
 
     if (game_status != GAME_DAO_OK) {
+        LOG_WARN("get_game_by_id returned: %d", game_status);
         return game_status;
     }
 
@@ -386,71 +394,165 @@ GameDaoStatus insert_game(sqlite3 *db, Game *in_out_game) {
         return GAME_DAO_SQL_ERROR;
 }
 
+GameDaoStatus get_game_by_id_with_player_info(sqlite3 *db, int64_t id_game, GameWithPlayerNickname *out) {
+
+    if (db == NULL || out == NULL) {
+        return GAME_DAO_INVALID_INPUT;
+    }
+
+    const char *query =
+        "SELECT "
+        " o.nickname              AS owner, "
+        " c.nickname              AS creator, "
+        " g.id_game               AS id_game, "
+        " g.id_creator            AS id_creator, "
+        " g.id_owner              AS id_owner, "
+        " g.state                 AS state, "
+        " unixepoch(g.created_at) AS created_at, "
+        " o.current_streak        AS owner_current_streak, "
+        " o.max_streak            AS owner_max_streak "
+        "FROM Game g "
+        "JOIN Player c ON c.id_player = g.id_creator "
+        "JOIN Player o ON o.id_player = g.id_owner "
+        "WHERE g.id_game = ?;";
+
+    sqlite3_stmt *stmt = NULL;
+    int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return GAME_DAO_SQL_ERROR;
+    }
+
+    rc = sqlite3_bind_int64(stmt, 1, id_game);
+    if (rc != SQLITE_OK) {
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return GAME_DAO_SQL_ERROR;
+    }
+
+    rc = sqlite3_step(stmt);
+
+    if (rc == SQLITE_ROW) {
+
+        const unsigned char *owner   = sqlite3_column_text(stmt, 0);
+        const unsigned char *creator = sqlite3_column_text(stmt, 1);
+
+        out->id_game    = sqlite3_column_int64(stmt, 2);
+        out->id_creator = sqlite3_column_int64(stmt, 3);
+        out->id_owner   = sqlite3_column_int64(stmt, 4);
+
+        const unsigned char *stateText = sqlite3_column_text(stmt, 5);
+        out->state = string_to_game_status(stateText ? (const char*)stateText : "");
+
+        out->created_at = (time_t) sqlite3_column_int64(stmt, 6);
+
+        out->owner_current_streak = sqlite3_column_int(stmt, 7);
+        out->owner_max_streak     = sqlite3_column_int(stmt, 8);
+
+        snprintf(out->owner,   sizeof(out->owner),   "%s", owner   ? (const char*)owner   : "");
+        snprintf(out->creator, sizeof(out->creator), "%s", creator ? (const char*)creator : "");
+
+        sqlite3_finalize(stmt);
+        return GAME_DAO_OK;
+
+    } else if (rc == SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        return GAME_DAO_NOT_FOUND;
+    } else {
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return GAME_DAO_SQL_ERROR;
+    }
+}
+
+
 GameDaoStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickname **out_array, int *out_count) {
 
-    if(db == NULL || out_array == NULL || out_count == NULL) {
+    if (db == NULL || out_array == NULL || out_count == NULL) {
         return GAME_DAO_INVALID_INPUT;
     }
 
     *out_array = NULL;
     *out_count = 0;
+
     int cap = 12;
 
-    const char *query = "SELECT "
-                        " o.nickname                 AS owner, "
-                        " c.nickname                 AS creator, " 
-                        " g.id_game                  AS id_game, "
-                        " g.state                    AS state, "
-                        " unixepoch(g.created_at)    AS created_at " 
-                      "FROM Game g "
-                      "JOIN Player c ON c.id_player = g.id_creator "
-                      "JOIN Player o ON o.id_player = g.id_owner "
-                      "ORDER BY g.created_at DESC, g.id_game DESC;";
+    const char *query =
+        "SELECT "
+        " g.id_game                  AS id_game, "
+        " g.id_creator               AS id_creator, "
+        " g.id_owner                 AS id_owner, "
+        " g.state                    AS state, "
+        " unixepoch(g.created_at)    AS created_at, "
+        " c.nickname                 AS creator, "
+        " o.nickname                 AS owner "
+        "FROM Game g "
+        "JOIN Player c ON c.id_player = g.id_creator "
+        "JOIN Player o ON o.id_player = g.id_owner "
+        "ORDER BY g.created_at DESC, g.id_game DESC;";
 
-    sqlite3_stmt* stmt = NULL;
-    
+    sqlite3_stmt *stmt = NULL;
     int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
-    if (rc != SQLITE_OK) goto prepare_fail;
+    if (rc != SQLITE_OK)
+        goto prepare_fail;
 
     GameWithPlayerNickname *array = malloc(sizeof(GameWithPlayerNickname) * cap);
-    int count = 0;
-
-    while((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-
-            if (count == cap) {
-                int new_cap = cap * 2;
-                GameWithPlayerNickname *tmp = realloc(array, sizeof(GameWithPlayerNickname) * new_cap);
-
-                if(!tmp) {
-                    free(array);
-                    sqlite3_finalize(stmt);
-                    return GAME_DAO_MALLOC_ERROR;
-                }
-
-                array = tmp;
-                cap = new_cap;
-            }
-
-            int col = 0; 
-
-            unsigned const char *owner = sqlite3_column_text(stmt, col++);
-            snprintf(array[count].owner, sizeof array[count].owner, "%s", owner ? (const char*) owner : "");
-
-            unsigned const char *creator = sqlite3_column_text(stmt, col++);
-            snprintf(array[count].creator, sizeof array[count].creator, "%s", creator ? (const char*) creator : "");
-
-            array[count].id_game = sqlite3_column_int64(stmt, col++);
-
-            unsigned const char *state = sqlite3_column_text(stmt, col++);
-            array[count].state = string_to_game_status((const char*) state);
-
-            array[count].created_at = (time_t) sqlite3_column_int64(stmt, col++);
-
-            count++;
+    if (!array) {
+        sqlite3_finalize(stmt);
+        return GAME_DAO_MALLOC_ERROR;
     }
 
-    if(rc != SQLITE_DONE) {
-        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+    int count = 0;
+
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+
+        if (count == cap) {
+            int new_cap = cap * 2;
+            GameWithPlayerNickname *tmp =
+                realloc(array, sizeof(GameWithPlayerNickname) * new_cap);
+
+            if (!tmp) {
+                free(array);
+                sqlite3_finalize(stmt);
+                return GAME_DAO_MALLOC_ERROR;
+            }
+
+            array = tmp;
+            cap = new_cap;
+        }
+
+        int col = 0;
+
+        array[count].id_game    = sqlite3_column_int64(stmt, col++);
+        array[count].id_creator = sqlite3_column_int64(stmt, col++);
+        array[count].id_owner   = sqlite3_column_int64(stmt, col++);
+
+        const char *state = (const char *)sqlite3_column_text(stmt, col++);
+        array[count].state =
+            state ? string_to_game_status(state) : GAME_STATUS_INVALID;
+
+        array[count].created_at =
+            (time_t)sqlite3_column_int64(stmt, col++);
+
+        const char *creator =
+            (const char *)sqlite3_column_text(stmt, col++);
+        snprintf(array[count].creator,
+                 sizeof array[count].creator,
+                 "%s",
+                 creator ? creator : "");
+
+        const char *owner =
+            (const char *)sqlite3_column_text(stmt, col++);
+        snprintf(array[count].owner,
+                 sizeof array[count].owner,
+                 "%s",
+                 owner ? owner : "");
+
+        count++;
+    }
+
+    if (rc != SQLITE_DONE) {
+        LOG_ERROR("DATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(array);
         sqlite3_finalize(stmt);
         return GAME_DAO_SQL_ERROR;
@@ -465,3 +567,4 @@ GameDaoStatus get_all_games_with_player_info(sqlite3 *db, GameWithPlayerNickname
         LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
         return GAME_DAO_SQL_ERROR;
 }
+

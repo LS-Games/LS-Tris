@@ -1,0 +1,31 @@
+# Dipendenze
+*.d
+
+# Build output
+bin/
+build/
+*.o
+*.a
+*.so
+*.out
+
+# Logs & temp files
+*.log
+*.tmp
+*.swp
+*.bak
+
+# Git
+.git
+.gitignore
+
+# Docker
+docker-compose*.yml
+Dockerfile.*
+
+# IDE e sistema
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db

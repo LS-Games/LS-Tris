@@ -7,7 +7,8 @@ void map_round_to_dto(const Round *round, RoundDTO *out_dto) {
 
     out_dto->id_round = round->id_round;
     out_dto->id_game  = round->id_game;
-    out_dto->duration = round->duration;
+    out_dto->start_time = round->start_time;
+    out_dto->end_time = round->end_time;
 
     // state
     strncpy(out_dto->state_str, round_status_to_string(round->state), sizeof(out_dto->state_str));

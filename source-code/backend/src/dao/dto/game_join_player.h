@@ -6,11 +6,17 @@
 
 typedef struct {
     int64_t id_game;
+    int64_t id_creator;
+    int64_t id_owner;
+
     GameStatus state;
     time_t created_at;
+
     char creator[NICKNAME_MAX];
     char owner[NICKNAME_MAX];
-} GameWithPlayerNickname;
 
+    int owner_current_streak;
+    int owner_max_streak;
+} GameWithPlayerNickname;
 
 #endif

@@ -184,7 +184,7 @@ PlayerDaoStatus get_all_players(sqlite3 *db, Player **out_array, int *out_count)
     }
 
     if (rc != SQLITE_DONE) {
-        LOG_ERROR("\nDATABASE ERROR: %s\n", sqlite3_errmsg(db));
+        LOG_ERROR("DATABASE ERROR: %s\n", sqlite3_errmsg(db));
         free(player_array);
         sqlite3_finalize(st);
         return PLAYER_DAO_SQL_ERROR;
@@ -492,6 +492,78 @@ PlayerDaoStatus get_player_by_nickname(sqlite3 *db, const char *nickname, Player
     }
 
     rc = sqlite3_bind_text(st, 1, nickname, -1, SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) goto bind_fail;
+
+    rc = sqlite3_step(st);
+
+    if (rc == SQLITE_ROW) {
+
+        out->id_player = sqlite3_column_int64(st, 0);
+        const unsigned char *nickname = sqlite3_column_text(st, 1);
+        const unsigned char *email = sqlite3_column_text(st, 2);
+        const unsigned char *password = sqlite3_column_text(st, 3);
+        out->current_streak = sqlite3_column_int(st, 4);
+        out->max_streak = sqlite3_column_int(st, 5);
+        out->registration_date = (time_t) sqlite3_column_int64(st, 6);
+
+        if (nickname) {
+            strcpy(out->nickname, (const char*) nickname);
+        } else {
+            out->nickname[0] = '\0';
+        }
+
+        if (email) {
+            strcpy(out->email, (const char*) email);
+        } else {
+            out->email[0] = '\0';
+        }
+
+        if (password) {
+            strcpy(out->password, (const char*) password);
+        } else {
+            out->password[0] = '\0';
+        }
+
+        sqlite3_finalize(st);
+        return PLAYER_DAO_OK;
+
+    } else if (rc == SQLITE_DONE) {
+
+        sqlite3_finalize(st);
+        return PLAYER_DAO_NOT_FOUND;
+
+    } else goto step_fail;
+
+    bind_fail:
+        LOG_ERROR("DATABASE ERROR (bind): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(st);
+        return PLAYER_DAO_SQL_ERROR;
+
+    step_fail:
+        LOG_ERROR("DATABASE ERROR (step): %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(st);
+        return PLAYER_DAO_SQL_ERROR;
+}
+
+PlayerDaoStatus get_player_by_email(sqlite3 *db, const char *email, Player *out) {
+
+    if (db == NULL || email == NULL || out == NULL) {
+        return PLAYER_DAO_INVALID_INPUT;
+    }
+
+    const char *sql= "SELECT id_player, nickname, email, password, current_streak, max_streak, unixepoch(registration_date) "
+                     "FROM Player WHERE email = ?1";
+
+    sqlite3_stmt *st = NULL;
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &st, NULL);
+
+    if (st == NULL) {
+        LOG_ERROR("DATABASE ERROR (prepare): %s\n", sqlite3_errmsg(db));
+        return PLAYER_DAO_SQL_ERROR;
+    }
+
+    rc = sqlite3_bind_text(st, 1, email, -1, SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) goto bind_fail;
 
     rc = sqlite3_step(st);

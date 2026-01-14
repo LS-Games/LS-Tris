@@ -1,8 +1,49 @@
-<div class="round-page-container">
-    <div class="challengers-name-container">
-        <p class="challengers-name" id="player1"> {{ player1 }} </p>
-        <p>VS</p>
-        <p class="challengers-name" id="player2"> {{ player2 }} </p>
+<div class="game-page">
+
+  @if (rematchPending()) {
+    <div class="waiting-overlay">
+        <div class="waiting-box">
+
+        <button class="close-btn-waiting-box" (click)="closePending()">&times;</button>
+
+        <div class="loader"></div>
+        <p>In attesa che l’altro giocatore accetti…</p>
+        </div>
     </div>
-    <app-board [board]="board" (move)="onMove($event)"></app-board>
+  }
+  
+  <div class="game-summary">
+      <p class="round-players-nickname player-x" [class.active-player]="currentPlayer() === 'X'"> {{player1Nickname()}} </p>
+
+      <!-- TIMER -->
+      <p class="round-timer pulse">{{ formattedTime() }} </p>
+
+      <p class="round-players-nickname player-o" [class.active-player]="currentPlayer() === 'O'"> {{player2Nickname()}} </p>
+  </div>
+
+  <app-board
+    [board]="board()"
+    (move)="handleMove($event)"
+  ></app-board>
+
+  @if (roundEnded()) {
+    <div class="game-status">
+        @if (winner() === mySimbol()) {
+          <p id="win-text">🏆 YOU WON!</p>
+          <button (click)="newGameAfterWin()" class="play-again-button">CERCA UN NUOVO AVVERSARIO</button>
+          <button (click)="gameEndAfterWin()" class="round-end-button">TERMINA PARTITA</button>
+        } @else if (winnerByForfeit()) {
+            <p id="win-text-by-forfeit">🏆 YOU WON!</p>
+            <button (click)="newGameAfterWin()" class="play-again-button">CERCA UN NUOVO AVVERSARIO</button>
+            <button (click)="gameEndAfterWin()" class="round-end-button">TERMINA PARTITA</button>
+        } @else if(winner() !== null && winner() !== mySimbol()){
+            <p id="lose-text"> 😢 YOU'VE LOST </p>
+            <button (click)="toHomePage()" class="round-end-button">TORNA ALLA HOMEPAGE</button>
+        } @else {
+            <p id="draw-text">🤝 YOU TIED THE GAME!</p>
+            <button (click)="rematch()" class="rematch-button">REMATCH</button>
+            <button (click)="toHomePageAfterDraw()" class="round-end-button">TORNA ALLA HOMEPAGE</button>
+        }
+    </div>
+  } 
 </div>

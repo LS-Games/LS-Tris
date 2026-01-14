@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { AuthService } from '../../core/auth/auth.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Dialog } from '@angular/cdk/dialog';
 import { LoginForm } from '../login-form/login-form';
 import { Lobby} from '../lobby/lobby'
@@ -27,6 +27,8 @@ export class Home {
     this._dialog.open(Lobby, {
       disableClose: true
     });
+
+    
 
   }
 

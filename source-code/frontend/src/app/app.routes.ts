@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
+import { LeaveGameGuard } from './core/guards/leave-game.guard';
 
 export const routes: Routes = [
     {
@@ -16,8 +18,16 @@ export const routes: Routes = [
             import('./pages/homepage/home').then(m => m.Home),
     },
     {
-        path: 'round', 
+        path: 'round/:gameId/:roundId', 
+        canActivate: [authGuard],
+        canDeactivate: [LeaveGameGuard],
         loadComponent: () =>
             import('./pages/round-page/round-page').then(m => m.RoundPage),
+    }, 
+    {
+        path: 'profile/:playerId',
+        canActivate: [authGuard],
+        loadComponent: () => 
+            import('./pages/profile-page/profile-page').then(m => m.ProfilePage)
     }
 ];

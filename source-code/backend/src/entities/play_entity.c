@@ -27,21 +27,21 @@ void print_play_inline(const Play *p) {
             play_result_to_string(p->result));
 }
 
-const char *play_result_to_string(PlayResult result) {
+const char* play_result_to_string(PlayResult result) {
     switch (result) {
-        case WIN :              return "win";
-        case LOSE :             return "lose";
-        case DRAW :             return "draw";
-        default:                return NULL;
+        case PLAY_RESULT_INVALID: return "invalid";
+        case WIN: return "win";
+        case LOSE: return "lose";
+        case DRAW: return "draw";
+        default: return NULL;
     }
 }
 
-PlayResult string_to_play_result(const char *result_str) {
-    if (result_str) {
-        if (strcmp(result_str, "win") == 0)     return WIN;
-        if (strcmp(result_str, "lose") == 0)    return LOSE;
-        if (strcmp(result_str, "draw") == 0)    return DRAW;
-    }
+PlayResult string_to_play_result(const char* str) {
+    if (strcmp(str, "invalid") == 0) return PLAY_RESULT_INVALID;
+    if (strcmp(str, "win") == 0) return WIN;
+    if (strcmp(str, "lose") == 0) return LOSE;
+    if (strcmp(str, "draw") == 0) return DRAW;
 
-    return PLAY_RESULT_INVALID; 
+    return PLAY_RESULT_INVALID; // default fallback
 }

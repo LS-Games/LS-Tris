@@ -1,22 +1,20 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 
-
 @Component({
   selector: 'app-board',
   standalone: true,
-  imports: [],
   templateUrl: './board.html',
-  styleUrl: './board.scss'
+  styleUrls: ['./board.scss'],
 })
+export class BoardComponent {
+  
+  @Input() board: (null | 'X' | 'O')[] = [];
 
-export class Board {
-  @Input() board:string[] = Array(9).fill('@')
   @Output() move = new EventEmitter<number>();
+  @Output() restartGame = new EventEmitter<void>();
 
-  onCellClick(index: number) {
-    if(this.board[index] === '@') {
-      this.move.emit(index);
-    }
+  playMove(i: number) {
+    this.move.emit(i);
   }
 
 }

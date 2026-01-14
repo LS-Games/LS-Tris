@@ -5,6 +5,7 @@
 #include "../../include/debug_log.h"
 
 #include "server.h"
+#include "session_manager.h"
 #include "../json-parser/json-parser.h"
 
 #include "../dto/game_dto.h"
@@ -21,17 +22,18 @@
 #include "../controllers/player_controller.h"
 #include "../controllers/round_controller.h"
 
-void route_request(const char* json_body, int client_socket) {
+void route_request(const char* json_body, int client_socket, int* persistence) {
 
     LOG_DEBUG("Received JSON: '%s'\n", json_body);
 
     char *action = extract_string_from_json(json_body, "action");
 
+    *persistence = 1; 
+
     if (!action) {
         LOG_WARN("%s\n", "Missing 'action' key in JSON");
-        return;
+        action = "NULL";
     }
-
 
     /* === Extracted value === */
 
@@ -54,19 +56,21 @@ void route_request(const char* json_body, int client_socket) {
     // Round controller input
     int row = extract_int_from_json(json_body, "row");
     int col = extract_int_from_json(json_body, "col");
+    int64_t id_player_ending_round = extract_int_from_json(json_body, "id_player_ending_round");
 
     // Participation Request controller input
     char *state = extract_string_from_json(json_body, "state");
     char *new_state = extract_string_from_json(json_body, "new_state");
 
+    int out_requests_count;
+    ParticipationRequest *requests = extract_requests_array_from_json(json_body, &out_requests_count);
+
     // Notification controller input
     int64_t id_sender = extract_int_from_json(json_body, "id_sender");
     int64_t id_receiver = extract_int_from_json(json_body, "id_receiver");
 
-
     /* === Result value === */
-
-    int out_count = 0;
+        int out_count = 0;
 
     // Player controller output
     bool out_signedIn = false;
@@ -96,11 +100,15 @@ void route_request(const char* json_body, int client_socket) {
 
     char *json_response = NULL;
 
+    if (strcmp(action, "NULL") == 0) {
+        json_response = serialize_action_error(action, "Missing 'action' key");
+    } else
+
     // Player routes
     if (strcmp(action, "player_get_public_info") == 0) {
         PlayerControllerStatus playerStatus = player_get_public_info(nickname, &out_player, &out_count);
         if (playerStatus == PLAYER_CONTROLLER_OK || playerStatus == PLAYER_CONTROLLER_NOT_FOUND) {
-            json_response = serialize_players_to_json(out_player, out_count);
+            json_response = serialize_players_to_json(action, out_player, out_count);
         } else {
             json_response = serialize_action_error(action, return_player_controller_status_to_string(playerStatus));
         }
@@ -108,21 +116,30 @@ void route_request(const char* json_body, int client_socket) {
     } else if (strcmp(action, "player_signup") == 0) {
         PlayerControllerStatus playerStatus = player_signup(nickname, email, password);
         if (playerStatus == PLAYER_CONTROLLER_OK) {
-            json_response = serialize_action_success(action, "Player signed up", 0);
+            json_response = serialize_action_success(action, "Player signed up", -1);
         } else if (playerStatus == PLAYER_CONTROLLER_INVALID_INPUT) {
             json_response = serialize_action_error(action, "Invalid input values");
-        } else if (playerStatus == PLAYER_CONTROLLER_STATE_VIOLATION) {
+        } else if (playerStatus == PLAYER_CONTROLLER_STATE_VIOLATION_NICKNAME) {
             json_response = serialize_action_error(action, "Nickname already used");
+        } else if (playerStatus == PLAYER_CONTROLLER_STATE_VIOLATION_EMAIL) {
+            json_response = serialize_action_error(action, "Email already used");
         } else {
             json_response = serialize_action_error(action, return_player_controller_status_to_string(playerStatus));
         }
 
+        *persistence = 0;
+
     } else if (strcmp(action, "player_signin") == 0) {
         PlayerControllerStatus playerStatus = player_signin(nickname, password, &out_signedIn, &out_id_player);
         if (playerStatus == PLAYER_CONTROLLER_OK) {
-            if (out_signedIn == true)
+            if (out_signedIn == true) {
                 json_response = serialize_action_success(action, "Player signed in", out_id_player);
-            else
+
+                // We add a session if the user logged in succesfully
+                session_add(&session_manager, client_socket, out_id_player, nickname);
+                LOG_INFO("Player \"%s\" (id_player %" PRId64 ") has been added in session list", nickname, out_id_player);
+
+            } else
                 json_response = serialize_action_error(action, "Log in failed");
         } else if (playerStatus == PLAYER_CONTROLLER_INVALID_INPUT) {
             json_response = serialize_action_error(action, "Invalid input values");
@@ -136,7 +153,7 @@ void route_request(const char* json_body, int client_socket) {
     if (strcmp(action, "games_get_public_info") == 0) {
         GameControllerStatus gameStatus = games_get_public_info(status, &out_games, &out_count);
         if (gameStatus == GAME_CONTROLLER_OK || gameStatus == GAME_CONTROLLER_NOT_FOUND) {
-            json_response = serialize_games_to_json(out_games, out_count);
+            json_response = serialize_games_with_streak_to_json(action, out_games, out_count);
         } else if (gameStatus == GAME_CONTROLLER_INVALID_INPUT) {
             json_response = serialize_action_error(action, "Invalid input values");
         } else {
@@ -151,14 +168,74 @@ void route_request(const char* json_body, int client_socket) {
             json_response = serialize_action_error(action, return_game_controller_status_to_string(gameStatus));
         }
 
-    } else if (strcmp(action, "game_end") == 0) { // Sent by the game owner
+    } else if (strcmp(action, "game_end") == 0) {
+
         GameControllerStatus gameStatus = game_end(id_game, id_owner, &out_id_game);
         if (gameStatus == GAME_CONTROLLER_OK) {
+
             json_response = serialize_action_success(action, "Game closed", out_id_game);
+
+            Game updatedGame;
+            if (game_find_one(id_game, &updatedGame) == GAME_CONTROLLER_OK) {
+
+                GameWithPlayerNickname info;
+                if (game_find_one_with_player_info(id_game, &info) == GAME_CONTROLLER_OK) {
+
+                    GameDTO dto;
+                    map_game_with_streak_to_dto(
+                        &updatedGame,
+                        info.creator,
+                        info.owner,
+                        info.owner_current_streak,
+                        info.owner_max_streak,
+                        &dto
+                    );
+
+                    char *json_broadcast = serialize_game_with_streak_to_json("server_game_updated", &dto);
+
+                    send_server_broadcast_message(json_broadcast, id_owner);
+
+                    free(json_broadcast);
+                }
+            }
+
         } else if (gameStatus == GAME_CONTROLLER_FORBIDDEN) {
             json_response = serialize_action_error(action, "Action not allowed");
         } else {
             json_response = serialize_action_error(action, return_game_controller_status_to_string(gameStatus));
+        }
+        
+    } else if (strcmp(action, "game_forfeit") == 0) {
+
+        int64_t winner = -1;
+        GameControllerStatus gameStatus = game_forfeit(id_game, id_player, &winner);
+
+        if (gameStatus == GAME_CONTROLLER_OK) {
+
+            /* Notify the winner that the opponent has forfeited */
+            NotificationDTO *out_notification = NULL;
+
+            if (notification_game_forfeit(id_game, winner, id_player, &out_notification) == NOTIFICATION_CONTROLLER_OK) {
+
+                char *json_msg = serialize_notification_to_json("server_game_forfeit_notification", out_notification);
+
+                send_server_unicast_message(json_msg, winner);
+
+                free(json_msg);
+                free(out_notification);
+            }
+
+            json_response = serialize_action_success(
+                action,
+                "Game forfeited",
+                winner
+            );
+
+        } else {
+            json_response = serialize_action_error(
+                action,
+                return_game_controller_status_to_string(gameStatus)
+            );
         }
 
     } else if (strcmp(action, "game_refuse_rematch") == 0) { // Sent by the player who got the rematch notification
@@ -169,10 +246,21 @@ void route_request(const char* json_body, int client_socket) {
             json_response = serialize_action_error(action, return_game_controller_status_to_string(gameStatus));
         }
 
-    } else if (strcmp(action, "game_accept_rematch") == 0) { // Sent by the player who got the rematch notification
-        GameControllerStatus gameStatus = game_accept_rematch(id_game, id_player_accepting_rematch, &out_id_game);
+    } else if (strcmp(action, "game_accept_rematch") == 0) {
+        int waiting = 0;
+        GameControllerStatus gameStatus = game_accept_rematch(id_game, id_player_accepting_rematch, &out_id_game, &waiting);
         if (gameStatus == GAME_CONTROLLER_OK) {
-            json_response = serialize_action_success(action, "Rematch accepted", out_id_game);
+            const char *msg = waiting ? "Waiting for opponent" : "Rematch accepted";
+            json_response = serialize_action_success_with_waiting(action, msg, out_id_game, waiting);
+        } else {
+            json_response = serialize_action_error(action, return_game_controller_status_to_string(gameStatus));
+        }
+
+    } else if (strcmp(action, "game_cancel") == 0) { // Sent by the game creator, accepted if the game has no round finished
+        LOG_DEBUG("ID_GAME: %" PRId64 ", ID_OWNER: %" PRId64 "\n", id_game, id_owner);
+        GameControllerStatus gameStatus = game_cancel(id_game, id_owner, &out_id_game);
+        if (gameStatus == GAME_CONTROLLER_OK) {
+            json_response = serialize_action_success(action, "Game canceled", out_id_game);
         } else {
             json_response = serialize_action_error(action, return_game_controller_status_to_string(gameStatus));
         }
@@ -183,7 +271,7 @@ void route_request(const char* json_body, int client_socket) {
     if (strcmp(action, "round_get_public_info") == 0) {
         RoundControllerStatus roundStatus = round_get_public_info(id_round, &out_round, &out_count);
         if (roundStatus == ROUND_CONTROLLER_OK || roundStatus == ROUND_CONTROLLER_NOT_FOUND) {
-            json_response = serialize_rounds_to_json(out_round, out_count);
+            json_response = serialize_rounds_to_json(action, out_round, out_count);
         } else {
             json_response = serialize_action_error(action, return_round_controller_status_to_string(roundStatus));
         }
@@ -203,7 +291,7 @@ void route_request(const char* json_body, int client_socket) {
         }
 
     } else if (strcmp(action, "round_end") == 0) { // Sent by one of the players in the round
-        RoundControllerStatus roundStatus = round_end(id_round, &out_id_round);
+        RoundControllerStatus roundStatus = round_end(id_round, id_player_ending_round, &out_id_round);
         if (roundStatus == ROUND_CONTROLLER_OK) {
             json_response = serialize_action_success(action, "Round closed", out_id_round);
         } else {
@@ -216,7 +304,7 @@ void route_request(const char* json_body, int client_socket) {
     if (strcmp(action, "participation_requests_get_public_info") == 0) {
         ParticipationRequestControllerStatus participationRequestStatus = participation_requests_get_public_info(state, id_game, &out_participation_requests, &out_count);
         if (participationRequestStatus == PARTICIPATION_REQUEST_CONTROLLER_OK || participationRequestStatus == PARTICIPATION_REQUEST_CONTROLLER_NOT_FOUND) {
-            json_response = serialize_participation_requests_to_json(out_participation_requests, out_count);
+            json_response = serialize_participation_requests_to_json(action, out_participation_requests, out_count);
         } else if (participationRequestStatus == PARTICIPATION_REQUEST_CONTROLLER_INVALID_INPUT) {
             json_response = serialize_action_error(action, "Invalid input values");
         } else {
@@ -242,9 +330,18 @@ void route_request(const char* json_body, int client_socket) {
         }
 
     } else if (strcmp(action, "participation_request_cancel") == 0) { // Sent by the participation request sender
-        ParticipationRequestControllerStatus participationRequestStatus = participation_request_cancel(id_participation_request, &out_id_participation_request);
+        ParticipationRequestControllerStatus participationRequestStatus = participation_request_cancel(id_participation_request, id_player, &out_id_participation_request);
         if (participationRequestStatus == PARTICIPATION_REQUEST_CONTROLLER_OK) {
             json_response = serialize_action_success(action, "Participation request canceled", out_id_participation_request);
+        } else {
+            json_response = serialize_action_error(action, return_participation_request_controller_status_to_string(participationRequestStatus));
+        }
+
+    } else if (strcmp(action, "participation_request_reject_all") == 0) { // Sent by the game owner
+
+        ParticipationRequestControllerStatus participationRequestStatus = participation_request_reject_all(requests, out_requests_count);
+        if (participationRequestStatus == PARTICIPATION_REQUEST_CONTROLLER_OK) {
+            json_response = serialize_action_success(action, "All Participation requests rejected", out_id_participation_request);
         } else {
             json_response = serialize_action_error(action, return_participation_request_controller_status_to_string(participationRequestStatus));
         }
@@ -255,7 +352,7 @@ void route_request(const char* json_body, int client_socket) {
     if (strcmp(action, "plays_get_public_info") == 0) {
         PlayControllerStatus playStatus = plays_get_public_info(id_player, id_round, &out_plays, &out_count);
         if (playStatus == PLAY_CONTROLLER_OK || playStatus == PLAY_CONTROLLER_NOT_FOUND) {
-            json_response = serialize_plays_to_json(out_plays, out_count);
+            json_response = serialize_plays_to_json(action, out_plays, out_count);
         } else {
             json_response = serialize_action_error(action, return_play_controller_status_to_string(playStatus));
         }
@@ -266,19 +363,31 @@ void route_request(const char* json_body, int client_socket) {
     if (strcmp(action, "notification_rematch_game") == 0) { // Sent by the game owner
         NotificationControllerStatus notificationStatus = notification_rematch_game(id_game, id_sender, id_receiver, &out_notification);
         if (notificationStatus == NOTIFICATION_CONTROLLER_OK) {
-            // TODO: Implement send out_notification
-            json_response = serialize_action_success(action, "Rematch invitation sent", out_id_participation_request);
+            char *json_message = serialize_notification_to_json(NULL, out_notification);
+            if (send_server_unicast_message(json_message, id_receiver) < 0 ) {
+                json_response = serialize_action_error(action, "Could not send rematch invitation");
+            } else {
+                json_response = serialize_action_success(action, "Rematch invitation sent", -1);
+            }
+            free(json_message);
         } else {
-            json_response = serialize_action_error(action, return_participation_request_controller_status_to_string(notificationStatus));
+            json_response = serialize_action_error(action, return_notification_controller_status_to_string(notificationStatus));
         }
+
+    } else {
+        json_response = serialize_action_error(action, "Action not recognized");
     }
 
 
     /* === Send response === */
 
+    LOG_INFO("Server Router Response successfully built: %s\n", json_response);
     if (json_response) {
-        // server_send(client_socket, json_response);
-        LOG_DEBUG("Client socket %d - Sent response: %s\n", client_socket, json_response);
+        if (send_server_response(client_socket, json_response) < 0) {
+            LOG_WARN("Error sending the Server Router Response to Client socket %d\n", client_socket);
+        } else {
+            LOG_DEBUG("Server Router Response sent: Client socket %d \n", client_socket);
+        }
     } else {
         LOG_WARN("%s\n", "JSON response is empty");
         return;
@@ -287,7 +396,7 @@ void route_request(const char* json_body, int client_socket) {
 
     /* === Free dynamically allocated variables */
 
-    if (action)
+    if (action && (strcmp(action, "NULL") != 0))
         free(action); 
 
     if (nickname)

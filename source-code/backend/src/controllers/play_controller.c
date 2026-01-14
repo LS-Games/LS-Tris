@@ -11,9 +11,9 @@
 // @param id_round Possible values are all integer positive number and -1 (no filter)
 PlayControllerStatus plays_get_public_info(int64_t id_player, int64_t id_round, PlayDTO **out_dtos, int *out_count) {
 
-    PlayWithPlayerNickname* retrievedPlays;
+    PlayWithPlayerNickname* retrievedPlaysWithPlayerNickname;
     int retrievedObjectCount;
-    if (play_find_all_with_player_info(&retrievedPlays, &retrievedObjectCount) == PLAY_CONTROLLER_NOT_FOUND) {
+    if (play_find_all_with_player_info(&retrievedPlaysWithPlayerNickname, &retrievedObjectCount) == PLAY_CONTROLLER_NOT_FOUND) {
         *out_dtos = NULL;
         *out_count = 0;
         return PLAY_CONTROLLER_NOT_FOUND;
@@ -22,14 +22,14 @@ PlayControllerStatus plays_get_public_info(int64_t id_player, int64_t id_round, 
     PlayDTO *dynamicDTOs = NULL;
     int filteredObjectCount = 0;
     for (int i = 0; i < retrievedObjectCount; i++) {
-        if ((id_player == -1 || retrievedPlays[i].id_player == id_player) &&
-            (id_round == -1 || retrievedPlays[i].id_round == id_round)) {
+        if ((id_player == -1 || retrievedPlaysWithPlayerNickname[i].id_player == id_player) &&
+            (id_round == -1 || retrievedPlaysWithPlayerNickname[i].id_round == id_round)) {
 
             Play play = {
-                .id_player = retrievedPlays[i].id_player,
-                .id_round = retrievedPlays[i].id_round,
-                .player_number = retrievedPlays[i].player_number,
-                .result = retrievedPlays[i].result
+                .id_player = retrievedPlaysWithPlayerNickname[i].id_player,
+                .id_round = retrievedPlaysWithPlayerNickname[i].id_round,
+                .player_number = retrievedPlaysWithPlayerNickname[i].player_number,
+                .result = retrievedPlaysWithPlayerNickname[i].result
             };
 
             dynamicDTOs = realloc(dynamicDTOs, (filteredObjectCount + 1) * sizeof(PlayDTO));
@@ -38,7 +38,7 @@ PlayControllerStatus plays_get_public_info(int64_t id_player, int64_t id_round, 
                 return PLAY_CONTROLLER_INTERNAL_ERROR;
             }
 
-            map_play_to_dto(&play, retrievedPlays[i].player_nickname, &(dynamicDTOs[filteredObjectCount]));
+            map_play_to_dto(&play, retrievedPlaysWithPlayerNickname[i].player_nickname, &(dynamicDTOs[filteredObjectCount]));
 
             filteredObjectCount = filteredObjectCount + 1;
         }
@@ -76,6 +76,8 @@ PlayControllerStatus play_add_round_plays(int64_t id_round, int64_t id_player_1,
         return status;
 
     return play_create(&playToBuild_2);
+
+    return PLAY_CONTROLLER_OK;
 }
 
 // This function sets the plays of a round based on its result.
@@ -116,6 +118,8 @@ PlayControllerStatus play_set_round_plays_result(int64_t id_round, PlayResult re
 
 PlayControllerStatus play_retrieve_round_current_player_number(int64_t id_round, int64_t id_currentPlayer, int* out_player_number) {
 
+    LOG_INFO("ID CURRENT PLAYER: %d", id_currentPlayer);
+
     // Retrieve plays of this round
     Play* retrievedPlayArray;
     int retrievedPlayCount;
@@ -129,8 +133,11 @@ PlayControllerStatus play_retrieve_round_current_player_number(int64_t id_round,
         if (retrievedPlayArray[i].id_player == id_currentPlayer)
             player_number = retrievedPlayArray[i].player_number;
     }
-    if (player_number == -1)
+    
+    if (player_number == -1) {
+        LOG_WARN("PLAYER NUMBER NOT VALID");
         return PLAY_CONTROLLER_INTERNAL_ERROR;
+    }
 
     *out_player_number = player_number;
 
@@ -243,14 +250,14 @@ PlayControllerStatus play_delete(int64_t id_player, int64_t id_round) {
     return PLAY_CONTROLLER_OK;
 }
 
-// Read all (by id_round)
-PlayControllerStatus play_find_all_by_id_round(Play **retrievedPlayArray, int64_t id_round, int* retrievedObjectCount) {
+// Read one with player info
+PlayControllerStatus play_find_one_with_player_info(int64_t id_player, int64_t id_round, PlayWithPlayerNickname* retrievedPlay) {
     sqlite3* db = db_open();
-    PlayDaoStatus status = get_all_plays_by_round(db, retrievedPlayArray, id_round, retrievedObjectCount);
+    PlayDaoStatus status = get_play_by_pk_with_player_info(db, id_player, id_round, retrievedPlay);
     db_close(db);
     if (status != PLAY_DAO_OK) {
         LOG_WARN("%s\n", return_play_dao_status_to_string(status));
-        return PLAY_CONTROLLER_DATABASE_ERROR;
+        return status == PLAY_DAO_NOT_FOUND ? PLAY_CONTROLLER_NOT_FOUND : PLAY_CONTROLLER_DATABASE_ERROR;
     }
 
     return PLAY_CONTROLLER_OK;
@@ -260,6 +267,19 @@ PlayControllerStatus play_find_all_by_id_round(Play **retrievedPlayArray, int64_
 PlayControllerStatus play_find_all_with_player_info(PlayWithPlayerNickname **retrievedPlayArray, int* retrievedObjectCount) {
     sqlite3* db = db_open();
     PlayDaoStatus status = get_all_plays_with_player_info(db, retrievedPlayArray, retrievedObjectCount);
+    db_close(db);
+    if (status != PLAY_DAO_OK) {
+        LOG_WARN("%s\n", return_play_dao_status_to_string(status));
+        return PLAY_CONTROLLER_DATABASE_ERROR;
+    }
+
+    return PLAY_CONTROLLER_OK;
+}
+
+// Read all (by id_round)
+PlayControllerStatus play_find_all_by_id_round(Play **retrievedPlayArray, int64_t id_round, int* retrievedObjectCount) {
+    sqlite3* db = db_open();
+    PlayDaoStatus status = get_all_plays_by_round(db, id_round, retrievedPlayArray, retrievedObjectCount);
     db_close(db);
     if (status != PLAY_DAO_OK) {
         LOG_WARN("%s\n", return_play_dao_status_to_string(status));

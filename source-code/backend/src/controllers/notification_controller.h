@@ -20,9 +20,14 @@ NotificationControllerStatus notification_rematch_game(int64_t id_game, int64_t 
 
 // ===================== Controllers Helper Functions =====================
 
-NotificationControllerStatus notification_new_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO **out_dto);
-NotificationControllerStatus notification_waiting_game(int64_t id_game, int64_t id_sender, int64_t id_receiver, NotificationDTO **out_dto);
-NotificationControllerStatus notification_finished_round(int64_t id_round, int64_t id_sender, int64_t id_receiver, const char *result, NotificationDTO **out_dto);
+NotificationControllerStatus notification_participation_request_cancel(int64_t id_request, int64_t id_sender, NotificationDTO **out_dto);
+NotificationControllerStatus notification_participation_request_change(int64_t id_request, int64_t id_sender, int64_t id_receiver, char *status, NotificationDTO **out_dto);
+
+NotificationControllerStatus notification_new_game(int64_t id_game, int64_t id_sender, NotificationDTO **out_dto);
+NotificationControllerStatus notification_game_cancel(int64_t id_game, int64_t id_sender, NotificationDTO **out_dto);
+NotificationControllerStatus notification_waiting_game(int64_t id_game, int64_t id_sender, NotificationDTO **out_dto);
+NotificationControllerStatus notification_finished_round(int64_t id_round, int64_t id_sender, const char *result, NotificationDTO **out_dto);
+NotificationControllerStatus notification_game_forfeit(int64_t id_game, int64_t id_winner, int64_t id_leaver, NotificationDTO **out_dto);
 
 // Funzione di utilità per messaggi di errore
 const char *return_notification_controller_status_to_string(NotificationControllerStatus status);

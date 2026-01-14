@@ -1,0 +1,29 @@
+# Node e dipendenze
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Build output
+dist
+coverage
+
+# Logs & temp files
+*.log
+*.tmp
+*.swp
+*.bak
+
+# Git
+.git
+.gitignore
+
+# Docker
+docker-compose*.yml
+Dockerfile.*
+
+# IDE e sistema
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db

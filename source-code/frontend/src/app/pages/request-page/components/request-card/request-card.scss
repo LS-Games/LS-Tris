@@ -1,0 +1,73 @@
+ p {
+    font-family: sans-serif;
+    font-size: clamp(18px, 3vw, 23px);
+    font-weight: bold;
+}
+
+.request-card-container {
+    background-color: white;
+    border-radius: 30px;
+    padding: 8px;
+    margin-bottom: 15px;
+    border-bottom: 8px solid #e5a100; 
+}
+
+.info-request-card {
+    display: flex;
+    gap: clamp(18px, 3vw, 25px);
+    border-bottom: 3px solid #e5a100; 
+}
+
+.footer-request-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.game-card-button-accept {
+    background-color: #118A0A;
+    color: white;
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: clamp(8px, 3vw, 17px);
+    border-radius: 8px;
+    border: none;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    padding: 10px;   
+    height: auto;         
+    cursor: pointer;
+    box-shadow: 0 3px 0 #0b5e07;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: transform 0.1s ease;
+}
+
+.game-card-button-reject {
+    background-color: red;
+    color: white;
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: clamp(8px, 3vw, 17px);
+    border-radius: 8px;
+    border: none;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    padding: 10px;   
+    height: auto;         
+    cursor: pointer;
+    box-shadow: 0 3px 0 #3A0203;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: transform 0.1s ease;
+}
+
+.game-card-button-accept:hover {
+  transform: translateY(-2px);
+}
+
+.game-card-button-reject:hover {
+  transform: translateY(-2px);
+}
+

@@ -6,7 +6,7 @@
 
   <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
 
-    <input type="email" formControlName="email" placeholder="Email" />
+    <input type="text" formControlName="nickname" placeholder="Nickname" />
     <input type="password" formControlName="password" placeholder="Password" />
 
     <button type="submit">LOG IN</button>
@@ -15,8 +15,8 @@
   @if (buttonClicked) {
     <div class="form-error-message">
 
-      @if(loginForm.get('email')?.invalid) {
-        <p>Please enter a valid email.</p>
+      @if(loginForm.get('nickname')?.invalid) {
+        <p>Please enter a valid username.</p>
       }
 
       @if(loginForm.get('password')?.invalid) {

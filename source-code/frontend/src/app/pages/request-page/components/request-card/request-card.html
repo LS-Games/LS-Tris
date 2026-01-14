@@ -1,0 +1,13 @@
+<div class="request-card-container">
+    <div class="info-request-card">
+        <p id="sender_nickname">Sender: {{ sender_nickname }} </p>
+        <p id="rquest-data-creation">
+            {{ data | date:'dd/MM/yyyy HH:mm' }}
+        </p>
+    </div>
+    <div class="footer-request-card">
+            <a (click)="acceptParticipationReqeust()"><button class="game-card-button-accept">ACCEPT</button></a>
+            <a (click)="rejectParticipationRequest()"><button class="game-card-button-reject">REJECT</button></a>
+    </div>
+</div>
+

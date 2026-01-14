@@ -36,8 +36,9 @@ PlayControllerStatus play_find_one(int64_t id_player, int64_t id_round, Play* re
 PlayControllerStatus play_update(Play* updatedPlay);
 PlayControllerStatus play_delete(int64_t id_player, int64_t id_round);
 
-PlayControllerStatus play_find_all_by_id_round(Play **retrievedPlayArray, int64_t id_round, int* retrievedObjectCount);
+PlayControllerStatus play_find_one_with_player_info(int64_t id_player, int64_t id_round, PlayWithPlayerNickname* retrievedPlay);
 PlayControllerStatus play_find_all_with_player_info(PlayWithPlayerNickname **retrievedPlayArray, int* retrievedObjectCount);
+PlayControllerStatus play_find_all_by_id_round(Play **retrievedPlayArray, int64_t id_round, int* retrievedObjectCount);
 
 // Funzione di utilità per messaggi di errore
 const char *return_play_controller_status_to_string(PlayControllerStatus status);

@@ -22,7 +22,9 @@ typedef enum {
 ParticipationRequestControllerStatus participation_requests_get_public_info(char *state, int64_t id_game, ParticipationRequestDTO **out_dtos, int *out_count);
 ParticipationRequestControllerStatus participation_request_send(int64_t id_game, int64_t id_player, int64_t* out_id_participation_request);
 ParticipationRequestControllerStatus participation_request_change_state(int64_t id_participation_request, char *newState, int64_t* out_id_participation_request);
-ParticipationRequestControllerStatus participation_request_cancel(int64_t id_participation_request, int64_t* out_id_participation_request);
+ParticipationRequestControllerStatus participation_request_accept(int64_t id_participation_request, int64_t id_owner);
+ParticipationRequestControllerStatus participation_request_cancel(int64_t id_participation_request, int64_t id_sender, int64_t* out_id_participation_request);
+ParticipationRequestControllerStatus participation_request_reject_all(ParticipationRequest* pendingRequestsToReject, int retrievedObjectCount);
 
 // ===================== CRUD Operations =====================
 
@@ -32,6 +34,7 @@ ParticipationRequestControllerStatus participation_request_find_one(int64_t id_p
 ParticipationRequestControllerStatus participation_request_update(ParticipationRequest* updatedParticipationRequest);
 ParticipationRequestControllerStatus participation_request_delete(int64_t id_participation_request);
 
+ParticipationRequestControllerStatus participation_request_find_one_with_player_info(int64_t id_participation_request, ParticipationRequestWithPlayerNickname* retrievedParticipationRequest);
 ParticipationRequestControllerStatus participation_request_find_all_with_player_info(ParticipationRequestWithPlayerNickname **retrievedParticipationRequestArray, int* retrievedObjectCount);
 ParticipationRequestControllerStatus participation_request_find_all_pending_by_id_game(ParticipationRequest **retrievedParticipationRequestArray, int64_t id_game, int* retrievedObjectCount);
 

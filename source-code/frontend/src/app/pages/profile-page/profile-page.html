@@ -1,0 +1,51 @@
+<div class="profile-page">
+
+  @if (user()) {
+
+    <!-- PROFILE HEADER -->
+    <div class="profile-header">
+      <div class="avatar">
+        <span>{{ user()!.nickname.charAt(0) | uppercase }}</span>
+      </div>
+
+      <div class="profile-main-info">
+        <h1>{{ user()!.nickname }}</h1>
+        <p class="player-id">Player ID: #{{ user()!.id_player }}</p>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="profile-stats single">
+      <div class="stat-card max">
+        <h3>Max Streak</h3>
+        <div class="stat-value">{{ user()!.max_streak }}</div>
+      </div>
+    </div>
+
+    <!-- DETAILS -->
+    <div class="profile-details">
+      <h2>Account Information</h2>
+
+      <div class="detail-row">
+        <span class="label">Nickname</span>
+        <span class="value">{{ user()!.nickname }}</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="label">Registered on</span>
+        <span class="value">
+          {{ user()!.registration_date | date:'dd/MM/yyyy' }}
+        </span>
+      </div>
+    </div>
+
+  } @else {
+
+    <!-- LOADING STATE -->
+    <div class="profile-loading">
+      <p>Loading profile data...</p>
+    </div>
+
+  }
+
+</div>

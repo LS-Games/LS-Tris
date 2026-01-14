@@ -5,7 +5,7 @@
 
 #define BOARD_ROWS 3
 #define BOARD_COLS 3 
-#define BOARD_MAX (BOARD_ROWS*BOARD_COLS)+1 // One more character for trailing \0 char
+#define BOARD_MAX (BOARD_ROWS*BOARD_COLS)+1 // One more character for trailing '\0' char
 
 #define NO_SYMBOL '/'
 #define P1_SYMBOL 'X'
@@ -23,15 +23,22 @@ typedef struct {
     int64_t id_round;
     int64_t id_game;
     RoundStatus state;
-    int64_t duration;   // Duration in seconds
+
+    int64_t start_time; // Unix timestamp (seconds, server-side)
+    int64_t end_time;
+
     char board[BOARD_MAX];
 } Round;
+
+// ------------------- Debug / Utils -------------------
 
 void print_round(const Round *r);
 void print_round_inline(const Round *r);
 
 const char *round_status_to_string(RoundStatus state);
 RoundStatus string_to_round_status(const char *state_str);
+
+// ------------------- Game Logic -------------------
 
 char player_number_to_symbol(int player_number);
 int player_symbol_to_number(const char player_symbol);

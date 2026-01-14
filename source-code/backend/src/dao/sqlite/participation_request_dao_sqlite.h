@@ -30,6 +30,7 @@ ParticipationRequestDaoStatus update_participation_request_by_id(sqlite3 *db, co
 ParticipationRequestDaoStatus delete_participation_request_by_id(sqlite3 *db, int64_t id_request);
 ParticipationRequestDaoStatus insert_participation_request(sqlite3 *db, ParticipationRequest *in_out_request);
 
+ParticipationRequestDaoStatus get_participation_request_by_id_with_player_info(sqlite3 *db, int64_t id_request, ParticipationRequestWithPlayerNickname *out);
 ParticipationRequestDaoStatus get_all_participation_requests_with_player_info(sqlite3 *db, ParticipationRequestWithPlayerNickname **out_array, int *out_count);
 ParticipationRequestDaoStatus get_all_pending_participation_request_by_id_game(sqlite3 *db, int64_t id_game, ParticipationRequest **out_array, int *out_count);
 

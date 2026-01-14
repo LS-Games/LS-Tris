@@ -1,0 +1,24 @@
+<div class="request-page-container">
+    <span class="close-btn" (click)="close()">&times;</span>
+
+    <div class="request-card-container">
+
+        @if (loading) {
+            <p class="loading-message">Waiting for requests...</p>
+        } 
+
+        @else if (requests().length > 0) {
+
+            @for (request of requests(); track request.id_request) {
+                <app-request-card 
+                    [sender_nickname]="request.player_nickname"
+                    [data]="request.created_at"
+                    [id_request]="request.id_request">
+                </app-request-card>
+            }
+
+        } @else { 
+            <p class="empty-message">Waiting for requests...</p>
+        }
+    </div>
+</div>

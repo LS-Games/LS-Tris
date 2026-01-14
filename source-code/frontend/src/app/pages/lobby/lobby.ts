@@ -1,27 +1,120 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, afterNextRender, DestroyRef, effect } from '@angular/core';
 import { Dialog, DialogRef } from '@angular/cdk/dialog';
+import { NotificationService } from '../../core/services/notification';
 import { GameCard } from '../lobby/components/game-card/game-card';
+import { RequestPage } from '../request-page/request-page';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { GameService } from '../../core/services/game.service';
+import { RequestsService } from '../../core/services/requests.service';
+import { RoundService } from '../../core/services/round.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-lobby',
   standalone: true,
   imports: [GameCard],
   templateUrl: './lobby.html',
-  styleUrl: './lobby.scss'
+  styleUrl: './lobby.scss',
 })
+
 export class Lobby {
 
-  private readonly _dialogRef = inject(DialogRef<Lobby>);
   private readonly _dialog = inject(Dialog)
+  private readonly _dialogRef = inject(DialogRef<Lobby>);
+  private readonly _notification = inject(NotificationService);
+  private readonly _destroyRef = inject(DestroyRef); // replaces ngOnDestroy
+  private readonly _game = inject(GameService);
+  private readonly _rqst_service = inject(RequestsService);
+  private readonly _round = inject(RoundService);
+  private readonly _router = inject(Router);
 
-  matches = [
-    { id: 1, creator: 'Luca', data: new Date().toLocaleDateString('it-IT'), owner: 'Luca', state: 'waiting' as const, current_streak: 3 },
-    { id: 2, creator: 'Marco', data: new Date().toLocaleDateString('it-IT'), owner: 'Paolo', state: 'active' as const, current_streak: 5 },
-    { id: 3, creator: 'Giulia', data: new Date().toLocaleDateString('it-IT'), owner: 'Maria', state: 'new' as const, current_streak: 0 },
-    { id: 4, creator: 'Franco', data: new Date().toLocaleDateString('it-IT'), owner: 'Peppe', state: 'finished' as const, current_streak: 0 },
-  ];
+  loading = true;
+  games = this._game.gamesSignal;
+  pending = this._rqst_service.pendingSignal;
 
+  constructor() {
+
+    this._round.resetAll();
+
+    effect(() => {
+      const gameId = this._round.gameId();
+      const roundId = this._round.roundId();
+
+      if (gameId !== null && roundId !== null) {
+        this._dialogRef.close();
+        this._router.navigate(['/round', gameId, roundId]);
+      }
+    });
+
+    /**
+     * afterNextRender() is executed after the component’s initial render.
+     * Equivalent to ngOnInit(), but works in a functional and signal-friendly way.
+     */
+
+    afterNextRender(() => {
+
+      //We clear the array 
+      this._game.setGames([]);
+
+      this._game
+        .getAllGame()
+          .pipe(takeUntilDestroyed(this._destroyRef))
+          .subscribe({
+
+            /**
+             * This next is different to Subject.next(), in this case next: is useful to 
+             * perform a specific action when a event occurs, while in the first case is used to 
+             * send a new value to the listeners
+             */
+
+            next : (backend) => {
+              if(backend.status === 'success') {
+                console.log("DEBUG LOBBY GAMES FROM BACKEND:", backend.games);
+                const filtered_games = backend.games.filter((g:any) => (g.state === 'active' || g.state === 'new' || g.state === 'waiting'));
+                this._game.setGames(filtered_games);
+                console.log(filtered_games);
+                this.loading = false;
+
+                if(backend.count == 0) {
+                  this._notification.show('info', 'There are no games available right now.')
+                }
+
+              } else {
+                  this._notification.show('error', backend.error_message || 'Failed to fetch games.');
+                  this.loading = false;
+              }
+            },
+
+            error: (err) => {
+              console.error('WebSocket error:', err);
+              this.loading = false;
+              this._notification.show('error', 'An unexpected error occurred.');
+            }
+          })
+    });
+  }
+
+  /** Closes the dialog */
   close() {
     this._dialogRef.close();
+  }
+
+  //Logic to open game request page when create game button is clicked"
+  openRequestPage() {
+
+    //When a create game button in Lobby is clicked we open a request-page and we create a game
+    this._game.createGame();
+
+    this._dialog.open(RequestPage, {
+      disableClose: true
+    })
+
+    //We close the Lobby section 
+    this.close();
+  }
+
+  closePending() {
+    this._rqst_service.endPending();
+    this._rqst_service.deleteMyParticipationRequest();
   }
 }
