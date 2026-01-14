@@ -223,7 +223,7 @@ void route_request(const char* json_body, int client_socket, int* persistence) {
                     "server_game_forfeit_notification",
                     out_notification
                 );
-                send_server_broadcast_message(json_notification, id_player);
+                send_server_unicast_message(json_notification, winner);
                 free(json_notification);
                 free(out_notification);
             }
