@@ -24,28 +24,27 @@
 typedef struct {
     Session list[MAX_SESSION];      // We use array because we have a few sessions (We should use different structures)
     int count;                      // Active session number
-    pthread_mutex_t lock;           
+    pthread_mutex_t lock;           // Mutex "by structure"
 } SessionManager;
 
-
-// Session management
+// ===================== Session management =====================
 
 void session_manager_init(SessionManager *manager);
 void session_add(SessionManager *manager, int fd, int64_t id_player, const char *nickname);
 void session_remove(SessionManager *manager, int fd);
 
-
-// Find session
+// ===================== Find session =====================
 
 int session_find_by_fd(SessionManager *manager, int fd, Session *out);
 int session_find_by_id_player(SessionManager *manager, int64_t id_player, Session *out);
 int session_find_by_nickname(SessionManager *manager, const char* nickname, Session *out);
 
-
-// Message sender
+// ===================== Message sender =====================
 
 int session_broadcast(SessionManager *manager, const char *message, int sender_fd);
 int session_unicast(SessionManager *manager, const char *message, int receiver_fd);
+
+// ===================== Utilities =====================
 
 void print_session_list(SessionManager *manager);
 
