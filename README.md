@@ -4,6 +4,8 @@ Repository dedicata al progetto di Laboratorio di Sistemi Operativi 2024/2025.
 
 ATTENZIONE! Sono stati predisposti degli script (sia [Script Bash](./scripts/linux/) che [Script CMD](./scripts/windows/)) per eseguire e rimuovere velocemente i containers definiti tramite Docker Compose.
 
+La documentazione è disponibile nella directory [documentation](./documentation/). Clicca [qui](./documentation/Documentazione%20LS-Tris.pdf) per un link rapido.
+
 ## Indice
 
 * [IDE consigliati](#ide-consigliati)
