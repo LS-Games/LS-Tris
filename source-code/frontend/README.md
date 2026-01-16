@@ -1,6 +1,6 @@
 # Frontend
 
-Questo progetto è stato generato utilizzando [Angular CLI](https://github.com/angular/angular-cli) versione `20.0.4`.
+Frontend dedicato al progetto LS-Tris. Questo progetto è stato generato utilizzando [Angular CLI](https://github.com/angular/angular-cli) versione `20.0.4`.
 
 L'interprete utilizzato è `node 22.19.0`.
 
@@ -10,7 +10,7 @@ Ogni comando si intende eseguito dalla root directory del progetto, [frontend](.
 
 * [Package Dependencies](#package-dependencies)
 * [Scripts](#scripts)
-* [Development server](#development-server)
+* [Avviare il development server](#avviare-il-development-server)
 * [Code scaffolding](#code-scaffolding)
 * [Building](#building)
 * [Eseguire unit tests](#eseguire-unit-tests)
@@ -31,15 +31,15 @@ npm install
 
 Per eseguire il frontend, è stato predisposto un [package.json](./package.json). Gli script definiti sono i seguenti:
 
+* `npm run ng` è una scorciatoria per usare il comando `ng` quando non è disponibile globalmente;
 * `npm run generate-env` esegue uno script per generare dinamicamente un file di configurazione delle variabili d'ambiente;
 * `npm start` o `npm run start` esegue `generate-env` ed esegue il progetto in modalità sviluppo (variante `npm run start:docker` per sviluppo in ambiente Docker);
-* `npm run build` esegue `generate-env` e compila il progetto in modalità sviluppo;
+* `npm run build` esegue `generate-env` e compila il progetto in modalità produzione;
 * `npm run watch` esegue `generate-env`, compila il progetto in modalità sviluppo e resta in ascolto per ricompilare automaticamente al variare dei file;
-* `npm run build:prod` esegue `generate-env` e compila il progetto in modalità produzione;
 * `npm run serve` serve la build del progetto tramite `http-server` e disabilitando la cache;
 * `npm run test` esegue test unitari.
 
-## Development server
+## Avviare il development server
 
 Per avviare un server locale di sviluppo, esegui:
 

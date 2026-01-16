@@ -14,6 +14,7 @@ Ogni comando si intende eseguito dalla root directory del progetto, [backend](.)
     + [Creazione dello schema da terminale](#creazione-dello-schema-da-terminale)
     + [Visualizzazione del database da terminale](#visualizzazione-del-database-da-terminale)
     + [Popolazione del database da terminale](#popolazione-del-database-da-terminale)
+* [Struttura del progetto](#struttura-del-progetto)
 
 ## Third-party Dependencies
 
@@ -62,4 +63,62 @@ Possiamo creare un file `populate_db.sql`, contenente le istruzioni SQL per popo
 
 ```bash
 sqlite3 ./db/data/database.sqlite < ./db/populate_db.sql
+```
+
+## Struttura del progetto
+
+Ultimo aggiornamento: 16/01/2026
+
+```text
+/backend
+│
+├── bin/                                    @ Directory contenete gli eseguibili finali
+│   └── ls-tris                                 # App eseguibile
+│
+├── build/                                  @ Directory contenete gli artifacts di compilazione
+│   └──  ...
+|
+├── db/                                     @ Directory contenente i files per il database
+│   ├── populate_db.sql                         # Popolazione del database
+│   ├── schema.sql                              # Schema SQL
+│   └── data/                                   @ Directory contenente i database utilizzati dall'app
+│       └── database.sql                            # Database SQLite
+│
+├── include/                                @ Directory contenete gli header pubblici
+│   └── debug_log.h                             # Definizione delle direttive di logging
+│
+├── src/                                    @ Directory contenente il codice sorgente
+│   │
+│   ├── controllers/                            @ Directory contenente la logica di business dell'app (funzionalità e operazioni CRUD)
+│   │   └──  ...                                    # Logica turni, validazione mosse, check vittoria...
+│   │
+│   ├── dao/                                    @ Directory contenente la logica di comunicazione tra app e database
+│   │   ├── dto/                                    @ Definizione di strutture custom di comunicazione con layer di persistenza
+│   │   │   └── ...
+│   │   └── sqlite/                                 @ Definizione del DAO per SQLite
+│   │       ├── db_connection_sqlite.c / .h             # Connessione al database
+│   │       └── ...                                     # Operazioni CRUD per le entità del dominio
+│   │
+│   ├── dto/                                    @ Directory contenente la definizione di strutture custom di comunicazione con layer di rete
+│   │   └──  ...
+│   │
+│   ├── entities/                               @ Directory contenente la definizione di strutture per le entità del dominio
+│   │   └──  ...                                    # Game, Participation Request, Play, Player, Round (Tipi e logica di stampa)
+│   │
+│   ├── json-parser/                            @ Directory contenente la logica di parsing da DTO a JSON
+│   │   └──  ...
+│   │
+│   ├── server/                                 @ Directory contenente la logica di orchestrazione dei clients, HTTP Requests e app sessions
+│   │   ├── router.c / .h                           # Definizione del router in base alla HTTP Request, costruzione e invio della HTTP Response
+│   │   ├── server.c / .h                           # Clients management tramite Threads e Sockets
+│   │   └── session_manager.c / .h                  # Gestione della sessione dei giocatori
+│   │
+│   └── main.c                                  # Bootstrap 
+│
+├── .dockerignore                           # File di definizione della ignore-list del Dockerfile
+├── .gitignore                              # File di definizione della ignore-list del sistema di versioning
+├── Dockerfile                              # Definizione del Docker container di produzione
+├── entrypoint.sh                           # Entrypoint del Docker container di produzione
+├── Makefile                                # Script di build
+└── README.md                               # Questo README
 ```

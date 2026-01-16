@@ -6,11 +6,21 @@ ATTENZIONE! Sono stati predisposti degli script (sia [Script Bash](./scripts/lin
 
 ## Indice
 
+* [IDE consigliati](#ide-consigliati)
 * [System requirements](#system-requirements)
     + [Installazione tramite Docker Containers](#installazione-tramite-docker-containers)
         - [Development Containers](#development-containers)
         - [Production Containers](#production-containers)
     + [Rimozione dei Docker Containers](#rimozione-dei-docker-containers)
+
+## IDE consigliati
+
+Per lo sviluppo del progetto si consiglia [Visual Studio Code](https://code.visualstudio.com/). In particolare, affiancato allo sviluppo del progetto tramite [DevContainer](https://code.visualstudio.com/docs/devcontainers/containers)
+
+Maggiori informazioni ai seguenti articoli:
+
+* [Development Containers](https://containers.dev/)
+* [Developing inside a Container](https://code.visualstudio.com/docs/devcontainers/containers)
 
 ## System requirements
 
