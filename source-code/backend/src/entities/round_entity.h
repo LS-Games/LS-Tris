@@ -23,10 +23,8 @@ typedef struct {
     int64_t id_round;
     int64_t id_game;
     RoundStatus state;
-
     int64_t start_time; // Unix timestamp (seconds, server-side)
     int64_t end_time;
-
     char board[BOARD_MAX];
 } Round;
 
