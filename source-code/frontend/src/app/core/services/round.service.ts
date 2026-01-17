@@ -129,6 +129,7 @@ export class RoundService {
                     this._notification.show('success', msg.message, 4000);
                     this.winnerByForfeitSignal.set(true);
                     this.roundEndedSignal.set(true);
+                    this.rematchPendingSignal.set(false);
                     console.log(this.winnerByForfeitSignal());
                 }
             });
