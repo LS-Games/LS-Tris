@@ -19,8 +19,8 @@ app.use((req, res, next) => {
 });
 
 // === Backend connection details ========================================
-const BACKEND_HOST = process.env.TCP_BACKEND_ADDRESS || 'localhost'; // default host = 'localhost'
-const BACKEND_PORT = parseInt(process.env.TCP_BACKEND_PORT || '8080'); // default port = '8080'
+const BACKEND_HOST = process.env.TCP_BACKEND_ADDRESS || 'backend'; // default host = 'backend'
+const BACKEND_PORT = Number(process.env.TCP_BACKEND_PORT) || 5050;
 
 console.log(`Forwarding to backend on "${BACKEND_HOST}:${BACKEND_PORT}"`);
 
