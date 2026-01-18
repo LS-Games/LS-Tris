@@ -17,7 +17,7 @@ RUN npm ci
 # Copio tutti i files dalla directory locale alla directory corrente all'interno del container
 COPY . .
 # Build del progetto in modalità di produzione
-RUN npm run build:prod
+RUN npm run build
 
 
 # ---- STAGE 2: Serve con NGINX ----
