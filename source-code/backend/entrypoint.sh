@@ -10,7 +10,7 @@ if [ ! -s "$DB_FILE" ]; then
     echo "Initializing the database..."
     mkdir -p "$(dirname "$DB_FILE")"
     sqlite3 "$DB_FILE" < ./db/scheme.sql
-    sqlite3 "$DB_FILE" < ./db/populate_db.sql
+    # sqlite3 "$DB_FILE" < ./db/populate_db.sql # Uncomment this if you want to populate the DB with initial data
     echo "Database successfully initialized"
 else
     echo "Database already present, no initialization necessary."
